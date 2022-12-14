@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import Typewriter from "typewriter-effect";   
 
 export default function Home() {
   return (
@@ -13,12 +14,37 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Hello. It&apos;s me. Josh Kurz.
+        <Typewriter
+          onInit={(typewriter)=> {
+          typewriter
+          .typeString("Hello... It's me. Josh Kurz.")
+          .start();
+          }}
+        />
         </h1>
-
+        
         <div className={styles.grid}>
-            <h2>Something ChatGPT Wrote About My Site&rarr;</h2>
-            <p>Welcome to my website! My name is Josh Kurz and I am a professional who enjoys many things in life. I have a passion for learning and experiencing new things, and I strive to live a balanced and fulfilling life. Whether it&apos;s pursuing my career, spending time with friends and family, or exploring new hobbies and interests, I always try to make the most out of each day. I am excited to share my experiences and insights with you on my website, and I hope you find something here that resonates with you. Thank you for visiting!</p>
+            <h2>
+              <Typewriter
+                onInit={(typewriter)=> {
+                typewriter
+                .pauseFor(4000)
+                .typeString("Here Is Something ChatGPT Wrote ->")
+                .start();
+                }}
+               />
+            </h2>
+        </div>
+        <div className={styles.grid}>
+            <Typewriter
+                onInit={(typewriter)=> {
+                typewriter
+                .pauseFor(10000)
+                .changeDelay(50)
+                .typeString("<br></br>Welcome to my website! My name is Josh Kurz and I am a professional who enjoys many things in life. I have a passion for learning and experiencing new things, and I strive to live a balanced and fulfilling life. Whether it&apos;s pursuing my career, spending time with friends and family, or exploring new hobbies and interests, I always try to make the most out of each day. I am excited to share my experiences and insights with you on my website, and I hope you find something here that resonates with you. Thank you for visiting!")
+                .start();
+                }}
+                />
         </div>
       </main>
 

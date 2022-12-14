@@ -24,3 +24,7 @@ a {
     background: black;
   }
 }
+
+span.Typewriter__cursor {
+  display: none;
+}
