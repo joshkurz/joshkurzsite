@@ -17,10 +17,8 @@ export default function Home() {
         </h1>
 
         <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
             <h2>Something ChatGPT Wrote About My Site&rarr;</h2>
             <p>Welcome to my website! My name is Josh Kurz and I am a professional who enjoys many things in life. I have a passion for learning and experiencing new things, and I strive to live a balanced and fulfilling life. Whether it&apos;s pursuing my career, spending time with friends and family, or exploring new hobbies and interests, I always try to make the most out of each day. I am excited to share my experiences and insights with you on my website, and I hope you find something here that resonates with you. Thank you for visiting!</p>
-          </a>
         </div>
       </main>
 
