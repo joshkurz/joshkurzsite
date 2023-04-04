@@ -6,11 +6,15 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export default async function handler(req, res) {
-    let completion = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: "Write a dad joke about something random.",
-        max_tokens: 2048,
-        temperature: 0.9,
+    let completion1 = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [{role: "user", content: "Give me a random topic in one word"}],
     });
-    res.status(200).json({data: completion.data.choices[0].text })
+    let jokeString = "Write a random dad joke about " + completion1.data.choices[0].message.content + " that nobody has ever heard.";
+    let completion2 = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [{role: "user", content: jokeString}],
+    });
+    console.log(jokeString, completion2.data.choices[0].message.content);
+    res.status(200).json({data: completion2.data.choices[0].message.content })
 }
