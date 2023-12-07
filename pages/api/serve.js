@@ -3,7 +3,7 @@ import path from 'path';
 
 export default function handler(req, res) {
     try {
-        const filePath = path.join(process.cwd(), `speech.mp3`);
+        const filePath = path.join("tmp", `speech.mp3`);
         console.log(filePath)
         const imageBuffer = fs.readFileSync(filePath);
         res.setHeader('Content-Type', 'audio/mpeg');

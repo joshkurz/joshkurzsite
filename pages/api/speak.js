@@ -6,7 +6,7 @@ const openai = new OpenAI({
   apiKey: process.env.API_KEY
 });
 
-const speechFile = path.resolve(process.cwd(), 'speech.mp3');
+const speechFile = path.resolve("tmp", 'speech.mp3');
 console.log(speechFile)
 async function main(data) {
   const mp3 = await openai.audio.speech.create({
@@ -19,7 +19,7 @@ async function main(data) {
   await fs.writeFile(speechFile, buffer);
 
   const transcription = await openai.audio.transcriptions.create({
-    file: await toFile(buffer, 'speech.mp3'),
+    file: await toFile(buffer, speechFile),
     model: 'whisper-1',
   });
   console.log(transcription.text);
