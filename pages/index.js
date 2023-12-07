@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import React from 'react'
 import styles from '../styles/Home.module.css'
-import Typewriter from "typewriter-effect";   
+import Typewriter from "typewriter-effect";  
 
 
 class OpenAIData extends React.Component {
@@ -88,15 +88,6 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://opensesamelocksmith.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-        Powered by Open Sesame Locksmith
-        </a>
-      </footer>
     </div>
   )
 }

@@ -128,3 +128,9 @@
     filter: invert(1);
   }
 }
+
+.textbox {
+  width: 250px;
+  height: 50px;
+  margin: 5px;
+}
