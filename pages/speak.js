@@ -7,6 +7,8 @@ export default function SpeechHelper() {
 
   const [inputValue, setInputValue] = useState('');
   const [source, setSourceValue] = useState('');
+  const [isLoading, setIsLoadingValue] = useState(false);
+  const [isLoaded, setIsLoadedValue] = useState(false);
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -14,6 +16,8 @@ export default function SpeechHelper() {
 
   const sendDataToBackend = async () => {
     try {
+      setIsLoadedValue(false);
+      setIsLoadingValue(true);
       const response = await fetch('/api/speak', {
         method: 'POST',
         headers: {
@@ -25,6 +29,7 @@ export default function SpeechHelper() {
       if (response.ok) {
         setSourceValue("/api/serve?" + new Date().getTime());
         console.log('Data sent successfully!');
+        setIsLoadedValue(true);
         // Additional logic if needed after sending data
       } else {
         console.error('Failed to send data.');
@@ -32,7 +37,14 @@ export default function SpeechHelper() {
     } catch (error) {
       console.error('Error sending data:', error);
     }
+    setIsLoadingValue(false);
   };
+
+  // clear inputValue text
+  const clearText = () => {
+    setInputValue('');
+    setIsLoadedValue(false);
+  }
 
   return <div className={styles.container}>
       <Head>
@@ -47,14 +59,17 @@ export default function SpeechHelper() {
         type="text"
         value={inputValue}
         onChange={handleInputChange}
-        placeholder="Enter data"
+        placeholder="Enter What you want to say."
       />
-      <button className={styles.textbox} onClick={sendDataToBackend}>Create</button>
-      
-      <ReactAudioPlayer
+      <div>
+          <button className={styles.formbutton} onClick={clearText}>Clear</button>
+          <button className={styles.formbutton} onClick={sendDataToBackend}>Create</button>
+      </div>
+      {isLoaded && <ReactAudioPlayer
         src={source}
         controls
-      />
+      />}
+      {isLoading && <div>loading...</div>}
       </main>
   </div>
 }
