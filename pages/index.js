@@ -11,31 +11,38 @@ class OpenAIData extends React.Component {
     this.state = {
       error: null,
       isLoaded: false,
-      items: []
+      text: ""
     };
+    this.eventSource = null;
   }
 
   componentDidMount() {
-    fetch("/api/openai")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          console.log(result)
-          this.setState({
-            isLoaded: true,
-            text: result.data
-          });
-        },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      )
+    this.eventSource = new EventSource("/api/openai");
+    let joke = "";
+
+    this.eventSource.onmessage = (event) => {
+      if (event.data === "[DONE]") {
+        this.setState({ isLoaded: true });
+        this.eventSource.close();
+      } else {
+        joke += event.data;
+        this.setState({ text: joke });
+      }
+    };
+
+    this.eventSource.onerror = (error) => {
+      this.setState({
+        isLoaded: true,
+        error
+      });
+      this.eventSource.close();
+    };
+  }
+
+  componentWillUnmount() {
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
   }
 
   render() {
@@ -47,15 +54,7 @@ class OpenAIData extends React.Component {
     } else {
       return (
         <h4>
-          <Typewriter
-                onInit={(typewriter)=> {
-                typewriter
-                .pauseFor(1000)
-                .changeDelay(50)
-                .typeString(text)
-                .start();
-                }}
-                />
+          {text}
         </h4>
       );
     }
@@ -73,14 +72,7 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-        <Typewriter
-          onInit={(typewriter)=> {
-          typewriter
-          .changeDelay(50)
-          .typeString("Want to Hear a Dad Joke?")
-          .start();
-          }}
-        />
+          Want to Hear a Dad Joke?
         </h1>
         
         <div className={styles.grid}>
