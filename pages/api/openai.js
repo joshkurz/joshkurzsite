@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
 
     let params1 = OpenAI.Chat.ChatCompletionCreateParams = {
-        model: "gpt-4-turbo",
+        model: "gpt-4.1",
         messages: [{role: "user", content: "Give me a random topic in one word that is common in everyday life. Avoid science, technology, or anything unusual—just something people do or know about, like 'laundry', 'breakfast', or 'traffic'."}],
     };
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
     let jokeString = `Tell me a clever and hilarious dad joke about "${topic}". Make it original, witty, and suitable for all ages. Keep it to one sentence.`;
     let params2 = OpenAI.Chat.ChatCompletionCreateParams = {
-        model: "gpt-4",
+        model: "gpt-4.1",
         messages: [{role: "user", content: jokeString}],
         stream: true
     };
