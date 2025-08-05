@@ -11,14 +11,14 @@ export default async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
 
     let params1 = OpenAI.Chat.ChatCompletionCreateParams = {
-        model: "gpt-4",
-        messages: [{role: "user", content: "Give me a random topic in one word"}],
+        model: "gpt-4-turbo",
+        messages: [{role: "user", content: "Give me a random topic in one word that is common in everyday life. Avoid science, technology, or anything unusual—just something people do or know about, like 'laundry', 'breakfast', or 'traffic'."}],
     };
 
     const completion1 = await openai.chat.completions.create(params1);
     const topic = completion1.choices[0].message.content;
 
-    let jokeString = "Write a random dad joke about " + topic + " that nobody has ever heard.";
+    let jokeString = `Tell me a clever and hilarious dad joke about "${topic}". Make it original, witty, and suitable for all ages. Keep it to one sentence.`;
     let params2 = OpenAI.Chat.ChatCompletionCreateParams = {
         model: "gpt-4",
         messages: [{role: "user", content: jokeString}],
