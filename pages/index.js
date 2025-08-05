@@ -19,8 +19,8 @@ class OpenAIData extends React.Component {
     let joke = "";
 
     this.eventSource.onmessage = (event) => {
+      this.setState({ isLoaded: true });
       if (event.data === "[DONE]") {
-        this.setState({ isLoaded: true });
         this.eventSource.close();
       } else {
         joke += event.data;
@@ -70,12 +70,8 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Want to Hear a Dad Joke?
+            <OpenAIData />
         </h1>
-        
-        <div className={styles.grid}>
-            <OpenAIData></OpenAIData>
-        </div>
       </main>
 
     </div>
