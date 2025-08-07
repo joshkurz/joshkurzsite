@@ -9,26 +9,47 @@ class OpenAIData extends React.Component {
     this.state = {
       error: null,
       isLoaded: false,
-      text: ""
+      question: "",
+      answer: ""
     };
     this.eventSource = null;
   }
 
   componentDidMount() {
+    // Establish an EventSource connection to receive SSEs from the backend
     this.eventSource = new EventSource("/api/openai");
-    let joke = "";
+    // We accumulate the answer as it streams in
+    let answerSoFar = "";
 
     this.eventSource.onmessage = (event) => {
+      // Mark that we've started receiving events
       this.setState({ isLoaded: true });
-      if (event.data === "[DONE]") {
+      const data = event.data;
+      if (data === "[DONE]") {
+        // Close the connection when the server signals completion
         this.eventSource.close();
-      } else {
-        joke += event.data;
-        this.setState({ text: joke });
+        return;
+      }
+      try {
+        // Try to parse the event data as JSON to determine its type
+        const payload = JSON.parse(data);
+        if (payload.type === 'question') {
+          // Set the question text from the payload
+          this.setState({ question: payload.text });
+        } else if (payload.type === 'answer') {
+          // Append incoming answer fragments to build the full answer
+          answerSoFar += payload.text;
+          this.setState({ answer: answerSoFar });
+        }
+      } catch (e) {
+        // Fallback for non‑JSON payloads: treat the data as part of the answer
+        answerSoFar += data;
+        this.setState({ answer: answerSoFar });
       }
     };
 
     this.eventSource.onerror = (error) => {
+      // Record any error and close the SSE connection
       this.setState({
         isLoaded: true,
         error
@@ -44,18 +65,24 @@ class OpenAIData extends React.Component {
   }
 
   render() {
-    const { error, isLoaded, text } = this.state;
+    const { error, isLoaded, question, answer } = this.state;
     if (error) {
       return <div>Error Loading: {error.message}</div>;
-    } else if (!isLoaded) {
-      return <div>Loading...</div>;
-    } else {
-      return (
-        <h4>
-          {text}
-        </h4>
-      );
     }
+    if (!isLoaded) {
+      return <div>Loading...</div>;
+    }
+    return (
+      <div className={styles.jokeContainer}>
+        <h2 className={styles.jokeHeader}>Dad Joke</h2>
+        {question && (
+          <p className={styles.question}><strong>Question:</strong> {question}</p>
+        )}
+        {answer && (
+          <p className={styles.answer}><strong>Answer:</strong> {answer}</p>
+        )}
+      </div>
+    );
   }
 }
 
@@ -69,9 +96,8 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-            <OpenAIData />
-        </h1>
+        {/* Render the joke UI outside of an h1 for better semantics */}
+        <OpenAIData />
       </main>
 
     </div>
