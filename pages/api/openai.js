@@ -1,8 +1,47 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.API_KEY
-});
+/*
+ * When running locally without a valid API key (for example, during development
+ * or in CI where the OpenAI API cannot be reached), we mock the minimal
+ * portion of the OpenAI library used in this handler. The mock returns a
+ * predictable topic and an asynchronous generator that yields a simple dad
+ * joke character by character. To enable the mock, either set the
+ * environment variable MOCK_OPENAI to "true" or omit API_KEY entirely.
+ */
+let openai;
+if (process.env.MOCK_OPENAI === 'true' || !process.env.API_KEY) {
+  // Define a mock responses API that mirrors the interface used below
+  openai = {
+    responses: {
+      /**
+       * Mock implementation of `responses.create`.
+       * When called without streaming, returns a static topic. When called
+       * with streaming enabled, returns an async generator that yields a
+       * fixed dad joke one character at a time to simulate streaming.
+       */
+      async create({ stream }) {
+        if (!stream) {
+          // Return a fixed topic when requesting a random topic
+          return { output_text: 'pancakes' };
+        }
+        // Return an async iterator for the joke content
+        const joke = 'Why did the pancake become a dad? Because it had too much batter!';
+        async function* generator() {
+          for (const char of joke) {
+            // Wait a tiny bit between characters to better simulate streaming
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            yield { delta: char };
+          }
+        }
+        return generator();
+      }
+    }
+  };
+} else {
+  openai = new OpenAI({
+    apiKey: process.env.API_KEY
+  });
+}
 
 export default async function handler(req, res) {
 
