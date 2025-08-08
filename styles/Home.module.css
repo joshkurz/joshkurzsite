@@ -151,8 +151,8 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  /* Use a dark text color for readability against the light background */
-  color: #333;
+  /* Use a black text color for maximum readability against the light background */
+  color: #000;
 }
 
 .jokeHeader {
