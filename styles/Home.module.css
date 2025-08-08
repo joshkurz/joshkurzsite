@@ -159,8 +159,11 @@
   font-size: 2.2rem;
   margin-bottom: 1rem;
   text-align: left;
-  /* Add a playful accent color to the header */
-  color: #0070f3;
+  /* Make the header black for better contrast and add emphasis */
+  color: #000;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 0.5rem;
 }
 
 .question {
