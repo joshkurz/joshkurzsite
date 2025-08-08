@@ -21,36 +21,21 @@ export default function SpeechHelper() {
   };
 
   const sendDataToBackend = async () => {
-    try {
-      setIsLoadedValue(false);
-      setIsLoadingValue(true);
-      const response = await fetch('/api/speak', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: inputValue }),
-      });
+    setIsLoadingValue(true);
+    setIsLoadedValue(true);
+    setSourceValue(`/api/speak?text=${encodeURIComponent(inputValue)}`);
+  };
 
-      if (response.ok) {
-        setSourceValue("/api/serve?" + new Date().getTime());
-        console.log('Data sent successfully!');
-        setIsLoadedValue(true);
-        // Additional logic if needed after sending data
-      } else {
-        console.error('Failed to send data.');
-      }
-    } catch (error) {
-      console.error('Error sending data:', error);
-    }
+  const handleCanPlay = () => {
     setIsLoadingValue(false);
   };
 
   // clear inputValue text
   const clearText = () => {
     setInputValue('');
+    setSourceValue('');
     setIsLoadedValue(false);
-  }
+  };
 
   return (
     <div className={styles.container}>
@@ -76,6 +61,7 @@ export default function SpeechHelper() {
           <ReactAudioPlayer
             src={source}
             controls
+            onCanPlay={handleCanPlay}
           />
         )}
         {isLoading && <Spinner />}

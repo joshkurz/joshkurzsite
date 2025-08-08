@@ -1,34 +1,38 @@
-import OpenAI, { toFile } from 'openai';
-import fs from 'fs/promises';
-import path from 'path';
+import OpenAI from 'openai';
+import { Readable } from 'stream';
 
 const openai = new OpenAI({
-  apiKey: process.env.API_KEY
+  apiKey: process.env.API_KEY,
 });
 
-const speechFile = '/tmp/speech.mp3';
-console.log(speechFile)
-async function main(data) {
-  const mp3 = await openai.audio.speech.create({
-    model: 'tts-1',
-    voice: 'alloy',
-    input: data.text,
-  });
-
-  const buffer = Buffer.from(await mp3.arrayBuffer());
-  await fs.writeFile(speechFile, buffer);
-
-  const transcription = await openai.audio.transcriptions.create({
-    file: await toFile(buffer, speechFile),
-    model: 'whisper-1',
-  });
-  console.log(transcription.text);
-}
-
 export default async function handler(req, res) {
-    if (req.method === 'POST') {
-        console.log("text from user to tts: " + req.body)
-        await main(req.body);
+  const text = req.method === 'GET' ? req.query.text : req.body?.text;
+  if (!text) {
+    res.status(400).json({ error: 'Missing text' });
+    return;
+  }
+
+  try {
+    const speech = await openai.audio.speech.create({
+      model: 'tts-1',
+      voice: 'alloy',
+      input: text,
+      stream_format: 'audio',
+      response_format: 'mp3',
+    });
+
+    const response = await speech.asResponse();
+    res.setHeader('Content-Type', 'audio/mpeg');
+
+    if (response.body) {
+      const stream = Readable.fromWeb(response.body);
+      stream.pipe(res);
+    } else {
+      res.status(500).end();
     }
-    res.status(200).json({data: speechFile })
+  } catch (error) {
+    console.error('Error generating speech:', error);
+    res.status(500).json({ error: 'Error generating speech' });
+  }
 }
+
