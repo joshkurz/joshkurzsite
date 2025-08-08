@@ -1,0 +1,27 @@
+.header {
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #f39c12;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.nav {
+  display: flex;
+}
+
+.navLink {
+  margin-left: 1rem;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+}

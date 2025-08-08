@@ -1,8 +1,15 @@
+/* Define default (light) theme variables */
+:root {
+  --bg-color: #fff;
+  --text-color: #000;
+  --card-bg: #f9f9f9;
+  color-scheme: light;
+}
+
 html,
 body {
-  color-scheme: dark;
-  color: white;
-  background: black;
+  color: var(--text-color);
+  background: var(--bg-color);
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
@@ -18,13 +25,13 @@ a {
   box-sizing: border-box;
 }
 
+/* Override variables when the user prefers dark mode */
 @media (prefers-color-scheme: dark) {
-  html {
+  :root {
     color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
+    --bg-color: #000;
+    --text-color: #fff;
+    --card-bg: #111;
   }
 }
 
