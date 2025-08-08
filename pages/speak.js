@@ -11,6 +11,7 @@ export default function SpeechHelper() {
   const [source, setSourceValue] = useState('');
   const [isLoading, setIsLoadingValue] = useState(false);
   const [isLoaded, setIsLoadedValue] = useState(false);
+  const [voice, setVoice] = useState('coral');
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -21,15 +22,20 @@ export default function SpeechHelper() {
     setInputValue(event.target.value);
   };
 
+  const handleVoiceChange = (event) => {
+    setVoice(event.target.value);
+  };
+
   const sendDataToBackend = async () => {
     setIsLoadingValue(true);
     setIsLoadedValue(true);
-    setSourceValue(`/api/speak?text=${encodeURIComponent(inputValue)}`);
+    setSourceValue(`/api/speak?text=${encodeURIComponent(inputValue)}&voice=${encodeURIComponent(voice)}`);
     // If not demo script, update URL
     if (!inputValue.startsWith('Hello there! This is a comprehensive test for the text-to-audio bot.')) {
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
         url.searchParams.set('text', inputValue);
+        url.searchParams.set('voice', voice);
         window.history.replaceState({}, '', url.toString());
       }
     }
@@ -106,8 +112,12 @@ If you’ve made it this far without a glitch—congratulations!`);
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const textParam = urlParams.get('text');
+      const voiceParam = urlParams.get('voice');
       if (textParam) {
         setInputValue(textParam);
+      }
+      if (voiceParam) {
+        setVoice(voiceParam);
       }
     }
   }, []);
@@ -132,6 +142,26 @@ If you’ve made it this far without a glitch—congratulations!`);
           {inputValue && (
             <button className={styles.iconButton} onClick={clearText} title="Clear">✕</button>
           )}
+        </div>
+        <div className={styles.dropdownWrapper}>
+          <label htmlFor="voice-select" className={styles.dropdownLabel}>Voice:</label>
+          <select
+            id="voice-select"
+            className={styles.dropdown}
+            value={voice}
+            onChange={handleVoiceChange}
+          >
+            <option value="alloy">Alloy</option>
+            <option value="ash">Ash</option>
+            <option value="ballad">Ballad</option>
+            <option value="coral">Coral</option>
+            <option value="echo">Echo</option>
+            <option value="fable">Fable</option>
+            <option value="nova">Nova</option>
+            <option value="onyx">Onyx</option>
+            <option value="sage">Sage</option>
+            <option value="shimmer">Shimmer</option>
+          </select>
         </div>
         <div className={styles.buttonGroup}>
           <button className={styles.formbutton} onClick={sendDataToBackend}>Play</button>
