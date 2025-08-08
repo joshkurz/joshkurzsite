@@ -89,10 +89,10 @@ class OpenAIData extends React.Component {
         {/* Update the header to be a bit more playful */}
         <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
         {question && (
-          <p className={styles.question}>{question}</p>
+          <p key={question} className={`${styles.question} ${styles.fadeIn}`}>{question}</p>
         )}
         {answer && (
-          <p className={styles.answer}>{answer}</p>
+          <p key={answer} className={`${styles.answer} ${styles.fadeIn}`}>{answer}</p>
         )}
       </div>
     );
