@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import React from 'react'
 import styles from '../styles/Home.module.css'
+import Spinner from '../components/Spinner'
 
 
 class OpenAIData extends React.Component {
@@ -78,11 +79,7 @@ class OpenAIData extends React.Component {
       return <div>Error Loading: {error.message}</div>;
     }
     if (!isLoaded) {
-      return (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingBox}>Loading...</div>
-        </div>
-      );
+      return <Spinner />;
     }
     return (
       <div className={styles.jokeContainer}>
