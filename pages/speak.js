@@ -3,7 +3,7 @@ import ReactAudioPlayer from 'react-audio-player';
 import { useState } from 'react';
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
-import styles from '../styles/Home.module.css'
+import styles from '../styles/Speak.module.css'
 
 export default function SpeechHelper() {
 
@@ -13,7 +13,8 @@ export default function SpeechHelper() {
   const [isLoaded, setIsLoadedValue] = useState(false);
 
   const navLinks = [
-    { href: '/', label: 'Home' }
+    { href: '/', label: 'Home' },
+    { href: '/speak', label: 'Speak' }
   ];
 
   const handleInputChange = (event) => {
@@ -66,7 +67,7 @@ export default function SpeechHelper() {
           type="text"
           value={inputValue}
           onChange={handleInputChange}
-          placeholder="Enter What you want to say."
+          placeholder="Enter what you want to say."
         />
         <div className={styles.buttonGroup}>
           <button className={styles.formbutton} onClick={clearText}>Clear</button>
@@ -74,6 +75,7 @@ export default function SpeechHelper() {
         </div>
         {isLoaded && (
           <ReactAudioPlayer
+            className={styles.audioPlayer}
             src={source}
             controls
           />
