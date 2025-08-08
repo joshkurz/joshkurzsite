@@ -69,7 +69,7 @@ export default function SpeechHelper() {
           onChange={handleInputChange}
           placeholder="Enter What you want to say."
         />
-        <div>
+        <div className={styles.buttonGroup}>
           <button className={styles.formbutton} onClick={clearText}>Clear</button>
           <button className={styles.formbutton} onClick={sendDataToBackend}>Create</button>
         </div>
