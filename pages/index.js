@@ -99,7 +99,8 @@ class OpenAIData extends React.Component {
 
 export default function Home() {
   const navLinks = [
-    { href: '/', label: 'Home' }
+    { href: '/', label: 'Home' },
+    { href: '/speak', label: 'Speak' }
   ];
   return (
     <div className={styles.container}>
