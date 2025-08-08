@@ -4,7 +4,7 @@ import styles from '../styles/Header.module.css';
 export default function Header({ navLinks = [] }) {
   return (
     <header className={styles.header}>
-      <h1 className={styles.title}>Josh Kurz | Dad Jokes</h1>
+      <h1 className={styles.title}>Josh Kurz</h1>
       {navLinks.length > 0 && (
         <nav className={styles.nav}>
           {navLinks.map((link) => (
