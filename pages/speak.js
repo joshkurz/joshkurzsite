@@ -13,8 +13,7 @@ export default function SpeechHelper() {
   const [isLoaded, setIsLoadedValue] = useState(false);
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/speak', label: 'Speak' }
+    { href: '/', label: 'Home' }
   ];
 
   const handleInputChange = (event) => {
