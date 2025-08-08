@@ -53,7 +53,11 @@ export default async function handler(req, res) {
     try {
         // Build a prompt asking for a dad joke about a random topic and instructing
         // the assistant to return it in a two-line format with "Question:" and "Answer:" prefixes.
-        const prompt = `Tell me a witty and family-friendly dad joke about a random topic. ` +
+        // Build a prompt asking the model to first choose a completely random and unexpected topic
+        // and then craft a dad joke about it. We explicitly instruct the model to vary the
+        // subject each time to encourage diversity. The joke should be returned on two lines
+        // using the "Question:" and "Answer:" prefixes so the client can split them easily.
+        const prompt = `First pick a completely random and unexpected topic (different each time), then tell me a witty and family‑friendly dad joke about it. ` +
           `Respond on two lines in the following format:\nQuestion: <your joke's question>\nAnswer: <the punchline>`;
 
         const jokeResponse = await openai.responses.create({
