@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import ReactAudioPlayer from 'react-audio-player';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import styles from '../styles/Speak.module.css'
@@ -25,6 +25,14 @@ export default function SpeechHelper() {
     setIsLoadingValue(true);
     setIsLoadedValue(true);
     setSourceValue(`/api/speak?text=${encodeURIComponent(inputValue)}`);
+    // If not demo script, update URL
+    if (!inputValue.startsWith('Hello there! This is a comprehensive test for the text-to-audio bot.')) {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('text', inputValue);
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
   };
 
   const handleCanPlay = () => {
@@ -93,6 +101,16 @@ Guten Tag, wie geht’s Ihnen? (German)
 And that concludes the test script for the text-to-audio bot.
 If you’ve made it this far without a glitch—congratulations!`);
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const textParam = urlParams.get('text');
+      if (textParam) {
+        setInputValue(textParam);
+      }
+    }
+  }, []);
 
   return (
     <div className={styles.container}>
