@@ -1,9 +1,7 @@
 import OpenAI from 'openai';
 import { Readable } from 'stream';
 
-const openai = new OpenAI({
-  apiKey: process.env.API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.API_KEY });
 
 export default async function handler(req, res) {
   const text = req.method === 'GET' ? req.query.text : req.body?.text;
@@ -13,21 +11,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await openai.audio.speech.create({
+    const aiResponse = await openai.audio.speech.create({
       model: 'gpt-4o-mini-tts',
       voice: 'coral',
       input: text,
       instructions: 'Speak in a cheerful and positive tone.',
-      response_format: 'wav',
+      response_format: 'mp3', // <-- switch to MP3
       stream: true,
     });
 
-    res.setHeader('Content-Type', 'audio/wav');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    res.status(200);
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Accept-Ranges', 'bytes');
 
-    if (response.body) {
-      const stream = Readable.fromWeb(response.body);
-      stream.pipe(res);
+    if (aiResponse.body) {
+      Readable.fromWeb(aiResponse.body).pipe(res);
     } else {
       res.status(500).end();
     }
@@ -36,4 +34,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error generating speech' });
   }
 }
-
