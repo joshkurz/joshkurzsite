@@ -15,17 +15,17 @@ if (process.env.MOCK_OPENAI === 'true' || !process.env.API_KEY) {
     responses: {
       /**
        * Mock implementation of `responses.create`.
-       * When called without streaming, returns a static topic. When called
-       * with streaming enabled, returns an async generator that yields a
-       * fixed dad joke one character at a time to simulate streaming.
+       * When called without streaming, returns a dummy value (not used in this implementation).
+       * When called with streaming enabled, returns an async generator that yields a
+       * fixed dad joke in the same `Question:`/`Answer:` format character by character.
        */
       async create({ stream }) {
         if (!stream) {
-          // Return a fixed topic when requesting a random topic
-          return { output_text: 'pancakes' };
+          // No streaming call should be made without stream in this implementation
+          return { output_text: '' };
         }
-        // Return an async iterator for the joke content
-        const joke = 'Why did the pancake become a dad? Because it had too much batter!';
+        // Provide a static dad joke formatted with Question and Answer on separate lines
+        const joke = 'Question: Why did the pancake become a dad?\nAnswer: Because it had too much batter!';
         async function* generator() {
           for (const char of joke) {
             // Wait a tiny bit between characters to better simulate streaming
