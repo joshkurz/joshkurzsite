@@ -11,6 +11,8 @@
   /* Align items to flex-start so content is left aligned rather than centered */
   justify-content: flex-start;
   align-items: flex-start;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .footer {
@@ -135,12 +137,12 @@
 .jokeContainer {
   /* Constrain the width for readability and center within the page container */
   max-width: 800px;
+  margin: 0 auto;
   padding: 1rem;
   text-align: left;
-  margin-left: auto;
-  margin-right: auto;
   line-height: 1.6;
   font-size: 1.25rem;
+  overflow-wrap: anywhere;
   background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -202,10 +204,37 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main {
+    padding: 2rem 1rem;
   }
-  to {
-    opacity: 1;
+
+  .jokeContainer {
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .jokeHeader {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .jokeContainer {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .jokeHeader {
+    font-size: 1.5rem;
   }
 }
