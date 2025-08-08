@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import React from 'react'
 import styles from '../styles/Home.module.css'
+import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 
 
@@ -97,6 +98,10 @@ class OpenAIData extends React.Component {
 }
 
 export default function Home() {
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/speak', label: 'Speak' }
+  ];
   return (
     <div className={styles.container}>
       <Head>
@@ -104,6 +109,7 @@ export default function Home() {
         <meta name="description" content="Random Dad Jokes From GPT Models" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <Header navLinks={navLinks} />
 
       <main className={styles.main}>
         {/* Render the joke UI outside of an h1 for better semantics */}
