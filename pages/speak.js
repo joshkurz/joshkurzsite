@@ -124,6 +124,7 @@ If you’ve made it this far without a glitch—congratulations!`);
             className={styles.audioPlayer}
             src={source}
             controls
+            autoPlay
             onCanPlay={handleCanPlay}
           />
         )}
