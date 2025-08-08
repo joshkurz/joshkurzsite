@@ -92,6 +92,26 @@
   z-index: 2;
 }
 
+.dropdownWrapper {
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.dropdownLabel {
+  margin-right: 0.5rem;
+  font-weight: 500;
+}
+
+.dropdown {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-surface-dark);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
 @media (max-width: 600px) {
   .buttonGroup {
     flex-direction: column;
