@@ -17,7 +17,7 @@
   display: flex;
   flex: 1;
   padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid var(--card-bg);
   justify-content: center;
   align-items: center;
 }
@@ -54,7 +54,7 @@
 }
 
 .code {
-  background: #fafafa;
+  background: var(--card-bg);
   border-radius: 5px;
   padding: 0.75rem;
   font-size: 1.1rem;
@@ -76,7 +76,7 @@
   text-align: left;
   color: inherit;
   text-decoration: none;
-  border: 1px solid #eaeaea;
+  border: 1px solid var(--card-bg);
   border-radius: 10px;
   transition: color 0.15s ease, border-color 0.15s ease;
   max-width: 300px;
@@ -114,13 +114,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .card,
-  .footer {
-    border-color: #222;
-  }
-  .code {
-    background: #111;
-  }
   .logo img {
     filter: invert(1);
   }
@@ -148,19 +141,19 @@
   margin-right: auto;
   line-height: 1.6;
   font-size: 1.25rem;
-  background-color: #f9f9f9;
+  background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  /* Use a black text color for maximum readability against the light background */
-  color: #000;
+  /* Use the theme's text color for readability against the background */
+  color: var(--text-color);
 }
 
 .jokeHeader {
   font-size: 2.4rem;
   margin-bottom: 1rem;
   text-align: left;
-  /* Use a dark text color for maximum contrast */
-  color: #000;
+  /* Use the theme's text color for maximum contrast */
+  color: var(--text-color);
   font-weight: 700;
   /* Add a subtle accent underline to make the header pop */
   border-bottom: 3px solid #f39c12;
@@ -183,11 +176,11 @@
   text-align: center;
   line-height: 1.6;
   font-size: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  /* Make the header black for better contrast and add emphasis */
-  color: #000;
+  /* Use the theme's text color for better contrast and emphasis */
+  color: var(--text-color);
   font-weight: 700;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   padding-bottom: 0.5rem;
