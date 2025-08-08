@@ -186,7 +186,11 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Make the header black for better contrast and add emphasis */
   color: #000;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 0.5rem;
 }
 
 .question {
