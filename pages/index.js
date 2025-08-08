@@ -2,6 +2,7 @@ import Head from 'next/head'
 import React from 'react'
 import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
+import Spinner from '../components/Spinner'
 
 
 class OpenAIData extends React.Component {
@@ -79,21 +80,17 @@ class OpenAIData extends React.Component {
       return <div>Error Loading: {error.message}</div>;
     }
     if (!isLoaded) {
-      return (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingBox}>Loading...</div>
-        </div>
-      );
+      return <Spinner />;
     }
     return (
       <div className={styles.jokeContainer}>
         {/* Update the header to be a bit more playful */}
         <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
         {question && (
-          <p className={styles.question}>{question}</p>
+          <p key={question} className={`${styles.question} ${styles.fadeIn}`}>{question}</p>
         )}
         {answer && (
-          <p className={styles.answer}>{answer}</p>
+          <p key={answer} className={`${styles.answer} ${styles.fadeIn}`}>{answer}</p>
         )}
       </div>
     );
