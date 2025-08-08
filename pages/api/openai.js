@@ -53,13 +53,29 @@ export default async function handler(req, res) {
     try {
         // Build a prompt asking for a dad joke about a random topic and instructing
         // the assistant to return it in a two-line format with "Question:" and "Answer:" prefixes.
-        const prompt = `Tell me a witty and family-friendly dad joke about a random topic. ` +
-          `Respond on two lines in the following format:\nQuestion: <your joke's question>\nAnswer: <the punchline>`;
+        // Build a prompt asking the model to first choose a completely random and unexpected topic
+        // and then craft a dad joke about it. We explicitly instruct the model to vary the
+        // subject each time to encourage diversity. The joke should be returned on two lines
+        // using the "Question:" and "Answer:" prefixes so the client can split them easily.
+        // Construct a prompt that strongly encourages the model to pick a unique,
+        // unpredictable topic on its own rather than echoing the user's input. We ask
+        // for a family‑friendly dad joke about a random subject and instruct the
+        // model to return the result using Question: and Answer: labels on separate
+        // lines. By emphasising randomness and novelty in the topic we increase the
+        // likelihood that the model varies its output each call.
+        const prompt = [
+          'Pick a truly random, creative and unpredictable topic. This could be an unusual animal, a quirky situation, or an imaginary scenario – the more surprising the better.',
+          'Use this unique topic to craft a witty, family‑friendly dad joke.',
+          'Return your response on two lines exactly in the following format:',
+          'Question: <the setup>',
+          'Answer: <the punchline>'
+        ].join('\n');
 
         const jokeResponse = await openai.responses.create({
             model: "gpt-4o",
             input: prompt,
-            temperature: 0.8,
+            // Increase the temperature slightly to encourage more randomness in the choice of topic
+            temperature: 1.0,
             stream: true
         });
 

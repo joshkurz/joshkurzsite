@@ -78,7 +78,11 @@ class OpenAIData extends React.Component {
       return <div>Error Loading: {error.message}</div>;
     }
     if (!isLoaded) {
-      return <div>Loading...</div>;
+      return (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingBox}>Loading...</div>
+        </div>
+      );
     }
     return (
       <div className={styles.jokeContainer}>
