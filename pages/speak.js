@@ -1,6 +1,8 @@
 import Head from 'next/head'
-import ReactAudioPlayer from 'react-audio-player'; 
+import ReactAudioPlayer from 'react-audio-player';
 import { useState } from 'react';
+import Header from '../components/Header'
+import Spinner from '../components/Spinner'
 import styles from '../styles/Home.module.css'
 
 export default function SpeechHelper() {
@@ -9,6 +11,11 @@ export default function SpeechHelper() {
   const [source, setSourceValue] = useState('');
   const [isLoading, setIsLoadingValue] = useState(false);
   const [isLoaded, setIsLoadedValue] = useState(false);
+
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/speak', label: 'Speak' }
+  ];
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -46,30 +53,34 @@ export default function SpeechHelper() {
     setIsLoadedValue(false);
   }
 
-  return <div className={styles.container}>
+  return (
+    <div className={styles.container}>
       <Head>
         <title>Josh Kurz | Speech Helper</title>
         <meta name="description" content="Help do text to speech" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
+      <Header navLinks={navLinks} />
       <main className={styles.main}>
-      <input
-        className={styles.textbox}
-        type="text"
-        value={inputValue}
-        onChange={handleInputChange}
-        placeholder="Enter What you want to say."
-      />
-      <div>
+        <input
+          className={styles.textbox}
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="Enter What you want to say."
+        />
+        <div>
           <button className={styles.formbutton} onClick={clearText}>Clear</button>
           <button className={styles.formbutton} onClick={sendDataToBackend}>Create</button>
-      </div>
-      {isLoaded && <ReactAudioPlayer
-        src={source}
-        controls
-      />}
-      {isLoading && <div>loading...</div>}
+        </div>
+        {isLoaded && (
+          <ReactAudioPlayer
+            src={source}
+            controls
+          />
+        )}
+        {isLoading && <Spinner />}
       </main>
-  </div>
+    </div>
+  );
 }
