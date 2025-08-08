@@ -13,16 +13,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const speech = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: 'alloy',
+    const response = await openai.audio.speech.create({
+      model: 'gpt-4o-mini-tts',
+      voice: 'coral',
       input: text,
-      stream_format: 'audio',
-      response_format: 'mp3',
+      instructions: 'Speak in a cheerful and positive tone.',
+      response_format: 'wav',
+      stream: true,
     });
 
-    const response = await speech.asResponse();
-    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Transfer-Encoding', 'chunked');
 
     if (response.body) {
       const stream = Readable.fromWeb(response.body);
