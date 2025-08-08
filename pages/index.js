@@ -74,7 +74,8 @@ class OpenAIData extends React.Component {
     }
     return (
       <div className={styles.jokeContainer}>
-        <h2 className={styles.jokeHeader}>Dad Joke</h2>
+        {/* Update the header to be a bit more playful */}
+        <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
         {question && (
           <p className={styles.question}><strong>Question:</strong> {question}</p>
         )}
