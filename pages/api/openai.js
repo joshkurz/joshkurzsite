@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
 
 /*
  * When running locally without a valid API key (for example, during development
@@ -10,6 +12,13 @@ import OpenAI from 'openai';
  */
 let openai;
 if (process.env.MOCK_OPENAI === 'true' || !process.env.API_KEY) {
+  // Read the list of dad jokes once so we can serve a random one when mocking
+  const jokesPath = path.join(process.cwd(), 'data', 'dad_jokes.txt');
+  const jokes = fs
+    .readFileSync(jokesPath, 'utf-8')
+    .split('\n\n')
+    .filter(Boolean);
+
   // Define a mock responses API that mirrors the interface used below
   openai = {
     responses: {
@@ -17,15 +26,15 @@ if (process.env.MOCK_OPENAI === 'true' || !process.env.API_KEY) {
        * Mock implementation of `responses.create`.
        * When called without streaming, returns a dummy value (not used in this implementation).
        * When called with streaming enabled, returns an async generator that yields a
-       * fixed dad joke in the same `Question:`/`Answer:` format character by character.
+       * dad joke character by character from the local jokes file.
        */
       async create({ stream }) {
         if (!stream) {
           // No streaming call should be made without stream in this implementation
           return { output_text: '' };
         }
-        // Provide a static dad joke formatted with Question and Answer on separate lines
-        const joke = 'Question: Why did the pancake become a dad?\nAnswer: Because it had too much batter!';
+        // Select a random joke from the dataset
+        const joke = jokes[Math.floor(Math.random() * jokes.length)];
         async function* generator() {
           for (const char of joke) {
             // Wait a tiny bit between characters to better simulate streaming
