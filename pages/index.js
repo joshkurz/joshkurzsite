@@ -12,7 +12,9 @@ class OpenAIData extends React.Component {
       error: null,
       isLoaded: false,
       question: "",
-      answer: ""
+      answer: "",
+      questionTokens: [],
+      answerTokens: []
     };
     this.eventSource = null;
   }
@@ -27,8 +29,6 @@ class OpenAIData extends React.Component {
     let answerText = "";
 
     this.eventSource.onmessage = (event) => {
-      // Mark that we've started receiving events
-      this.setState({ isLoaded: true });
       const data = event.data;
       if (data === "[DONE]") {
         // Close the connection when the server signals completion
@@ -42,6 +42,8 @@ class OpenAIData extends React.Component {
       const aLabel = "answer:";
       const qIndex = lower.indexOf(qLabel);
       const aIndex = lower.indexOf(aLabel);
+      const prevQuestion = questionText;
+      const prevAnswer = answerText;
       if (qIndex !== -1) {
         if (aIndex !== -1 && aIndex > qIndex) {
           questionText = rawJoke
@@ -56,7 +58,15 @@ class OpenAIData extends React.Component {
             .replace(/^\s*/, '');
         }
       }
-      this.setState({ question: questionText, answer: answerText });
+      const questionDelta = questionText.slice(prevQuestion.length);
+      const answerDelta = answerText.slice(prevAnswer.length);
+      this.setState(prevState => ({
+        isLoaded: true,
+        question: questionText,
+        answer: answerText,
+        questionTokens: questionDelta ? [...prevState.questionTokens, questionDelta] : prevState.questionTokens,
+        answerTokens: answerDelta ? [...prevState.answerTokens, answerDelta] : prevState.answerTokens,
+      }));
     };
 
     this.eventSource.onerror = (error) => {
@@ -76,7 +86,7 @@ class OpenAIData extends React.Component {
   }
 
   render() {
-    const { error, isLoaded, question, answer } = this.state;
+    const { error, isLoaded, questionTokens, answerTokens } = this.state;
     if (error) {
       return <div>Error Loading: {error.message}</div>;
     }
@@ -87,11 +97,19 @@ class OpenAIData extends React.Component {
       <div className={styles.jokeContainer}>
         {/* Update the header to be a bit more playful */}
         <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
-        {question && (
-          <p key={question} className={`${styles.question} ${styles.fadeIn}`}>{question}</p>
+        {questionTokens.length > 0 && (
+          <p className={styles.question}>
+            {questionTokens.map((t, i) => (
+              <span key={i} className={styles.fadeIn}>{t}</span>
+            ))}
+          </p>
         )}
-        {answer && (
-          <p key={answer} className={`${styles.answer} ${styles.fadeIn}`}>{answer}</p>
+        {answerTokens.length > 0 && (
+          <p className={styles.answer}>
+            {answerTokens.map((t, i) => (
+              <span key={i} className={styles.fadeIn}>{t}</span>
+            ))}
+          </p>
         )}
       </div>
     );
