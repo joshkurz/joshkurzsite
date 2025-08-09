@@ -32,25 +32,10 @@ class OpenAIData extends React.Component {
         // Close the connection when the server signals completion
         this.eventSource.close();
         // Once streaming is complete, parse the accumulated joke text.
-        // We expect the joke text to contain "Question:" and "Answer:" labels, but
-        // the exact line breaks or spacing may vary. Use indexOf to locate the
-        // labels and slice out the question and answer accordingly.
-        let questionText = "";
-        let answerText = "";
-        const lower = rawJoke.toLowerCase();
-        const qLabel = "question:";
-        const aLabel = "answer:";
-        const qIndex = lower.indexOf(qLabel);
-        const aIndex = lower.indexOf(aLabel);
-        if (qIndex !== -1 && aIndex !== -1 && aIndex > qIndex) {
-          questionText = rawJoke.slice(qIndex + qLabel.length, aIndex).trim();
-          answerText = rawJoke.slice(aIndex + aLabel.length).trim();
-        } else {
-          // Fallback: attempt splitting on newlines and taking first and second lines
-          const parts = rawJoke.split(/\r?\n/);
-          questionText = parts[0] ? parts[0].replace(/^[Qq]uestion:\s*/, '').trim() : '';
-          answerText = parts[1] ? parts[1].replace(/^[Aa]nswer:\s*/, '').trim() : '';
-        }
+        // Expect the first non-empty line to be the question and the second to be the answer.
+        const parts = rawJoke.split(/\r?\n/).filter(Boolean);
+        const questionText = parts[0] ? parts[0].trim() : '';
+        const answerText = parts[1] ? parts[1].trim() : '';
         this.setState({ question: questionText, answer: answerText });
         return;
       }
