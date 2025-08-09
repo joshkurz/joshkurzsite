@@ -20,9 +20,11 @@ class OpenAIData extends React.Component {
   componentDidMount() {
     // Establish an EventSource connection to receive SSEs from the backend
     this.eventSource = new EventSource("/api/openai");
-    // Buffer for the raw streamed joke. We'll assemble the full text here and
-    // split it into question and answer once the stream is complete.
+    // Buffer for the raw streamed joke so we can incrementally parse the
+    // question and answer as tokens arrive.
     let rawJoke = "";
+    let questionText = "";
+    let answerText = "";
 
     this.eventSource.onmessage = (event) => {
       // Mark that we've started receiving events
@@ -31,31 +33,30 @@ class OpenAIData extends React.Component {
       if (data === "[DONE]") {
         // Close the connection when the server signals completion
         this.eventSource.close();
-        // Once streaming is complete, parse the accumulated joke text.
-        // We expect the joke text to contain "Question:" and "Answer:" labels, but
-        // the exact line breaks or spacing may vary. Use indexOf to locate the
-        // labels and slice out the question and answer accordingly.
-        let questionText = "";
-        let answerText = "";
-        const lower = rawJoke.toLowerCase();
-        const qLabel = "question:";
-        const aLabel = "answer:";
-        const qIndex = lower.indexOf(qLabel);
-        const aIndex = lower.indexOf(aLabel);
-        if (qIndex !== -1 && aIndex !== -1 && aIndex > qIndex) {
-          questionText = rawJoke.slice(qIndex + qLabel.length, aIndex).trim();
-          answerText = rawJoke.slice(aIndex + aLabel.length).trim();
-        } else {
-          // Fallback: attempt splitting on newlines and taking first and second lines
-          const parts = rawJoke.split(/\r?\n/);
-          questionText = parts[0] ? parts[0].replace(/^[Qq]uestion:\s*/, '').trim() : '';
-          answerText = parts[1] ? parts[1].replace(/^[Aa]nswer:\s*/, '').trim() : '';
-        }
-        this.setState({ question: questionText, answer: answerText });
         return;
       }
-      // If not done, append the chunk to our raw joke buffer
+      // Append the incoming chunk and attempt to parse the question/answer
       rawJoke += data;
+      const lower = rawJoke.toLowerCase();
+      const qLabel = "question:";
+      const aLabel = "answer:";
+      const qIndex = lower.indexOf(qLabel);
+      const aIndex = lower.indexOf(aLabel);
+      if (qIndex !== -1) {
+        if (aIndex !== -1 && aIndex > qIndex) {
+          questionText = rawJoke
+            .slice(qIndex + qLabel.length, aIndex)
+            .replace(/^\s*/, '');
+          answerText = rawJoke
+            .slice(aIndex + aLabel.length)
+            .replace(/^\s*/, '');
+        } else {
+          questionText = rawJoke
+            .slice(qIndex + qLabel.length)
+            .replace(/^\s*/, '');
+        }
+      }
+      this.setState({ question: questionText, answer: answerText });
     };
 
     this.eventSource.onerror = (error) => {
