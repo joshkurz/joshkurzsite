@@ -3,6 +3,7 @@ import React from 'react'
 import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
+import { parseStream } from '../lib/parseJokeStream'
 
 
 class OpenAIData extends React.Component {
@@ -14,7 +15,8 @@ class OpenAIData extends React.Component {
       question: "",
       answer: "",
       questionTokens: [],
-      answerTokens: []
+      answerTokens: [],
+      pendingQuestion: ''
     };
     this.eventSource = null;
   }
@@ -25,9 +27,6 @@ class OpenAIData extends React.Component {
     // Buffer for the raw streamed joke so we can incrementally parse the
     // question and answer as tokens arrive.
     let rawJoke = "";
-    let questionText = "";
-    let answerText = "";
-
     this.eventSource.onmessage = (event) => {
       const data = event.data;
       if (data === "[DONE]") {
@@ -37,36 +36,7 @@ class OpenAIData extends React.Component {
       }
       // Append the incoming chunk and attempt to parse the question/answer
       rawJoke += data;
-      const lower = rawJoke.toLowerCase();
-      const qLabel = "question:";
-      const aLabel = "answer:";
-      const qIndex = lower.indexOf(qLabel);
-      const aIndex = lower.indexOf(aLabel);
-      const prevQuestion = questionText;
-      const prevAnswer = answerText;
-      if (qIndex !== -1) {
-        if (aIndex !== -1 && aIndex > qIndex) {
-          questionText = rawJoke
-            .slice(qIndex + qLabel.length, aIndex)
-            .replace(/^\s*/, '');
-          answerText = rawJoke
-            .slice(aIndex + aLabel.length)
-            .replace(/^\s*/, '');
-        } else {
-          questionText = rawJoke
-            .slice(qIndex + qLabel.length)
-            .replace(/^\s*/, '');
-        }
-      }
-      const questionDelta = questionText.slice(prevQuestion.length);
-      const answerDelta = answerText.slice(prevAnswer.length);
-      this.setState(prevState => ({
-        isLoaded: true,
-        question: questionText,
-        answer: answerText,
-        questionTokens: questionDelta ? [...prevState.questionTokens, questionDelta] : prevState.questionTokens,
-        answerTokens: answerDelta ? [...prevState.answerTokens, answerDelta] : prevState.answerTokens,
-      }));
+      this.setState(prevState => parseStream(rawJoke, prevState));
     };
 
     this.eventSource.onerror = (error) => {
