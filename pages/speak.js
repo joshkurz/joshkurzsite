@@ -23,7 +23,16 @@ export default function SpeechHelper() {
   };
 
   const handleVoiceChange = (event) => {
-    setVoice(event.target.value);
+    const newVoice = event.target.value;
+    setVoice(newVoice);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('voice', newVoice);
+      if (inputValue) {
+        url.searchParams.set('text', inputValue);
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   const sendDataToBackend = async () => {
