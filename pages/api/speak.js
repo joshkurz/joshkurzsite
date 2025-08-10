@@ -5,6 +5,8 @@ const openai = new OpenAI({ apiKey: process.env.API_KEY });
 
 export default async function handler(req, res) {
   const text = req.method === 'GET' ? req.query.text : req.body?.text;
+  const voice = req.method === 'GET' ? req.query.voice : req.body?.voice;
+
   if (!text) {
     res.status(400).json({ error: 'Missing text' });
     return;
@@ -13,7 +15,7 @@ export default async function handler(req, res) {
   try {
     const aiResponse = await openai.audio.speech.create({
       model: 'gpt-4o-mini-tts',
-      voice: 'coral',
+      voice: voice || 'coral',
       input: text,
       instructions: 'Speak in a cheerful and positive tone.',
       response_format: 'mp3', // <-- switch to MP3
