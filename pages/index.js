@@ -49,28 +49,57 @@ class OpenAIData extends React.Component {
     // Buffer for the raw streamed joke so we can incrementally parse the
     // question and answer as tokens arrive.
     let rawJoke = "";
+    const timeoutId = setTimeout(() => {
+      this.eventSource.close();
+      this.loadFallbackJoke();
+    }, 3000);
     this.eventSource.onmessage = (event) => {
       const data = event.data;
       if (data === "[DONE]") {
-        // Mark the joke as complete and close the connection
+        clearTimeout(timeoutId);
         this.setState({ isComplete: true });
         this.eventSource.close();
         return;
       }
-      // Append the incoming chunk and attempt to parse the question/answer
       rawJoke += data;
-      this.setState(prevState => parseStream(rawJoke, prevState));
+      this.setState(prevState => ({
+        ...parseStream(rawJoke, prevState),
+        isLoaded: true
+      }));
     };
 
-    this.eventSource.onerror = (error) => {
-      // Record any error and close the SSE connection
+    this.eventSource.onerror = () => {
+      clearTimeout(timeoutId);
+      this.eventSource.close();
+      this.loadFallbackJoke();
+    };
+  }
+
+  loadFallbackJoke = async () => {
+    try {
+      const res = await fetch('/api/random-joke');
+      const data = await res.json();
+      const initialState = {
+        question: '',
+        answer: '',
+        questionTokens: [],
+        answerTokens: [],
+        pendingQuestion: ''
+      };
+      const parsed = parseStream(data.joke, initialState);
+      this.setState({
+        ...parsed,
+        isLoaded: true,
+        isComplete: true,
+        error: null
+      });
+    } catch (error) {
       this.setState({
         isLoaded: true,
         isComplete: true,
         error
       });
-      this.eventSource.close();
-    };
+    }
   }
 
   componentWillUnmount() {

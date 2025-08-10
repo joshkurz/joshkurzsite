@@ -53,45 +53,50 @@ if (process.env.MOCK_OPENAI === 'true' || !process.env.API_KEY) {
   });
 }
 
+const getRandomJoke = () => {
+  const jokesPath = path.join(process.cwd(), 'data', 'dad_jokes.txt');
+  const jokes = fs.readFileSync(jokesPath, 'utf-8').split('\n\n').filter(Boolean);
+  return jokes[Math.floor(Math.random() * jokes.length)];
+};
+
 export default async function handler(req, res) {
+  // Configure Server-Sent Events headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
 
-    // Configure Server-Sent Events headers
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+  const timeoutMs = parseInt(process.env.OPENAI_TIMEOUT_MS || '3000', 10);
 
-    try {
-        // Generate a fresh prompt that picks random topics and comedic devices
-        // while keeping the wording clean and family friendly. The response
-        // must be two lines labelled "Question:" and "Answer:" so the client
-        // can easily parse it.
-        const prompt = generatePrompt();
+  try {
+    const prompt = generatePrompt();
 
-        const jokeResponse = await openai.responses.create({
-            model: "gpt-4o",
-            input: prompt,
-            // Increase the temperature slightly to encourage more randomness in the choice of topic
-            temperature: 1.0,
-            stream: true
-        });
+    const jokePromise = openai.responses.create({
+      model: 'gpt-4o',
+      input: prompt,
+      temperature: 1.0,
+      stream: true
+    });
 
-        // Stream the joke back to the client chunk by chunk without wrapping it in JSON.
-        for await (const chunk of jokeResponse) {
-            const content = chunk.delta;
-            if (content) {
-                res.write(`data: ${content}\n\n`);
-                if (res.flush) res.flush();
-            }
-        }
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), timeoutMs)
+    );
 
-        // Signal to the client that the stream is done
-        res.write('data: [DONE]\n\n');
-        res.end();
-    } catch (error) {
-        // In case of any error, send it down the SSE channel before closing
-        const errorPayload = JSON.stringify({ type: 'error', message: error.message });
-        res.write(`data: ${errorPayload}\n\n`);
-        res.write('data: [DONE]\n\n');
-        res.end();
+    const jokeResponse = await Promise.race([jokePromise, timeoutPromise]);
+
+    for await (const chunk of jokeResponse) {
+      const content = chunk.delta;
+      if (content) {
+        res.write(`data: ${content}\n\n`);
+        if (res.flush) res.flush();
+      }
     }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error) {
+    const joke = getRandomJoke();
+    res.write(`data: ${joke}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
 }
