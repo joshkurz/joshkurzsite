@@ -22,6 +22,26 @@ class OpenAIData extends React.Component {
   }
 
   componentDidMount() {
+    // Load the initial joke when the component mounts
+    this.fetchJoke();
+  }
+
+  fetchJoke = () => {
+    // Close any existing connection before opening a new one
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+    // Reset state so the spinner is shown while loading
+    this.setState({
+      error: null,
+      isLoaded: false,
+      question: '',
+      answer: '',
+      questionTokens: [],
+      answerTokens: [],
+      pendingQuestion: ''
+    });
+
     // Establish an EventSource connection to receive SSEs from the backend
     this.eventSource = new EventSource("/api/openai");
     // Buffer for the raw streamed joke so we can incrementally parse the
@@ -81,6 +101,9 @@ class OpenAIData extends React.Component {
             ))}
           </p>
         )}
+        <button className={styles.newJokeButton} onClick={this.fetchJoke}>
+          New Joke
+        </button>
       </div>
     );
   }
