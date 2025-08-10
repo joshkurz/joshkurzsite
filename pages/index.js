@@ -12,6 +12,7 @@ class OpenAIData extends React.Component {
     this.state = {
       error: null,
       isLoaded: false,
+      isComplete: false,
       question: "",
       answer: "",
       questionTokens: [],
@@ -22,6 +23,27 @@ class OpenAIData extends React.Component {
   }
 
   componentDidMount() {
+    // Load the initial joke when the component mounts
+    this.fetchJoke();
+  }
+
+  fetchJoke = () => {
+    // Close any existing connection before opening a new one
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+    // Reset state so the spinner is shown while loading
+    this.setState({
+      error: null,
+      isLoaded: false,
+      isComplete: false,
+      question: '',
+      answer: '',
+      questionTokens: [],
+      answerTokens: [],
+      pendingQuestion: ''
+    });
+
     // Establish an EventSource connection to receive SSEs from the backend
     this.eventSource = new EventSource("/api/openai");
     // Buffer for the raw streamed joke so we can incrementally parse the
@@ -30,7 +52,8 @@ class OpenAIData extends React.Component {
     this.eventSource.onmessage = (event) => {
       const data = event.data;
       if (data === "[DONE]") {
-        // Close the connection when the server signals completion
+        // Mark the joke as complete and close the connection
+        this.setState({ isComplete: true });
         this.eventSource.close();
         return;
       }
@@ -43,6 +66,7 @@ class OpenAIData extends React.Component {
       // Record any error and close the SSE connection
       this.setState({
         isLoaded: true,
+        isComplete: true,
         error
       });
       this.eventSource.close();
@@ -56,7 +80,7 @@ class OpenAIData extends React.Component {
   }
 
   render() {
-    const { error, isLoaded, questionTokens, answerTokens } = this.state;
+    const { error, isLoaded, isComplete, questionTokens, answerTokens } = this.state;
     if (error) {
       return <div>Error Loading: {error.message}</div>;
     }
@@ -80,6 +104,11 @@ class OpenAIData extends React.Component {
               <span key={i} className={styles.fadeIn}>{t}</span>
             ))}
           </p>
+        )}
+        {isComplete && (
+          <button className={styles.newJokeButton} onClick={this.fetchJoke}>
+            New Joke
+          </button>
         )}
       </div>
     );
