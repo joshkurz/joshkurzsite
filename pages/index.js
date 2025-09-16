@@ -49,9 +49,12 @@ class OpenAIData extends React.Component {
     // Buffer for the raw streamed joke so we can incrementally parse the
     // question and answer as tokens arrive.
     let rawJoke = "";
+    let hasStartedStreaming = false;
     const timeoutId = setTimeout(() => {
-      this.eventSource.close();
-      this.loadFallbackJoke();
+      if (!hasStartedStreaming) {
+        this.eventSource.close();
+        this.loadFallbackJoke();
+      }
     }, 3000);
     this.eventSource.onmessage = (event) => {
       const data = event.data;
@@ -60,6 +63,10 @@ class OpenAIData extends React.Component {
         this.setState({ isComplete: true });
         this.eventSource.close();
         return;
+      }
+      if (!hasStartedStreaming) {
+        hasStartedStreaming = true;
+        clearTimeout(timeoutId);
       }
       rawJoke += data;
       this.setState(prevState => ({
