@@ -1,6 +1,10 @@
 import { BlobNotFoundError, head, put } from '@vercel/blob'
 import { generatePrompt } from '../../lib/generatePrompt.mjs'
-import { getOpenAIClient, getRandomLocalJoke } from '../../lib/openaiClient'
+import {
+  createResponseWithFallback,
+  getOpenAIClient,
+  getRandomLocalJoke
+} from '../../lib/openaiClient'
 
 const BLOB_PREFIX = 'daily-joke'
 const BLOB_TOKEN_ENV_VARS = [
@@ -173,14 +177,16 @@ async function selectFunniestEvent(events, openai) {
   ].join('\n')
 
   try {
-    const response = await openai.responses.create({
-      model: 'gpt-5',
-      input: selectionPrompt,
-      temperature: 0.6,
-      response_format: { type: 'json_object' },
-      reasoning: { effort: 'high' },
-      text: { verbosity: 'low' }
-    })
+    const response = await createResponseWithFallback(
+      openai,
+      {
+        input: selectionPrompt,
+        temperature: 0.6,
+        response_format: { type: 'json_object' },
+        reasoning: { effort: 'high' },
+        text: { verbosity: 'low' }
+      }
+    )
     const text = extractTextFromResponse(response)
     const parsed = JSON.parse(text || '{}')
     const index = Number.isInteger(parsed.index) ? parsed.index : 0
@@ -246,14 +252,16 @@ export default async function handler(req, res) {
       selectionReason: selection.reasoning
     }
     const prompt = generatePrompt({ mode: 'daily', event: selectedEvent })
-    const response = await openai.responses.create({
-      model: 'gpt-5',
-      input: prompt,
-      temperature: 0.8,
-      stream: false,
-      reasoning: { effort: 'high' },
-      text: { verbosity: 'low' }
-    })
+    const response = await createResponseWithFallback(
+      openai,
+      {
+        input: prompt,
+        temperature: 0.8,
+        stream: false,
+        reasoning: { effort: 'high' },
+        text: { verbosity: 'low' }
+      }
+    )
     const joke = extractTextFromResponse(response)
     const payload = {
       joke: joke || getRandomLocalJoke(),
