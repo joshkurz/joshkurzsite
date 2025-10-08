@@ -102,16 +102,51 @@ async function fetchOnThisDayEvents(dateKey) {
     .filter((event) => event.text || event.summary || event.title)
 }
 
+function isSensitiveEvent(event) {
+  const haystack = [event?.text, event?.summary, event?.title]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+  if (!haystack) {
+    return false
+  }
+  const blockedKeywords = [
+    'war',
+    'battle',
+    'died',
+    'killed',
+    'massacre',
+    'violence',
+    'tragedy',
+    'disaster',
+    'pandemic',
+    'disease',
+    'assassination',
+    'bomb',
+    'terror',
+    'genocide',
+    'shooting'
+  ]
+  return blockedKeywords.some((keyword) => haystack.includes(keyword))
+}
+
 async function selectFunniestEvent(events, openai) {
   if (!events.length) {
     throw new Error('No events provided to select from')
   }
 
+  const lightheartedEvents = events.filter((event) => !isSensitiveEvent(event))
+  const candidateEvents = lightheartedEvents.length ? lightheartedEvents : events
+
   if (openai.__mock) {
-    return { event: events[0], reasoning: 'Mock client selected the first event.', comedicAngle: null }
+    return {
+      event: candidateEvents[0],
+      reasoning: 'Mock client selected the first event.',
+      comedicAngle: null
+    }
   }
 
-  const shortlist = events.slice(0, 12)
+  const shortlist = candidateEvents.slice(0, 12)
   const formattedEvents = shortlist
     .map((event, index) => {
       const pieces = [
@@ -127,6 +162,7 @@ async function selectFunniestEvent(events, openai) {
 
   const selectionPrompt = [
     'You are the head writer for a dad-joke newsletter. Review the historical events below and pick the one with the richest comedic potential for a warm, groan-worthy joke.',
+    'Skip anything heavy or sensitive (war, violence, disasters, illness, etc.) and lean into upbeat or everyday moments.',
     'Respond with a JSON object that includes:',
     '- "index": the 0-based index of the chosen event from the list.',
     '- "reason": a short explanation for why it is funny.',
@@ -138,10 +174,12 @@ async function selectFunniestEvent(events, openai) {
 
   try {
     const response = await openai.responses.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5',
       input: selectionPrompt,
       temperature: 0.6,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
+      reasoning: { effort: 'high' },
+      text: { verbosity: 'low' }
     })
     const text = extractTextFromResponse(response)
     const parsed = JSON.parse(text || '{}')
@@ -153,7 +191,7 @@ async function selectFunniestEvent(events, openai) {
       comedicAngle: typeof parsed.comedicAngle === 'string' ? parsed.comedicAngle : ''
     }
   } catch (error) {
-    return { event: events[0], reasoning: '', comedicAngle: '' }
+    return { event: candidateEvents[0] || events[0], reasoning: '', comedicAngle: '' }
   }
 }
 
@@ -209,10 +247,12 @@ export default async function handler(req, res) {
     }
     const prompt = generatePrompt({ mode: 'daily', event: selectedEvent })
     const response = await openai.responses.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5',
       input: prompt,
       temperature: 0.8,
-      stream: false
+      stream: false,
+      reasoning: { effort: 'high' },
+      text: { verbosity: 'low' }
     })
     const joke = extractTextFromResponse(response)
     const payload = {
@@ -225,7 +265,12 @@ export default async function handler(req, res) {
         source: selectedEvent.source,
         title: selectedEvent.title || null,
         angle: selection.comedicAngle || null,
-        reason: selection.reasoning || null
+        reason: selection.reasoning || null,
+        sourceDescription:
+          'Historical notes are sourced from Wikipedia’s On This Day feed.',
+        selectionNotes:
+          'We ask an AI writing team to pick something cheerful before crafting the joke.',
+        topicOrigin: 'The joke itself comes from a fresh AI-generated topic list.'
       }
     }
     await writeCachedJoke(dateKey, payload)
@@ -241,7 +286,12 @@ export default async function handler(req, res) {
         source: null,
         title: null,
         angle: null,
-        reason: null
+        reason: null,
+        sourceDescription:
+          'Historical notes are sourced from Wikipedia’s On This Day feed when available.',
+        selectionNotes:
+          'We ask an AI writing team to pick something cheerful before crafting the joke.',
+        topicOrigin: 'The joke itself comes from a fresh AI-generated topic list.'
       }
     }
     res.status(200).json(fallback)
