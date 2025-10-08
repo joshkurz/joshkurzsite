@@ -37,9 +37,7 @@ export default async function handler(req, res) {
       {
         input: prompt,
         temperature: 1.0,
-        stream: true,
-        reasoning: { effort: 'low' },
-        text: { verbosity: 'low' }
+        stream: true
       },
       { stream: true }
     );
