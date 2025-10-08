@@ -4,7 +4,18 @@ import { randomUUID } from 'crypto'
 
 const DEFAULT_COUNTS = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const BASE_DIR = path.join(process.cwd(), 'data', 'ratings')
+const USER_DEFINED_BASE_DIR = process.env.RATINGS_STORAGE_DIR
+  ? path.resolve(process.env.RATINGS_STORAGE_DIR)
+  : null
+const DEFAULT_BASE_DIR = path.join(process.cwd(), 'data', 'ratings')
+const FALLBACK_BASE_DIR = path.join(
+  process.env.TMPDIR || '/tmp',
+  'joshkurzsite',
+  'ratings'
+)
+
+let resolvedBaseDir = null
+let resolvingBaseDirPromise = null
 
 async function ensureDir(dirPath) {
   try {
@@ -13,6 +24,48 @@ async function ensureDir(dirPath) {
     if (error?.code !== 'EEXIST') {
       throw error
     }
+  }
+}
+
+async function getBaseDir() {
+  if (resolvedBaseDir) {
+    return resolvedBaseDir
+  }
+
+  if (!resolvingBaseDirPromise) {
+    const candidateDirs = [
+      USER_DEFINED_BASE_DIR,
+      DEFAULT_BASE_DIR,
+      FALLBACK_BASE_DIR
+    ].filter(Boolean)
+
+    resolvingBaseDirPromise = (async () => {
+      for (const candidate of candidateDirs) {
+        try {
+          await ensureDir(candidate)
+          if (candidate !== DEFAULT_BASE_DIR) {
+            console.info('[ratings] Using alternate storage directory', {
+              dirPath: candidate
+            })
+          }
+          resolvedBaseDir = candidate
+          return candidate
+        } catch (error) {
+          console.warn('[ratings] Unable to use storage directory', {
+            dirPath: candidate,
+            error
+          })
+        }
+      }
+
+      throw new Error('Unable to locate a writable directory for ratings storage')
+    })()
+  }
+
+  try {
+    return await resolvingBaseDirPromise
+  } finally {
+    resolvingBaseDirPromise = null
   }
 }
 
@@ -133,17 +186,19 @@ async function readEntriesFromDir(dirPath, filterFn) {
 }
 
 async function readStats({ mode, jokeId, dateKey }) {
+  const baseDir = await getBaseDir()
   if (mode === 'daily') {
-    const dirPath = path.join(BASE_DIR, 'daily', dateKey)
+    const dirPath = path.join(baseDir, 'daily', dateKey)
     const entries = await readEntriesFromDir(dirPath, (payload) => payload?.jokeId === jokeId)
     return aggregateEntries(entries, { dateKey, jokeId, mode })
   }
-  const dirPath = path.join(BASE_DIR, 'live', jokeId)
+  const dirPath = path.join(baseDir, 'live', jokeId)
   const entries = await readEntriesFromDir(dirPath)
   return aggregateEntries(entries, { dateKey, jokeId, mode })
 }
 
 async function writeReview({ mode, jokeId, dateKey, rating, joke }) {
+  const baseDir = await getBaseDir()
   const submittedAt = new Date().toISOString()
   const payload = {
     jokeId,
@@ -155,7 +210,7 @@ async function writeReview({ mode, jokeId, dateKey, rating, joke }) {
   }
 
   if (mode === 'daily') {
-    const dirPath = path.join(BASE_DIR, 'daily', dateKey)
+    const dirPath = path.join(baseDir, 'daily', dateKey)
     await ensureDir(dirPath)
     const fileName = `${jokeId}-${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
     const filePath = path.join(dirPath, fileName)
@@ -163,7 +218,7 @@ async function writeReview({ mode, jokeId, dateKey, rating, joke }) {
     return
   }
 
-  const dirPath = path.join(BASE_DIR, 'live', jokeId)
+  const dirPath = path.join(baseDir, 'live', jokeId)
   await ensureDir(dirPath)
   const fileName = `${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
   const filePath = path.join(dirPath, fileName)
