@@ -428,7 +428,7 @@ class OpenAIData extends React.Component {
                   <p className={styles.ratingThanks}>Thanks for letting us know how much you groaned!</p>
                 )}
                 {ratingError && (
-                  <p className={styles.ratingError}>We couldn't save your rating. Please try again.</p>
+                  <p className={styles.ratingError}>We couldn&apos;t save your rating. Please try again.</p>
                 )}
               </div>
             </div>
