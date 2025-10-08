@@ -18,6 +18,35 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Groan ratings & free storage option
+
+The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
+
+1. In the Vercel dashboard, create a Blob store (the free hobby tier is plenty for text-sized payloads).
+2. Copy the `DAD_READ_WRITE_TOKEN` from the store settings and expose it to the app:
+
+   ```bash
+   DAD_READ_WRITE_TOKEN=<value>
+   ```
+
+3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+
+## Joke of the day mode
+
+If you want to track a single joke over the course of the day, switch the homepage into **Joke of the Day** mode using the toggle above the joke. When active the app:
+
+- Calls `/api/daily-joke`, which fetches "On this day" facts from Wikipedia's public REST API.
+- Generates a dad joke that references the selected historical event and caches it in Vercel Blob (or an in-memory fallback) so everyone sees the same joke for that date.
+- Surfaces the historical context, including a summary and source link, under the joke so you know why the gag is timely.
+
+By default the homepage loads the daily joke so it is easy to track ratings by date. If you would rather stream jokes on first visit, set an environment variable before building the app:
+
+```bash
+NEXT_PUBLIC_DEFAULT_JOKE_MODE=live
+```
+
+With the variable set to `live`, visitors land on the streaming mode but can still switch back to the date-aware daily joke at any time.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
