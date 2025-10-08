@@ -354,7 +354,9 @@ class OpenAIData extends React.Component {
       error,
       isLoaded,
       isComplete,
+      question,
       questionTokens,
+      answer,
       answerTokens,
       ratingStats,
       userRating,
@@ -364,6 +366,16 @@ class OpenAIData extends React.Component {
       jokeMode,
       dailyContext
     } = this.state;
+
+    const displayQuestionTokens =
+      questionTokens.length > 0
+        ? questionTokens
+        : question
+          ? [question]
+          : [];
+
+    const displayAnswerTokens =
+      answerTokens.length > 0 ? answerTokens : answer ? [answer] : [];
     if (error) {
       return <div>Error Loading: {error.message}</div>;
     }
@@ -390,16 +402,16 @@ class OpenAIData extends React.Component {
             Joke of the Day
           </button>
         </div>
-        {questionTokens.length > 0 && (
+        {displayQuestionTokens.length > 0 && (
           <p className={styles.question}>
-            {questionTokens.map((t, i) => (
+            {displayQuestionTokens.map((t, i) => (
               <span key={i} className={styles.fadeIn}>{t}</span>
             ))}
           </p>
         )}
-        {answerTokens.length > 0 && (
+        {displayAnswerTokens.length > 0 && (
           <p className={styles.answer}>
-            {answerTokens.map((t, i) => (
+            {displayAnswerTokens.map((t, i) => (
               <span key={i} className={styles.fadeIn}>{t}</span>
             ))}
           </p>
