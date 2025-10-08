@@ -1,6 +1,15 @@
 import { generatePrompt } from '../../lib/generatePrompt.mjs';
 import { getOpenAIClient, getRandomLocalJoke } from '../../lib/openaiClient';
 
+function writeSSE(res, payload) {
+  const lines = String(payload).split(/\r?\n/);
+  lines.forEach((line) => {
+    res.write(`data: ${line}\n`);
+  });
+  res.write('\n');
+  if (res.flush) res.flush();
+}
+
 const openai = getOpenAIClient();
 
 export default async function handler(req, res) {
@@ -32,8 +41,7 @@ export default async function handler(req, res) {
     for await (const chunk of jokeResponse) {
       const content = chunk.delta;
       if (content) {
-        res.write(`data: ${content}\n\n`);
-        if (res.flush) res.flush();
+        writeSSE(res, content);
       }
     }
 
@@ -41,7 +49,7 @@ export default async function handler(req, res) {
     res.end();
   } catch (error) {
     const joke = getRandomLocalJoke();
-    res.write(`data: ${joke}\n\n`);
+    writeSSE(res, joke);
     res.write('data: [DONE]\n\n');
     res.end();
   }
