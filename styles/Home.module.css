@@ -252,10 +252,135 @@
   transform: translateY(-2px);
 }
 
+.modeToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.modeButton {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-dark);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.modeButton:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.modeButtonActive {
+  background: var(--color-primary);
+  color: #000;
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.dailyContext {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border-dark);
+  line-height: 1.5;
+}
+
+.dailyContext h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.dailySummary {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dailyLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.dailyLink:hover,
+.dailyLink:focus {
+  color: #f7dc6f;
+}
+
 /* Simple fade-in utility for question and answer text */
 .fadeIn {
   opacity: 0;
   animation: fadeIn 0.5s ease-in forwards;
+}
+
+.ratingSection {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ratingPrompt {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.groanButtonGroup {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.groanButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-dark);
+  color: var(--color-text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.groanButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+.groanButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.groanButtonActive {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #000;
+  font-weight: 700;
+}
+
+.ratingSummary p {
+  margin: 0.25rem 0;
+}
+
+.ratingThanks {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+.ratingError {
+  color: #e74c3c;
+  font-weight: 600;
 }
 
 @keyframes fadeIn {
