@@ -1,237 +1,10 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-import { randomUUID } from 'crypto'
-
-const DEFAULT_COUNTS = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const USER_DEFINED_BASE_DIR = process.env.RATINGS_STORAGE_DIR
-  ? path.resolve(process.env.RATINGS_STORAGE_DIR)
-  : null
-const DEFAULT_BASE_DIR = path.join(process.cwd(), 'data', 'ratings')
-const FALLBACK_BASE_DIR = path.join(
-  process.env.TMPDIR || '/tmp',
-  'joshkurzsite',
-  'ratings'
-)
-
-let resolvedBaseDir = null
-let resolvingBaseDirPromise = null
-
-async function ensureDir(dirPath) {
-  try {
-    await fs.mkdir(dirPath, { recursive: true })
-  } catch (error) {
-    if (error?.code !== 'EEXIST') {
-      throw error
-    }
-  }
-}
-
-async function getBaseDir() {
-  if (resolvedBaseDir) {
-    return resolvedBaseDir
-  }
-
-  if (!resolvingBaseDirPromise) {
-    const candidateDirs = [
-      USER_DEFINED_BASE_DIR,
-      DEFAULT_BASE_DIR,
-      FALLBACK_BASE_DIR
-    ].filter(Boolean)
-
-    resolvingBaseDirPromise = (async () => {
-      for (const candidate of candidateDirs) {
-        try {
-          await ensureDir(candidate)
-          if (candidate !== DEFAULT_BASE_DIR) {
-            console.info('[ratings] Using alternate storage directory', {
-              dirPath: candidate
-            })
-          }
-          resolvedBaseDir = candidate
-          return candidate
-        } catch (error) {
-          console.warn('[ratings] Unable to use storage directory', {
-            dirPath: candidate,
-            error
-          })
-        }
-      }
-
-      throw new Error('Unable to locate a writable directory for ratings storage')
-    })()
-  }
-
-  try {
-    return await resolvingBaseDirPromise
-  } finally {
-    resolvingBaseDirPromise = null
-  }
-}
-
-function getMode(value) {
-  return value === 'daily' ? 'daily' : 'live'
-}
-
-function buildDefaultStats(overrides = {}) {
-  return {
-    counts: { ...DEFAULT_COUNTS },
-    totalRatings: 0,
-    average: 0,
-    ratings: [],
-    ...overrides
-  }
-}
-
-function normalizeEntry(entry = {}) {
-  const rating = Number(entry.rating)
-  if (!Number.isFinite(rating)) {
-    return null
-  }
-  const normalized = {
-    rating,
-    submittedAt: entry.submittedAt || entry.timestamp || new Date().toISOString()
-  }
-  if (entry.joke && typeof entry.joke === 'string') {
-    normalized.joke = entry.joke
-  }
-  if (entry.mode) {
-    normalized.mode = entry.mode
-  }
-  if (entry.date) {
-    normalized.date = entry.date
-  }
-  if (entry.jokeId) {
-    normalized.jokeId = entry.jokeId
-  }
-  return normalized
-}
-
-function aggregateEntries(entries, { dateKey, jokeId, mode }) {
-  if (!entries.length) {
-    return buildDefaultStats({ date: dateKey, jokeId, mode })
-  }
-  const counts = { ...DEFAULT_COUNTS }
-  const normalizedEntries = []
-  for (const entry of entries) {
-    const normalized = normalizeEntry(entry)
-    if (!normalized) {
-      continue
-    }
-    counts[normalized.rating] = (counts[normalized.rating] || 0) + 1
-    normalizedEntries.push(normalized)
-  }
-  const totalRatings = normalizedEntries.length
-  const totalScore = normalizedEntries.reduce(
-    (acc, entry) => acc + entry.rating,
-    0
-  )
-  const average = totalRatings === 0 ? 0 : Number((totalScore / totalRatings).toFixed(2))
-  return {
-    counts,
-    totalRatings,
-    average,
-    ratings: normalizedEntries.sort((a, b) => {
-      const aTime = new Date(a.submittedAt).getTime()
-      const bTime = new Date(b.submittedAt).getTime()
-      return aTime - bTime
-    }),
-    date: dateKey,
-    jokeId,
-    mode
-  }
-}
-
-function getDateKey(input) {
-  if (typeof input === 'string' && DATE_REGEX.test(input)) {
-    return input
-  }
-  const now = new Date()
-  return now.toISOString().slice(0, 10)
-}
-
-async function readJson(filePath) {
-  try {
-    const content = await fs.readFile(filePath, 'utf8')
-    return JSON.parse(content)
-  } catch (error) {
-    console.error('[ratings] Failed to read review file', { filePath, error })
-    return null
-  }
-}
-
-async function readEntriesFromDir(dirPath, filterFn) {
-  let entries = []
-  try {
-    const files = await fs.readdir(dirPath)
-    for (const file of files) {
-      if (!file.endsWith('.json')) {
-        continue
-      }
-      const filePath = path.join(dirPath, file)
-      const payload = await readJson(filePath)
-      if (!payload) {
-        continue
-      }
-      if (!filterFn || filterFn(payload)) {
-        entries.push(payload)
-      }
-    }
-  } catch (error) {
-    if (error?.code !== 'ENOENT') {
-      console.error('[ratings] Unable to list reviews directory', { dirPath, error })
-    }
-  }
-  return entries
-}
-
-async function readStats({ mode, jokeId, dateKey }) {
-  const baseDir = await getBaseDir()
-  if (mode === 'daily') {
-    const dirPath = path.join(baseDir, 'daily', dateKey)
-    const entries = await readEntriesFromDir(dirPath, (payload) => payload?.jokeId === jokeId)
-    return aggregateEntries(entries, { dateKey, jokeId, mode })
-  }
-  const dirPath = path.join(baseDir, 'live', jokeId)
-  const entries = await readEntriesFromDir(dirPath)
-  return aggregateEntries(entries, { dateKey, jokeId, mode })
-}
-
-async function writeReview({ mode, jokeId, dateKey, rating, joke }) {
-  const baseDir = await getBaseDir()
-  const submittedAt = new Date().toISOString()
-  const payload = {
-    jokeId,
-    date: dateKey,
-    rating,
-    submittedAt,
-    mode,
-    ...(joke ? { joke } : {})
-  }
-
-  if (mode === 'daily') {
-    const dirPath = path.join(baseDir, 'daily', dateKey)
-    await ensureDir(dirPath)
-    const fileName = `${jokeId}-${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
-    const filePath = path.join(dirPath, fileName)
-    await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf8')
-    return
-  }
-
-  const dirPath = path.join(baseDir, 'live', jokeId)
-  await ensureDir(dirPath)
-  const fileName = `${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
-  const filePath = path.join(dirPath, fileName)
-  await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf8')
-}
-
-function validateRating(value) {
-  const rating = Number(value)
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return null
-  }
-  return rating
-}
+import {
+  getMode,
+  resolveDateKey,
+  handleReadStats,
+  handleWriteReview,
+  validateRating
+} from '../../lib/ratingsStorage'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -241,9 +14,9 @@ export default async function handler(req, res) {
       return
     }
     const mode = getMode(Array.isArray(requestedMode) ? requestedMode[0] : requestedMode)
-    const dateKey = getDateKey(Array.isArray(requestedDate) ? requestedDate[0] : requestedDate)
+    const dateKey = resolveDateKey(Array.isArray(requestedDate) ? requestedDate[0] : requestedDate)
     try {
-      const stats = await readStats({ mode, jokeId, dateKey })
+      const stats = await handleReadStats({ mode, jokeId, dateKey })
       res.status(200).json(stats)
     } catch (error) {
       console.error('[ratings] Failed to load ratings', {
@@ -269,11 +42,11 @@ export default async function handler(req, res) {
       return
     }
     const mode = getMode(requestedMode)
-    const dateKey = getDateKey(requestedDate)
+    const dateKey = resolveDateKey(requestedDate)
 
     try {
-      await writeReview({ mode, jokeId, dateKey, rating: parsedRating, joke })
-      const refreshedStats = await readStats({ mode, jokeId, dateKey })
+      await handleWriteReview({ mode, jokeId, dateKey, rating: parsedRating, joke })
+      const refreshedStats = await handleReadStats({ mode, jokeId, dateKey })
       res.status(200).json(refreshedStats)
     } catch (error) {
       console.error('[ratings] Failed to save rating', {
