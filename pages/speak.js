@@ -14,8 +14,9 @@ export default function SpeechHelper() {
   const [voice, setVoice] = useState('coral');
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/speak', label: 'Speak' }
+    { href: '/', label: 'Live Jokes' },
+    { href: '/speak', label: 'Speak' },
+    { href: '/dashboard', label: 'Dashboard' }
   ];
 
   const handleInputChange = (event) => {
