@@ -34,6 +34,7 @@ class OpenAIData extends React.Component {
       pendingQuestion: '',
       ratingStats: { ...defaultRatingStats },
       userRating: null,
+      hoveredRating: null,
       isSubmittingRating: false,
       ratingError: null,
       hasSubmittedRating: false,
@@ -101,6 +102,7 @@ class OpenAIData extends React.Component {
         currentJokeText: jokeText,
         ratingStats: { ...defaultRatingStats },
         userRating: null,
+        hoveredRating: null,
         isSubmittingRating: false,
         ratingError: null,
         hasSubmittedRating: false
@@ -155,7 +157,12 @@ class OpenAIData extends React.Component {
     if (!currentJokeId || hasSubmittedRating || isSubmittingRating) {
       return;
     }
-    this.setState({ userRating: value, isSubmittingRating: true, ratingError: null });
+    this.setState({
+      userRating: value,
+      hoveredRating: null,
+      isSubmittingRating: true,
+      ratingError: null
+    });
     try {
       const response = await fetch('/api/ratings', {
         method: 'POST',
@@ -187,6 +194,22 @@ class OpenAIData extends React.Component {
     }
   }
 
+  handleGroanHover = (value) => {
+    const { hasSubmittedRating, isSubmittingRating } = this.state;
+    if (hasSubmittedRating || isSubmittingRating) {
+      return;
+    }
+    this.setState({ hoveredRating: value });
+  };
+
+  clearGroanHover = () => {
+    const { hasSubmittedRating, isSubmittingRating } = this.state;
+    if (hasSubmittedRating || isSubmittingRating) {
+      return;
+    }
+    this.setState({ hoveredRating: null });
+  };
+
   fetchJoke = () => {
     // Close any existing connection before opening a new one
     if (this.eventSource) {
@@ -204,6 +227,7 @@ class OpenAIData extends React.Component {
       pendingQuestion: '',
       ratingStats: { ...defaultRatingStats },
       userRating: null,
+      hoveredRating: null,
       isSubmittingRating: false,
       ratingError: null,
       hasSubmittedRating: false,
@@ -266,6 +290,7 @@ class OpenAIData extends React.Component {
       pendingQuestion: '',
       ratingStats: { ...defaultRatingStats },
       userRating: null,
+      hoveredRating: null,
       isSubmittingRating: false,
       ratingError: null,
       hasSubmittedRating: false,
@@ -324,7 +349,15 @@ class OpenAIData extends React.Component {
         ...parsed,
         isLoaded: true,
         isComplete: true,
-        error: null
+        error: null,
+        ratingStats: { ...defaultRatingStats },
+        userRating: null,
+        hoveredRating: null,
+        isSubmittingRating: false,
+        ratingError: null,
+        hasSubmittedRating: false,
+        currentJokeId: null,
+        currentJokeText: ''
       });
     } catch (error) {
       this.setState({
@@ -360,6 +393,7 @@ class OpenAIData extends React.Component {
       answerTokens,
       ratingStats,
       userRating,
+      hoveredRating,
       isSubmittingRating,
       ratingError,
       hasSubmittedRating,
@@ -376,6 +410,10 @@ class OpenAIData extends React.Component {
 
     const displayAnswerTokens =
       answerTokens.length > 0 ? answerTokens : answer ? [answer] : [];
+    const canInteract = !isSubmittingRating && !hasSubmittedRating;
+    const displayRating = hoveredRating || userRating || 0;
+    const isPreviewing = hoveredRating !== null;
+
     if (error) {
       return <div>Error Loading: {error.message}</div>;
     }
@@ -420,10 +458,20 @@ class OpenAIData extends React.Component {
           <>
             <div className={styles.ratingSection}>
               <p className={styles.ratingPrompt}>How many groans does this joke deserve?</p>
-              <div className={styles.groanButtonGroup}>
+              <div
+                className={styles.groanButtonGroup}
+                onMouseLeave={canInteract ? this.clearGroanHover : undefined}
+              >
                 {[1, 2, 3, 4, 5].map((value) => {
-                  const isActive = userRating ? value <= userRating : false;
-                  const buttonClass = `${styles.groanButton} ${isActive ? styles.groanButtonActive : ''}`;
+                  const isActive = value <= displayRating;
+                  const isSelected = !isPreviewing && userRating ? value <= userRating : false;
+                  const buttonClass = [
+                    styles.groanButton,
+                    isActive ? styles.groanButtonActive : '',
+                    isSelected ? styles.groanButtonSelected : ''
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
                   return (
                     <button
                       key={value}
@@ -432,8 +480,32 @@ class OpenAIData extends React.Component {
                       onClick={() => this.handleGroanClick(value)}
                       disabled={isSubmittingRating || hasSubmittedRating}
                       aria-label={`${value} groan${value === 1 ? '' : 's'}`}
+                      onMouseEnter={
+                        canInteract ? () => this.handleGroanHover(value) : undefined
+                      }
+                      onFocus={canInteract ? () => this.handleGroanHover(value) : undefined}
+                      onBlur={
+                        canInteract
+                          ? (event) => {
+                              if (
+                                event.relatedTarget &&
+                                event.currentTarget.parentElement?.contains(event.relatedTarget)
+                              ) {
+                                return;
+                              }
+                              this.clearGroanHover();
+                            }
+                          : undefined
+                      }
+                      aria-pressed={userRating === value}
                     >
-                      {value}
+                      <span className={styles.srOnly}>{`${value} groan${value === 1 ? '' : 's'}`}</span>
+                      <span
+                        aria-hidden="true"
+                        className={`${styles.groanEmoji} ${isActive ? styles.groanEmojiActive : ''}`}
+                      >
+                        🤦‍♂️
+                      </span>
                     </button>
                   );
                 })}
