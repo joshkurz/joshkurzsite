@@ -18,6 +18,38 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Groan ratings & free storage option
+
+The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which is designed to run against [Vercel KV](https://vercel.com/docs/storage/vercel-kv) — Vercel's serverless Redis offering that includes a generous free tier and works seamlessly on Vercel-hosted deployments.
+
+1. In the Vercel dashboard, add a KV store to your project (the free hobby plan is sufficient for a handful of ratings).
+2. Copy the generated credentials and expose them to the app as environment variables:
+
+   ```bash
+   KV_URL=<value>
+   KV_REST_API_URL=<value>
+   KV_REST_API_TOKEN=<value>
+   KV_REST_API_READ_ONLY_TOKEN=<value>
+   ```
+
+3. Redeploy. The `/api/ratings` route will start reading/writing groan counts per joke. When these variables are absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+
+## Joke of the day mode
+
+If you want to track a single joke over the course of the day, switch the homepage into **Joke of the Day** mode using the toggle above the joke. When active the app:
+
+- Calls `/api/daily-joke`, which fetches "On this day" facts from Wikipedia's public REST API.
+- Generates a dad joke that references the selected historical event and caches it in Vercel KV (or an in-memory fallback) so everyone sees the same joke for that date.
+- Surfaces the historical context, including a summary and source link, under the joke so you know why the gag is timely.
+
+To make the daily joke the default view on load, set an environment variable before building the app:
+
+```bash
+NEXT_PUBLIC_DEFAULT_JOKE_MODE=daily
+```
+
+With the variable set, visitors land on the date-aware daily joke but can still switch back to the live streaming mode at any time.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
