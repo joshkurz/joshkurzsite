@@ -191,6 +191,12 @@ export default async function handler(req, res) {
       const stats = await readStats({ mode, jokeId, dateKey })
       res.status(200).json(stats)
     } catch (error) {
+      console.error('[ratings] Failed to load ratings', {
+        jokeId,
+        mode,
+        dateKey,
+        error
+      })
       res.status(500).json({ error: 'Unable to load ratings' })
     }
     return
@@ -215,6 +221,14 @@ export default async function handler(req, res) {
       const refreshedStats = await readStats({ mode, jokeId, dateKey })
       res.status(200).json(refreshedStats)
     } catch (error) {
+      console.error('[ratings] Failed to save rating', {
+        jokeId,
+        mode,
+        dateKey,
+        rating: parsedRating,
+        hasJoke: Boolean(joke),
+        error
+      })
       res.status(500).json({ error: 'Unable to save rating' })
     }
     return

@@ -374,11 +374,6 @@ class OpenAIData extends React.Component {
       <div className={styles.jokeContainer}>
         {/* Update the header to be a bit more playful */}
         <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
-        <p className={styles.modeDescription}>
-          {jokeMode === 'live'
-            ? 'Live jokes come from random AI-generated topics that stay playful and avoid touchy subjects.'
-            : 'Daily jokes remix upbeat history tidbits with a random AI-generated topic, all while keeping things light.'}
-        </p>
         <div className={styles.modeToggle}>
           <button
             type="button"
