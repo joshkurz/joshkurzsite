@@ -1,5 +1,9 @@
 import { generatePrompt } from '../../lib/generatePrompt.mjs';
-import { getOpenAIClient, getRandomLocalJoke } from '../../lib/openaiClient';
+import {
+  createResponseWithFallback,
+  getOpenAIClient,
+  getRandomLocalJoke
+} from '../../lib/openaiClient';
 
 const openai = getOpenAIClient();
 
@@ -13,21 +17,29 @@ export default async function handler(req, res) {
 
   try {
     const prompt = generatePrompt();
+    let timeoutId = null;
 
-    const jokePromise = openai.responses.create({
-      model: 'gpt-5',
-      input: prompt,
-      temperature: 1.0,
-      stream: true,
-      reasoning: { effort: 'low' },
-      text: { verbosity: 'low' }
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('timeout')), timeoutMs);
     });
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeoutMs)
+    const jokePromise = createResponseWithFallback(
+      openai,
+      {
+        input: prompt,
+        temperature: 1.0,
+        stream: true,
+        reasoning: { effort: 'low' },
+        text: { verbosity: 'low' }
+      },
+      { stream: true }
     );
 
     const jokeResponse = await Promise.race([jokePromise, timeoutPromise]);
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
 
     for await (const chunk of jokeResponse) {
       const content = chunk.delta;
@@ -40,6 +52,9 @@ export default async function handler(req, res) {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (error) {
+    console.warn('[openai] Streaming joke failed, falling back to local file', {
+      error: error?.message || String(error)
+    });
     const joke = getRandomLocalJoke();
     res.write(`data: ${joke}\n\n`);
     res.write('data: [DONE]\n\n');

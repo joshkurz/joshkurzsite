@@ -40,6 +40,41 @@ describe('GET /api/openai', () => {
     expect(data).toContain('[DONE]');
   });
 
+  it('falls back to legacy model when verification error occurs', async () => {
+    process.env.API_KEY = 'test';
+    const create = jest
+      .fn()
+      .mockRejectedValueOnce(
+        Object.assign(new Error('400 Your organization must be verified to stream this model.'), {
+          status: 400
+        })
+      )
+      .mockResolvedValueOnce(
+        (async function* () {
+          yield { delta: 'Fallback joke' };
+        })()
+      );
+
+    jest.doMock('openai', () => {
+      return jest.fn().mockImplementation(() => ({
+        responses: {
+          create
+        }
+      }));
+    });
+
+    const handler = require('../../pages/api/openai').default;
+    const { req, res } = createMocks({ method: 'GET' });
+    await handler(req, res);
+    const data = res._getData();
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(create.mock.calls[0][0].model).toBe('gpt-5');
+    expect(create.mock.calls[1][0].model).toBe('gpt-4o-mini');
+    expect(data).toContain('Fallback joke');
+    expect(data).toContain('[DONE]');
+  });
+
   it('falls back to file joke when request times out', async () => {
     process.env.API_KEY = 'test';
     process.env.OPENAI_TIMEOUT_MS = '10';
