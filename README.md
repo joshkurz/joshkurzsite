@@ -20,26 +20,23 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 ## Groan ratings & free storage option
 
-The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which is designed to run against [Vercel KV](https://vercel.com/docs/storage/vercel-kv) — Vercel's serverless Redis offering that includes a generous free tier and works seamlessly on Vercel-hosted deployments.
+The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
 
-1. In the Vercel dashboard, add a KV store to your project (the free hobby plan is sufficient for a handful of ratings).
-2. Copy the generated credentials and expose them to the app as environment variables:
+1. In the Vercel dashboard, create a Blob store (the free hobby tier is plenty for text-sized payloads).
+2. Copy the `BLOB_READ_WRITE_TOKEN` from the store settings and expose it to the app:
 
    ```bash
-   KV_URL=<value>
-   KV_REST_API_URL=<value>
-   KV_REST_API_TOKEN=<value>
-   KV_REST_API_READ_ONLY_TOKEN=<value>
+   BLOB_READ_WRITE_TOKEN=<value>
    ```
 
-3. Redeploy. The `/api/ratings` route will start reading/writing groan counts per joke. When these variables are absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
 
 ## Joke of the day mode
 
 If you want to track a single joke over the course of the day, switch the homepage into **Joke of the Day** mode using the toggle above the joke. When active the app:
 
 - Calls `/api/daily-joke`, which fetches "On this day" facts from Wikipedia's public REST API.
-- Generates a dad joke that references the selected historical event and caches it in Vercel KV (or an in-memory fallback) so everyone sees the same joke for that date.
+- Generates a dad joke that references the selected historical event and caches it in Vercel Blob (or an in-memory fallback) so everyone sees the same joke for that date.
 - Surfaces the historical context, including a summary and source link, under the joke so you know why the gag is timely.
 
 To make the daily joke the default view on load, set an environment variable before building the app:
