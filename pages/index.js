@@ -129,8 +129,10 @@ class OpenAIData extends React.Component {
   }
 
   fetchRatingStats = async (jokeId) => {
+    const { jokeMode } = this.state
     try {
-      const response = await fetch(`/api/ratings?jokeId=${encodeURIComponent(jokeId)}`);
+      const params = new URLSearchParams({ jokeId, mode: jokeMode })
+      const response = await fetch(`/api/ratings?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Unable to load ratings');
       }
@@ -142,7 +144,14 @@ class OpenAIData extends React.Component {
   }
 
   handleGroanClick = async (value) => {
-    const { currentJokeId, currentJokeText, hasSubmittedRating, isSubmittingRating } = this.state;
+    const {
+      currentJokeId,
+      currentJokeText,
+      hasSubmittedRating,
+      isSubmittingRating,
+      jokeMode,
+      dailyContext
+    } = this.state;
     if (!currentJokeId || hasSubmittedRating || isSubmittingRating) {
       return;
     }
@@ -156,7 +165,9 @@ class OpenAIData extends React.Component {
         body: JSON.stringify({
           jokeId: currentJokeId,
           rating: value,
-          joke: currentJokeText
+          joke: jokeMode === 'live' ? currentJokeText : undefined,
+          mode: jokeMode,
+          date: jokeMode === 'daily' && dailyContext?.date ? dailyContext.date : undefined
         })
       });
       if (!response.ok) {
@@ -363,6 +374,11 @@ class OpenAIData extends React.Component {
       <div className={styles.jokeContainer}>
         {/* Update the header to be a bit more playful */}
         <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
+        <p className={styles.modeDescription}>
+          {jokeMode === 'live'
+            ? 'Live jokes come from random AI-generated topics that stay playful and avoid touchy subjects.'
+            : 'Daily jokes remix upbeat history tidbits with a random AI-generated topic, all while keeping things light.'}
+        </p>
         <div className={styles.modeToggle}>
           <button
             type="button"
@@ -444,7 +460,9 @@ class OpenAIData extends React.Component {
         )}
         {jokeMode === 'daily' && dailyContext && (
           <div className={styles.dailyContext}>
-            <h3>Why today?</h3>
+            <h3>Why this topic and this joke today?</h3>
+            <p className={styles.dailyBlurb}>{dailyContext.selectionNotes}</p>
+            <p className={styles.dailyBlurb}>{dailyContext.sourceDescription}</p>
             {dailyContext.year ? (
               <p>
                 In {dailyContext.year}, {dailyContext.text}
@@ -454,6 +472,19 @@ class OpenAIData extends React.Component {
             )}
             {dailyContext.summary && (
               <p className={styles.dailySummary}>{dailyContext.summary}</p>
+            )}
+            {dailyContext.reason && (
+              <p className={styles.dailyReason}>
+                <strong>Why it made the cut:</strong> {dailyContext.reason}
+              </p>
+            )}
+            {dailyContext.angle && (
+              <p className={styles.dailyReason}>
+                <strong>Comedic angle:</strong> {dailyContext.angle}
+              </p>
+            )}
+            {dailyContext.topicOrigin && (
+              <p className={styles.dailyBlurb}>{dailyContext.topicOrigin}</p>
             )}
             {dailyContext.source && (
               <a

@@ -15,10 +15,12 @@ export default async function handler(req, res) {
     const prompt = generatePrompt();
 
     const jokePromise = openai.responses.create({
-      model: 'gpt-4o',
+      model: 'gpt-5',
       input: prompt,
       temperature: 1.0,
-      stream: true
+      stream: true,
+      reasoning: { effort: 'low' },
+      text: { verbosity: 'low' }
     });
 
     const timeoutPromise = new Promise((_, reject) =>
