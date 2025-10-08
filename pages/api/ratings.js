@@ -9,7 +9,15 @@ if (!globalThis.__groanRatingsStore) {
   globalThis.__groanRatingsStore = memoryStore
 }
 
-const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN)
+const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+const blobConfigured = Boolean(blobToken)
+
+function logStorage(message, details = {}) {
+  const mode = blobConfigured ? 'vercel-blob' : 'in-memory'
+  console.log(`[ratings] ${message} (storage=${mode})`, details)
+}
+
+logStorage('Initialized ratings storage handler')
 
 function buildDefaultStats(overrides = {}) {
   return {
@@ -84,12 +92,13 @@ async function readStats(jokeId, dateKey) {
   if (blobConfigured) {
     const path = getBlobPath(dateKey, jokeId)
     try {
-      const metadata = await head(path)
+      const metadata = await head(path, blobToken ? { token: blobToken } : undefined)
       const response = await fetch(metadata.downloadUrl)
       if (!response.ok) {
         throw new Error('Unable to download ratings data')
       }
       const payload = await response.json()
+      logStorage('Loaded ratings from blob storage', { path })
       const normalized = normalizeStats(payload)
       if (!normalized.date) {
         normalized.date = dateKey
@@ -100,11 +109,14 @@ async function readStats(jokeId, dateKey) {
       return normalized
     } catch (error) {
       if (error instanceof BlobNotFoundError || error?.name === 'BlobNotFoundError') {
+        logStorage('No existing ratings blob found; returning defaults', { path })
         return buildDefaultStats({ date: dateKey, jokeId })
       }
+      console.error('[ratings] Failed to read blob storage', { path, error })
       throw error
     }
   }
+  logStorage('Reading ratings from memory store', { dateKey, jokeId })
   const key = getStorageKey(dateKey, jokeId)
   return memoryStore.get(key) || buildDefaultStats({ date: dateKey, jokeId })
 }
@@ -113,13 +125,20 @@ async function writeStats(jokeId, dateKey, stats) {
   const payload = normalizeStats({ ...stats, date: dateKey, jokeId, updatedAt: new Date().toISOString() })
   if (blobConfigured) {
     const path = getBlobPath(dateKey, jokeId)
-    await put(path, JSON.stringify(payload), {
-      access: 'public',
-      contentType: 'application/json',
-      cacheControl: 'no-store'
-    })
-    return payload
+    try {
+      await put(path, JSON.stringify(payload), {
+        access: 'public',
+        contentType: 'application/json',
+        cacheControl: 'no-store',
+        token: blobToken
+      })
+      logStorage('Persisted ratings to blob storage', { path })
+      return payload
+    } catch (error) {
+      console.error('[ratings] Failed to write blob storage, falling back to memory', { path, error })
+    }
   }
+  logStorage('Persisting ratings in memory store', { dateKey, jokeId })
   const key = getStorageKey(dateKey, jokeId)
   memoryStore.set(key, payload)
   return payload
