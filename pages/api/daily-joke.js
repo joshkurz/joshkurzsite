@@ -182,9 +182,7 @@ async function selectFunniestEvent(events, openai) {
       {
         input: selectionPrompt,
         temperature: 0.6,
-        response_format: { type: 'json_object' },
-        reasoning: { effort: 'high' },
-        text: { verbosity: 'low' }
+        response_format: { type: 'json_object' }
       }
     )
     const text = extractTextFromResponse(response)
@@ -257,9 +255,7 @@ export default async function handler(req, res) {
       {
         input: prompt,
         temperature: 0.8,
-        stream: false,
-        reasoning: { effort: 'high' },
-        text: { verbosity: 'low' }
+        stream: false
       }
     )
     const joke = extractTextFromResponse(response)
