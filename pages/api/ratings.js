@@ -1,36 +1,23 @@
-import { BlobNotFoundError, head, put } from '@vercel/blob'
+import { promises as fs } from 'fs'
+import path from 'path'
+import { randomUUID } from 'crypto'
 
-const BLOB_PREFIX = 'groan-ratings'
 const DEFAULT_COUNTS = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const BASE_DIR = path.join(process.cwd(), 'data', 'ratings')
 
-const memoryStore = globalThis.__groanRatingsStore || new Map()
-if (!globalThis.__groanRatingsStore) {
-  globalThis.__groanRatingsStore = memoryStore
+async function ensureDir(dirPath) {
+  try {
+    await fs.mkdir(dirPath, { recursive: true })
+  } catch (error) {
+    if (error?.code !== 'EEXIST') {
+      throw error
+    }
+  }
 }
 
-const BLOB_TOKEN_ENV_VARS = [
-  'DAD_READ_WRITE_TOKEN',
-  'BLOB_READ_WRITE_TOKEN',
-  'BLOB_STORE_READ_WRITE_TOKEN',
-  'BLOB_RW_TOKEN',
-  'BLOB_TOKEN',
-  'VERCEL_BLOB_TOKEN'
-]
-
-const blobToken = BLOB_TOKEN_ENV_VARS.map((key) => process.env[key]).find(Boolean)
-const blobConfigured = Boolean(blobToken)
-
-function logStorage(message, details = {}) {
-  const mode = blobConfigured ? 'vercel-blob' : 'in-memory'
-  console.log(`[ratings] ${message} (storage=${mode})`, details)
-}
-
-logStorage('Initialized ratings storage handler')
-if (!blobConfigured) {
-  console.warn(
-    `[ratings] Blob token missing; checked env vars: ${BLOB_TOKEN_ENV_VARS.join(', ')}`
-  )
+function getMode(value) {
+  return value === 'daily' ? 'daily' : 'live'
 }
 
 function buildDefaultStats(overrides = {}) {
@@ -43,47 +30,63 @@ function buildDefaultStats(overrides = {}) {
   }
 }
 
-function normalizeStats(stats = {}) {
-  const counts = { ...DEFAULT_COUNTS, ...(stats.counts || {}) }
-  const totalRatings = Number(stats.totalRatings || 0)
-  const average = Number(stats.average || 0)
-  const ratings = Array.isArray(stats.ratings)
-    ? stats.ratings.map((entry) => {
-        const rating = Number(entry?.rating)
-        if (!Number.isFinite(rating)) {
-          return null
-        }
-        const normalized = {
-          rating,
-          submittedAt: entry?.submittedAt || entry?.timestamp || null
-        }
-        if (entry?.joke && typeof entry.joke === 'string') {
-          normalized.joke = entry.joke
-        }
-        if (!normalized.submittedAt) {
-          normalized.submittedAt = new Date().toISOString()
-        }
-        return normalized
-      }).filter(Boolean)
-    : []
+function normalizeEntry(entry = {}) {
+  const rating = Number(entry.rating)
+  if (!Number.isFinite(rating)) {
+    return null
+  }
+  const normalized = {
+    rating,
+    submittedAt: entry.submittedAt || entry.timestamp || new Date().toISOString()
+  }
+  if (entry.joke && typeof entry.joke === 'string') {
+    normalized.joke = entry.joke
+  }
+  if (entry.mode) {
+    normalized.mode = entry.mode
+  }
+  if (entry.date) {
+    normalized.date = entry.date
+  }
+  if (entry.jokeId) {
+    normalized.jokeId = entry.jokeId
+  }
+  return normalized
+}
 
-  const normalizedStats = {
-    ...stats,
+function aggregateEntries(entries, { dateKey, jokeId, mode }) {
+  if (!entries.length) {
+    return buildDefaultStats({ date: dateKey, jokeId, mode })
+  }
+  const counts = { ...DEFAULT_COUNTS }
+  const normalizedEntries = []
+  for (const entry of entries) {
+    const normalized = normalizeEntry(entry)
+    if (!normalized) {
+      continue
+    }
+    counts[normalized.rating] = (counts[normalized.rating] || 0) + 1
+    normalizedEntries.push(normalized)
+  }
+  const totalRatings = normalizedEntries.length
+  const totalScore = normalizedEntries.reduce(
+    (acc, entry) => acc + entry.rating,
+    0
+  )
+  const average = totalRatings === 0 ? 0 : Number((totalScore / totalRatings).toFixed(2))
+  return {
     counts,
     totalRatings,
     average,
-    ratings
+    ratings: normalizedEntries.sort((a, b) => {
+      const aTime = new Date(a.submittedAt).getTime()
+      const bTime = new Date(b.submittedAt).getTime()
+      return aTime - bTime
+    }),
+    date: dateKey,
+    jokeId,
+    mode
   }
-  if (normalizedStats.date) {
-    normalizedStats.date = `${normalizedStats.date}`
-  }
-  if (normalizedStats.jokeId) {
-    normalizedStats.jokeId = `${normalizedStats.jokeId}`
-  }
-  if (normalizedStats.joke && typeof normalizedStats.joke !== 'string') {
-    delete normalizedStats.joke
-  }
-  return normalizedStats
 }
 
 function getDateKey(input) {
@@ -94,69 +97,77 @@ function getDateKey(input) {
   return now.toISOString().slice(0, 10)
 }
 
-function getStorageKey(dateKey, jokeId) {
-  return `${dateKey}:${jokeId}`
+async function readJson(filePath) {
+  try {
+    const content = await fs.readFile(filePath, 'utf8')
+    return JSON.parse(content)
+  } catch (error) {
+    console.error('[ratings] Failed to read review file', { filePath, error })
+    return null
+  }
 }
 
-function getBlobPath(dateKey, jokeId) {
-  return `${BLOB_PREFIX}/${dateKey}/${jokeId}.json`
-}
-
-async function readStats(jokeId, dateKey) {
-  if (blobConfigured) {
-    const path = getBlobPath(dateKey, jokeId)
-    try {
-      const metadata = await head(path, blobToken ? { token: blobToken } : undefined)
-      const response = await fetch(metadata.downloadUrl)
-      if (!response.ok) {
-        throw new Error('Unable to download ratings data')
+async function readEntriesFromDir(dirPath, filterFn) {
+  let entries = []
+  try {
+    const files = await fs.readdir(dirPath)
+    for (const file of files) {
+      if (!file.endsWith('.json')) {
+        continue
       }
-      const payload = await response.json()
-      logStorage('Loaded ratings from blob storage', { path })
-      const normalized = normalizeStats(payload)
-      if (!normalized.date) {
-        normalized.date = dateKey
+      const filePath = path.join(dirPath, file)
+      const payload = await readJson(filePath)
+      if (!payload) {
+        continue
       }
-      if (!normalized.jokeId) {
-        normalized.jokeId = jokeId
+      if (!filterFn || filterFn(payload)) {
+        entries.push(payload)
       }
-      return normalized
-    } catch (error) {
-      if (error instanceof BlobNotFoundError || error?.name === 'BlobNotFoundError') {
-        logStorage('No existing ratings blob found; returning defaults', { path })
-        return buildDefaultStats({ date: dateKey, jokeId })
-      }
-      console.error('[ratings] Failed to read blob storage', { path, error })
-      throw error
+    }
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.error('[ratings] Unable to list reviews directory', { dirPath, error })
     }
   }
-  logStorage('Reading ratings from memory store', { dateKey, jokeId })
-  const key = getStorageKey(dateKey, jokeId)
-  return memoryStore.get(key) || buildDefaultStats({ date: dateKey, jokeId })
+  return entries
 }
 
-async function writeStats(jokeId, dateKey, stats) {
-  const payload = normalizeStats({ ...stats, date: dateKey, jokeId, updatedAt: new Date().toISOString() })
-  if (blobConfigured) {
-    const path = getBlobPath(dateKey, jokeId)
-    try {
-      await put(path, JSON.stringify(payload), {
-        access: 'public',
-        contentType: 'application/json',
-        cacheControl: 'no-store',
-        token: blobToken,
-        allowOverwrite: true
-      })
-      logStorage('Persisted ratings to blob storage', { path })
-      return payload
-    } catch (error) {
-      console.error('[ratings] Failed to write blob storage, falling back to memory', { path, error })
-    }
+async function readStats({ mode, jokeId, dateKey }) {
+  if (mode === 'daily') {
+    const dirPath = path.join(BASE_DIR, 'daily', dateKey)
+    const entries = await readEntriesFromDir(dirPath, (payload) => payload?.jokeId === jokeId)
+    return aggregateEntries(entries, { dateKey, jokeId, mode })
   }
-  logStorage('Persisting ratings in memory store', { dateKey, jokeId })
-  const key = getStorageKey(dateKey, jokeId)
-  memoryStore.set(key, payload)
-  return payload
+  const dirPath = path.join(BASE_DIR, 'live', jokeId)
+  const entries = await readEntriesFromDir(dirPath)
+  return aggregateEntries(entries, { dateKey, jokeId, mode })
+}
+
+async function writeReview({ mode, jokeId, dateKey, rating, joke }) {
+  const submittedAt = new Date().toISOString()
+  const payload = {
+    jokeId,
+    date: dateKey,
+    rating,
+    submittedAt,
+    mode,
+    ...(joke ? { joke } : {})
+  }
+
+  if (mode === 'daily') {
+    const dirPath = path.join(BASE_DIR, 'daily', dateKey)
+    await ensureDir(dirPath)
+    const fileName = `${jokeId}-${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
+    const filePath = path.join(dirPath, fileName)
+    await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf8')
+    return
+  }
+
+  const dirPath = path.join(BASE_DIR, 'live', jokeId)
+  await ensureDir(dirPath)
+  const fileName = `${submittedAt.replace(/[:.]/g, '-')}-${randomUUID()}.json`
+  const filePath = path.join(dirPath, fileName)
+  await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf8')
 }
 
 function validateRating(value) {
@@ -169,14 +180,15 @@ function validateRating(value) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const { jokeId, date: requestedDate } = req.query
+    const { jokeId, date: requestedDate, mode: requestedMode } = req.query
     if (!jokeId || typeof jokeId !== 'string') {
       res.status(400).json({ error: 'Missing jokeId' })
       return
     }
+    const mode = getMode(Array.isArray(requestedMode) ? requestedMode[0] : requestedMode)
     const dateKey = getDateKey(Array.isArray(requestedDate) ? requestedDate[0] : requestedDate)
     try {
-      const stats = await readStats(jokeId, dateKey)
+      const stats = await readStats({ mode, jokeId, dateKey })
       res.status(200).json(stats)
     } catch (error) {
       res.status(500).json({ error: 'Unable to load ratings' })
@@ -185,7 +197,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { jokeId, rating, joke, date: requestedDate } = req.body || {}
+    const { jokeId, rating, joke, date: requestedDate, mode: requestedMode } = req.body || {}
     if (!jokeId || typeof jokeId !== 'string') {
       res.status(400).json({ error: 'Missing jokeId' })
       return
@@ -195,37 +207,13 @@ export default async function handler(req, res) {
       res.status(422).json({ error: 'Rating must be an integer between 1 and 5' })
       return
     }
+    const mode = getMode(requestedMode)
     const dateKey = getDateKey(requestedDate)
 
     try {
-      const stats = await readStats(jokeId, dateKey)
-      const counts = { ...stats.counts }
-      counts[parsedRating] = (counts[parsedRating] || 0) + 1
-      const totalRatings = Object.values(counts).reduce((acc, val) => acc + val, 0)
-      const totalScore = Object.entries(counts).reduce(
-        (acc, [score, count]) => acc + Number(score) * count,
-        0
-      )
-      const average = totalRatings === 0 ? 0 : Number((totalScore / totalRatings).toFixed(2))
-      const history = Array.isArray(stats.ratings) ? [...stats.ratings] : []
-      const entry = { rating: parsedRating, submittedAt: new Date().toISOString() }
-      if (joke && typeof joke === 'string') {
-        entry.joke = joke
-      }
-      history.push(entry)
-
-      const updatedStats = {
-        counts,
-        totalRatings,
-        average,
-        ratings: history,
-        joke: typeof joke === 'string' ? joke : stats.joke,
-        date: dateKey,
-        jokeId
-      }
-
-      const persisted = await writeStats(jokeId, dateKey, updatedStats)
-      res.status(200).json(persisted)
+      await writeReview({ mode, jokeId, dateKey, rating: parsedRating, joke })
+      const refreshedStats = await readStats({ mode, jokeId, dateKey })
+      res.status(200).json(refreshedStats)
     } catch (error) {
       res.status(500).json({ error: 'Unable to save rating' })
     }
