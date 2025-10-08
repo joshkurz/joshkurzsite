@@ -9,7 +9,16 @@ if (!globalThis.__groanRatingsStore) {
   globalThis.__groanRatingsStore = memoryStore
 }
 
-const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+const BLOB_TOKEN_ENV_VARS = [
+  'DAD_READ_WRITE_TOKEN',
+  'BLOB_READ_WRITE_TOKEN',
+  'BLOB_STORE_READ_WRITE_TOKEN',
+  'BLOB_RW_TOKEN',
+  'BLOB_TOKEN',
+  'VERCEL_BLOB_TOKEN'
+]
+
+const blobToken = BLOB_TOKEN_ENV_VARS.map((key) => process.env[key]).find(Boolean)
 const blobConfigured = Boolean(blobToken)
 
 function logStorage(message, details = {}) {
@@ -18,6 +27,11 @@ function logStorage(message, details = {}) {
 }
 
 logStorage('Initialized ratings storage handler')
+if (!blobConfigured) {
+  console.warn(
+    `[ratings] Blob token missing; checked env vars: ${BLOB_TOKEN_ENV_VARS.join(', ')}`
+  )
+}
 
 function buildDefaultStats(overrides = {}) {
   return {

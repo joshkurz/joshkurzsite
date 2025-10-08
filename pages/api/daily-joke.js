@@ -3,11 +3,27 @@ import { generatePrompt } from '../../lib/generatePrompt.mjs'
 import { getOpenAIClient, getRandomLocalJoke } from '../../lib/openaiClient'
 
 const BLOB_PREFIX = 'daily-joke'
-const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN)
+const BLOB_TOKEN_ENV_VARS = [
+  'DAD_READ_WRITE_TOKEN',
+  'BLOB_READ_WRITE_TOKEN',
+  'BLOB_STORE_READ_WRITE_TOKEN',
+  'BLOB_RW_TOKEN',
+  'BLOB_TOKEN',
+  'VERCEL_BLOB_TOKEN'
+]
+
+const blobToken = BLOB_TOKEN_ENV_VARS.map((key) => process.env[key]).find(Boolean)
+const blobConfigured = Boolean(blobToken)
 
 const memoryStore = globalThis.__dailyJokeStore || new Map()
 if (!globalThis.__dailyJokeStore) {
   globalThis.__dailyJokeStore = memoryStore
+}
+
+if (!blobConfigured) {
+  console.warn(
+    `[daily-joke] Blob token missing; checked env vars: ${BLOB_TOKEN_ENV_VARS.join(', ')}`
+  )
 }
 
 function getDateKey() {
@@ -23,7 +39,7 @@ async function readCachedJoke(dateKey) {
   if (blobConfigured) {
     const path = getBlobPath(dateKey)
     try {
-      const metadata = await head(path)
+      const metadata = await head(path, blobToken ? { token: blobToken } : undefined)
       const response = await fetch(metadata.downloadUrl)
       if (!response.ok) {
         throw new Error('Unable to download cached joke')
@@ -42,11 +58,15 @@ async function readCachedJoke(dateKey) {
 async function writeCachedJoke(dateKey, payload) {
   if (blobConfigured) {
     const path = getBlobPath(dateKey)
-    await put(path, JSON.stringify(payload), {
+    const options = {
       access: 'public',
       contentType: 'application/json',
       cacheControl: 'public, max-age=300, s-maxage=300'
-    })
+    }
+    if (blobToken) {
+      options.token = blobToken
+    }
+    await put(path, JSON.stringify(payload), options)
     return
   }
   memoryStore.set(dateKey, payload)
