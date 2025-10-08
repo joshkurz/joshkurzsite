@@ -1,13 +1,9 @@
-import { kv } from '@vercel/kv'
+import { BlobNotFoundError, head, put } from '@vercel/blob'
 import { generatePrompt } from '../../lib/generatePrompt.mjs'
 import { getOpenAIClient, getRandomLocalJoke } from '../../lib/openaiClient'
 
-const KV_PREFIX = 'daily-joke:'
-const kvConfigured = Boolean(
-  process.env.KV_REST_API_URL &&
-  process.env.KV_REST_API_TOKEN &&
-  process.env.KV_REST_API_READ_ONLY_TOKEN
-)
+const BLOB_PREFIX = 'daily-joke'
+const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 
 const memoryStore = globalThis.__dailyJokeStore || new Map()
 if (!globalThis.__dailyJokeStore) {
@@ -19,25 +15,41 @@ function getDateKey() {
   return now.toISOString().slice(0, 10)
 }
 
+function getBlobPath(dateKey) {
+  return `${BLOB_PREFIX}/${dateKey}.json`
+}
+
 async function readCachedJoke(dateKey) {
-  const key = `${KV_PREFIX}${dateKey}`
-  if (kvConfigured) {
-    const stored = await kv.get(key)
-    if (stored) {
-      return stored
+  if (blobConfigured) {
+    const path = getBlobPath(dateKey)
+    try {
+      const metadata = await head(path)
+      const response = await fetch(metadata.downloadUrl)
+      if (!response.ok) {
+        throw new Error('Unable to download cached joke')
+      }
+      return await response.json()
+    } catch (error) {
+      if (error instanceof BlobNotFoundError || error?.name === 'BlobNotFoundError') {
+        return null
+      }
+      throw error
     }
-    return null
   }
-  return memoryStore.get(key) || null
+  return memoryStore.get(dateKey) || null
 }
 
 async function writeCachedJoke(dateKey, payload) {
-  const key = `${KV_PREFIX}${dateKey}`
-  if (kvConfigured) {
-    await kv.set(key, payload, { ex: 60 * 60 * 24 })
+  if (blobConfigured) {
+    const path = getBlobPath(dateKey)
+    await put(path, JSON.stringify(payload), {
+      access: 'public',
+      contentType: 'application/json',
+      cacheControl: 'public, max-age=300, s-maxage=300'
+    })
     return
   }
-  memoryStore.set(key, payload)
+  memoryStore.set(dateKey, payload)
 }
 
 async function fetchOnThisDayEvent(dateKey) {
