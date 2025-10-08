@@ -144,7 +144,8 @@ async function writeStats(jokeId, dateKey, stats) {
         access: 'public',
         contentType: 'application/json',
         cacheControl: 'no-store',
-        token: blobToken
+        token: blobToken,
+        allowOverwrite: true
       })
       logStorage('Persisted ratings to blob storage', { path })
       return payload
