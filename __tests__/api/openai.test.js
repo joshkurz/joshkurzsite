@@ -17,6 +17,10 @@ describe('GET /api/openai', () => {
     delete process.env.MOCK_OPENAI;
     delete process.env.API_KEY;
     delete process.env.OPENAI_TIMEOUT_MS;
+    delete process.env.OPENAI_STREAM_MODEL;
+    delete process.env.OPENAI_STREAM_FALLBACK_MODEL;
+    delete process.env.OPENAI_RESPONSE_MODEL;
+    delete process.env.OPENAI_FALLBACK_MODEL;
   });
 
   it('streams joke data and ends properly', async () => {
@@ -52,6 +56,8 @@ describe('GET /api/openai', () => {
 
   it('falls back to legacy model when verification error occurs', async () => {
     process.env.API_KEY = 'test';
+    process.env.OPENAI_STREAM_MODEL = 'gpt-4.1';
+    process.env.OPENAI_STREAM_FALLBACK_MODEL = 'gpt-4.1-mini';
     const create = jest
       .fn()
       .mockRejectedValueOnce(
@@ -79,8 +85,8 @@ describe('GET /api/openai', () => {
     const data = res._getData();
 
     expect(create).toHaveBeenCalledTimes(2);
-    expect(create.mock.calls[0][0].model).toBe('gpt-5');
-    expect(create.mock.calls[1][0].model).toBe('gpt-4o-mini');
+    expect(create.mock.calls[0][0].model).toBe('gpt-4.1');
+    expect(create.mock.calls[1][0].model).toBe('gpt-4.1-mini');
     expect(data).toContain('Fallback joke');
     expect(data).toContain('[DONE]');
   });
