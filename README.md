@@ -1,63 +1,79 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# JoshKurzSite Ratings Infrastructure
 
-## Getting Started
+This project is a Next.js application that lets visitors rate jokes and review community activity. Ratings are now backed by DynamoDB aggregates with optional SQS fan-out to downstream consumers.
 
-First, run the development server:
+## Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+- Node.js 18+
+- npm 9+
+- An AWS account with permissions to manage DynamoDB and SQS
+- Terraform 1.4+ (optional, for provisioning)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local development
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Groan ratings & free storage option
-
-The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
-
-1. In the Vercel dashboard, create a Blob store (the free hobby tier is plenty for text-sized payloads).
-2. Copy the `BLOB_READ_WRITE_TOKEN` from the store settings and expose it to the app:
-
+1. Install dependencies:
    ```bash
-   BLOB_READ_WRITE_TOKEN=<value>
+   npm install
    ```
+2. Export the required AWS variables (see [Environment variables](#environment-variables)). When AWS is not configured, the API falls back to in-memory counts so you can still iterate on the UI.
+3. Start the Next.js dev server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+## Environment variables
 
-## Joke of the day mode
+| Name | Required | Description |
+| --- | --- | --- |
+| `RATINGS_TABLE_NAME` | ✅ | DynamoDB table that stores rating aggregates, recent votes, and event history. |
+| `AWS_REGION` | ✅ | AWS region that hosts the table (and queue if enabled). |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | ✅ | Credentials for the IAM principal that can read/write the table. These can also be provided via a named profile or IAM role assumption. |
+| `RATINGS_QUEUE_URL` | Optional | SQS queue URL used to fan out rating events. Leave unset to disable queuing. |
 
-If you want to track a single joke over the course of the day, switch the homepage into **Joke of the Day** mode using the toggle above the joke. When active the app:
+If you use a named AWS CLI profile set the `AWS_PROFILE` environment variable before running commands.
 
-- Calls `/api/daily-joke`, which fetches "On this day" facts from Wikipedia's public REST API.
-- Generates a dad joke that references the selected historical event and caches it in Vercel Blob (or an in-memory fallback) so everyone sees the same joke for that date.
-- Surfaces the historical context, including a summary and source link, under the joke so you know why the gag is timely.
+## Provisioning with Terraform
 
-To make the daily joke the default view on load, set an environment variable before building the app:
+A ready-to-use Terraform configuration lives in `infra/terraform`. It creates a DynamoDB table (`pk` / `sk` schema) and an SQS queue with on-demand capacity. To apply it:
 
 ```bash
-NEXT_PUBLIC_DEFAULT_JOKE_MODE=daily
+cd infra/terraform
+terraform init
+terraform apply \
+  -var="region=us-east-1" \
+  -var="table_name=joshkurzsite-ratings" \
+  -var="queue_name=joshkurzsite-ratings-events"
 ```
 
-With the variable set, visitors land on the date-aware daily joke but can still switch back to the live streaming mode at any time.
+After the run completes, export the outputs for your deployment:
 
-## Learn More
+```bash
+export RATINGS_TABLE_NAME="$(terraform output -raw ratings_table_name)"
+export RATINGS_QUEUE_URL="$(terraform output -raw ratings_queue_url)" # optional
+export AWS_REGION="us-east-1"
+```
 
-To learn more about Next.js, take a look at the following resources:
+Configure the same variables in your hosting environment (e.g. Vercel project settings) so the API routes talk to DynamoDB instead of the in-memory fallback.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Migrating legacy ratings
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Legacy vote payloads can be migrated into DynamoDB with the provided script. Supply a JSON file that contains an array of objects matching the old blob schema (`jokeId`, `rating`, `mode`, `date`, `submittedAt`, etc.). The script writes each record to DynamoDB and skips malformed entries.
 
-## Deploy on Vercel
+```bash
+# migrate from a file
+npm run migrate:ratings -- --input ./path/to/legacy-ratings.json
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# or stream JSON through stdin
+cat legacy.json | npm run migrate:ratings -- --input -
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+By default migrations write only to DynamoDB. Pass `--enqueue` if you also want each migrated record sent through SQS.
+
+## Testing
+
+Run Jest to execute the existing unit tests:
+
+```bash
+npm test
+```

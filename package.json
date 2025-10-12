@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "migrate:ratings": "node ./scripts/migrateLegacyRatings.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^0.1.6",
-    "@vercel/blob": "^2.0.0",
+    "@aws-sdk/client-dynamodb": "^3.609.0",
+    "@aws-sdk/client-sqs": "^3.609.0",
+    "@aws-sdk/lib-dynamodb": "^3.609.0",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.6",
     "next": "13.0.6",
