@@ -15,6 +15,7 @@ const CURL_ARGS = [
 ]
 
 const BASE_URL = 'https://www.fatherhood.gov/jsonapi/node/dad_jokes?filter[status][value]=1'
+const DEFAULT_AUTHOR = 'fatherhood.gov'
 
 function normalizeUrl(input, fallback) {
   if (!input) return null
@@ -69,7 +70,8 @@ async function fetchAllJokes() {
         sourceId: rawId,
         opener,
         response: responseText || null,
-        text: responseText ? `Question: ${opener}\nAnswer: ${responseText}` : `Question: ${opener}`
+        text: responseText ? `Question: ${opener}\nAnswer: ${responseText}` : `Question: ${opener}`,
+        author: DEFAULT_AUTHOR
       })
     }
     const nextLink = normalizeUrl(payload?.links?.next?.href, nextUrl)

@@ -12,5 +12,6 @@ describe('GET /api/random-joke', () => {
     const found = jokes.find((joke) => joke.id === data.id);
     expect(found).toBeDefined();
     expect(data.text).toBe(found.text);
+    expect(data.author).toBe(found.author);
   });
 });
