@@ -40,34 +40,12 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
-      jokeMode: 'live',
-      dailyContext: null
+      loadedJokeId: null
     };
-    this.eventSource = null;
   }
 
   componentDidMount() {
-    const defaultMode =
-      typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEFAULT_JOKE_MODE === 'daily'
-        ? 'daily'
-        : 'live';
-    let savedMode = null;
-    try {
-      savedMode = window.localStorage.getItem('jokeMode');
-    } catch (error) {
-      savedMode = null;
-    }
-    const mode = savedMode === 'daily' ? 'daily' : defaultMode;
-    this.setState({ jokeMode: mode }, () => {
-      this.loadJokeForMode(mode);
-    });
-  }
-
-  componentWillUnmount() {
-    if (this.eventSource) {
-      this.eventSource.close();
-    }
+    this.fetchJoke();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -82,7 +60,7 @@ class OpenAIData extends React.Component {
   }
 
   prepareJokeMetadata = () => {
-    const { questionTokens, answerTokens, currentJokeId } = this.state;
+    const { questionTokens, answerTokens, currentJokeId, loadedJokeId } = this.state;
     const question = questionTokens.join(' ').trim();
     const answer = answerTokens.join(' ').trim();
     if (!question && !answer) {
@@ -92,7 +70,7 @@ class OpenAIData extends React.Component {
     if (question) parts.push(question);
     if (answer) parts.push(answer);
     const jokeText = parts.join(' || ').trim();
-    const jokeId = this.createJokeId(jokeText);
+    const jokeId = loadedJokeId || this.createJokeId(jokeText);
     if (jokeId === currentJokeId) {
       return;
     }
@@ -105,22 +83,14 @@ class OpenAIData extends React.Component {
         hoveredRating: null,
         isSubmittingRating: false,
         ratingError: null,
-        hasSubmittedRating: false
+        hasSubmittedRating: false,
+        loadedJokeId: loadedJokeId || null
       },
       () => {
         this.fetchRatingStats(jokeId);
       }
     );
   }
-
-  loadJokeForMode = (mode) => {
-    if (mode === 'daily') {
-      this.fetchDailyJoke();
-      return;
-    }
-    this.fetchJoke();
-  }
-
   createJokeId = (text) => {
     let hash = 0;
     for (let i = 0; i < text.length; i += 1) {
@@ -131,9 +101,8 @@ class OpenAIData extends React.Component {
   }
 
   fetchRatingStats = async (jokeId) => {
-    const { jokeMode } = this.state
     try {
-      const params = new URLSearchParams({ jokeId, mode: jokeMode })
+      const params = new URLSearchParams({ jokeId })
       const response = await fetch(`/api/ratings?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Unable to load ratings');
@@ -146,14 +115,7 @@ class OpenAIData extends React.Component {
   }
 
   handleGroanClick = async (value) => {
-    const {
-      currentJokeId,
-      currentJokeText,
-      hasSubmittedRating,
-      isSubmittingRating,
-      jokeMode,
-      dailyContext
-    } = this.state;
+    const { currentJokeId, currentJokeText, hasSubmittedRating, isSubmittingRating } = this.state;
     if (!currentJokeId || hasSubmittedRating || isSubmittingRating) {
       return;
     }
@@ -172,9 +134,7 @@ class OpenAIData extends React.Component {
         body: JSON.stringify({
           jokeId: currentJokeId,
           rating: value,
-          joke: jokeMode === 'live' ? currentJokeText : undefined,
-          mode: jokeMode,
-          date: jokeMode === 'daily' && dailyContext?.date ? dailyContext.date : undefined
+          joke: currentJokeText
         })
       });
       if (!response.ok) {
@@ -210,12 +170,7 @@ class OpenAIData extends React.Component {
     this.setState({ hoveredRating: null });
   };
 
-  fetchJoke = () => {
-    // Close any existing connection before opening a new one
-    if (this.eventSource) {
-      this.eventSource.close();
-    }
-    // Reset state so the spinner is shown while loading
+  fetchJoke = async () => {
     this.setState({
       error: null,
       isLoaded: false,
@@ -233,75 +188,13 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
-      dailyContext: null
+      loadedJokeId: null
     });
 
-    // Establish an EventSource connection to receive SSEs from the backend
-    this.eventSource = new EventSource("/api/openai");
-    // Buffer for the raw streamed joke so we can incrementally parse the
-    // question and answer as tokens arrive.
-    let rawJoke = "";
-    let hasStartedStreaming = false;
-    const timeoutId = setTimeout(() => {
-      if (!hasStartedStreaming) {
-        this.eventSource.close();
-        this.loadFallbackJoke();
-      }
-    }, 3000);
-    this.eventSource.onmessage = (event) => {
-      const data = event.data;
-      if (data === "[DONE]") {
-        clearTimeout(timeoutId);
-        this.setState({ isComplete: true });
-        this.eventSource.close();
-        return;
-      }
-      if (!hasStartedStreaming) {
-        hasStartedStreaming = true;
-        clearTimeout(timeoutId);
-      }
-      rawJoke += data;
-      this.setState(prevState => ({
-        ...parseStream(rawJoke, prevState),
-        isLoaded: true
-      }));
-    };
-
-    this.eventSource.onerror = () => {
-      clearTimeout(timeoutId);
-      this.eventSource.close();
-      this.loadFallbackJoke();
-    };
-  }
-
-  fetchDailyJoke = async () => {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-    this.setState({
-      error: null,
-      isLoaded: false,
-      isComplete: false,
-      question: '',
-      answer: '',
-      questionTokens: [],
-      answerTokens: [],
-      pendingQuestion: '',
-      ratingStats: { ...defaultRatingStats },
-      userRating: null,
-      hoveredRating: null,
-      isSubmittingRating: false,
-      ratingError: null,
-      hasSubmittedRating: false,
-      currentJokeId: null,
-      currentJokeText: '',
-      dailyContext: null
-    });
     try {
-      const res = await fetch('/api/daily-joke');
+      const res = await fetch('/api/random-joke');
       if (!res.ok) {
-        throw new Error('Unable to load the daily joke');
+        throw new Error('Unable to load a dad joke');
       }
       const data = await res.json();
       const initialState = {
@@ -311,14 +204,14 @@ class OpenAIData extends React.Component {
         answerTokens: [],
         pendingQuestion: ''
       };
-      const parsed = parseStream(data.joke || '', initialState);
+      const parsed = parseStream(data.text || '', initialState);
       this.setState(
         {
           ...parsed,
           isLoaded: true,
           isComplete: true,
           error: null,
-          dailyContext: data.context || null
+          loadedJokeId: data.id || null
         },
         () => {
           this.prepareJokeMetadata();
@@ -331,55 +224,6 @@ class OpenAIData extends React.Component {
         isComplete: true
       });
     }
-  }
-
-  loadFallbackJoke = async () => {
-    try {
-      const res = await fetch('/api/random-joke');
-      const data = await res.json();
-      const initialState = {
-        question: '',
-        answer: '',
-        questionTokens: [],
-        answerTokens: [],
-        pendingQuestion: ''
-      };
-      const parsed = parseStream(data.joke, initialState);
-      this.setState({
-        ...parsed,
-        isLoaded: true,
-        isComplete: true,
-        error: null,
-        ratingStats: { ...defaultRatingStats },
-        userRating: null,
-        hoveredRating: null,
-        isSubmittingRating: false,
-        ratingError: null,
-        hasSubmittedRating: false,
-        currentJokeId: null,
-        currentJokeText: ''
-      });
-    } catch (error) {
-      this.setState({
-        isLoaded: true,
-        isComplete: true,
-        error
-      });
-    }
-  }
-
-  handleModeChange = (mode) => {
-    if (mode === this.state.jokeMode) {
-      return;
-    }
-    try {
-      window.localStorage.setItem('jokeMode', mode);
-    } catch (error) {
-      // Ignore storage failures
-    }
-    this.setState({ jokeMode: mode }, () => {
-      this.loadJokeForMode(mode);
-    });
   }
 
   render() {
@@ -396,9 +240,7 @@ class OpenAIData extends React.Component {
       hoveredRating,
       isSubmittingRating,
       ratingError,
-      hasSubmittedRating,
-      jokeMode,
-      dailyContext
+      hasSubmittedRating
     } = this.state;
 
     const displayQuestionTokens =
@@ -422,24 +264,7 @@ class OpenAIData extends React.Component {
     }
     return (
       <div className={styles.jokeContainer}>
-        {/* Update the header to be a bit more playful */}
-        <h2 className={styles.jokeHeader}>Dad Joke of the Day (Guaranteed to Make You Groan)</h2>
-        <div className={styles.modeToggle}>
-          <button
-            type="button"
-            className={`${styles.modeButton} ${jokeMode === 'live' ? styles.modeButtonActive : ''}`}
-            onClick={() => this.handleModeChange('live')}
-          >
-            Live Stream
-          </button>
-          <button
-            type="button"
-            className={`${styles.modeButton} ${jokeMode === 'daily' ? styles.modeButtonActive : ''}`}
-            onClick={() => this.handleModeChange('daily')}
-          >
-            Joke of the Day
-          </button>
-        </div>
+        <h2 className={styles.jokeHeader}>Fresh Groaners from Fatherhood.gov</h2>
         {displayQuestionTokens.length > 0 && (
           <p className={styles.question}>
             {displayQuestionTokens.map((t, i) => (
@@ -530,52 +355,9 @@ class OpenAIData extends React.Component {
           </>
         )}
         {isComplete && (
-          <button
-            className={styles.newJokeButton}
-            onClick={jokeMode === 'daily' ? this.fetchDailyJoke : this.fetchJoke}
-          >
-            {jokeMode === 'daily' ? 'Reload Daily Joke' : 'New Joke'}
+          <button className={styles.newJokeButton} onClick={this.fetchJoke}>
+            New Joke
           </button>
-        )}
-        {jokeMode === 'daily' && dailyContext && (
-          <div className={styles.dailyContext}>
-            <h3>Why this topic and this joke today?</h3>
-            <p className={styles.dailyBlurb}>{dailyContext.selectionNotes}</p>
-            <p className={styles.dailyBlurb}>{dailyContext.sourceDescription}</p>
-            {dailyContext.year ? (
-              <p>
-                In {dailyContext.year}, {dailyContext.text}
-              </p>
-            ) : (
-              <p>{dailyContext.text}</p>
-            )}
-            {dailyContext.summary && (
-              <p className={styles.dailySummary}>{dailyContext.summary}</p>
-            )}
-            {dailyContext.reason && (
-              <p className={styles.dailyReason}>
-                <strong>Why it made the cut:</strong> {dailyContext.reason}
-              </p>
-            )}
-            {dailyContext.angle && (
-              <p className={styles.dailyReason}>
-                <strong>Comedic angle:</strong> {dailyContext.angle}
-              </p>
-            )}
-            {dailyContext.topicOrigin && (
-              <p className={styles.dailyBlurb}>{dailyContext.topicOrigin}</p>
-            )}
-            {dailyContext.source && (
-              <a
-                className={styles.dailyLink}
-                href={dailyContext.source}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Read more about today&apos;s event
-              </a>
-            )}
-          </div>
         )}
       </div>
     );

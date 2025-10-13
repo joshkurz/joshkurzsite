@@ -31,21 +31,13 @@ The home page now lets visitors rate each joke on a five groan scale. Ratings ar
 
 3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
 
-## Joke of the day mode
+## Fatherhood.gov joke dataset
 
-If you want to track a single joke over the course of the day, switch the homepage into **Joke of the Day** mode using the toggle above the joke. When active the app:
-
-- Calls `/api/daily-joke`, which fetches "On this day" facts from Wikipedia's public REST API.
-- Generates a dad joke that references the selected historical event and caches it in Vercel Blob (or an in-memory fallback) so everyone sees the same joke for that date.
-- Surfaces the historical context, including a summary and source link, under the joke so you know why the gag is timely.
-
-To make the daily joke the default view on load, set an environment variable before building the app:
+The homepage now pulls directly from the public [Fatherhood.gov dad joke library](https://www.fatherhood.gov/for-dads/dad-jokes). A helper script (`scripts/fetch-fatherhood-jokes.mjs`) crawls the JSON:API endpoint, normalizes each joke, and saves them to `data/fatherhood_jokes.json`. The file powers the `/api/random-joke` endpoint, the OpenAI fallback responses, and any other features that need a reliable supply of groan-worthy material. Run the script whenever you want to refresh the dataset:
 
 ```bash
-NEXT_PUBLIC_DEFAULT_JOKE_MODE=daily
+node scripts/fetch-fatherhood-jokes.mjs
 ```
-
-With the variable set, visitors land on the date-aware daily joke but can still switch back to the live streaming mode at any time.
 
 ## Learn More
 

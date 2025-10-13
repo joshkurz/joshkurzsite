@@ -1,9 +1,15 @@
-import fs from 'fs';
-import path from 'path';
+import { getRandomJoke } from '../../lib/jokesData'
 
 export default function handler(req, res) {
-  const jokesPath = path.join(process.cwd(), 'data', 'dad_jokes.txt');
-  const jokes = fs.readFileSync(jokesPath, 'utf-8').split('\n\n').filter(Boolean);
-  const joke = jokes[Math.floor(Math.random() * jokes.length)];
-  res.status(200).json({ joke });
+  try {
+    const joke = getRandomJoke()
+    res.status(200).json({
+      id: joke.id,
+      opener: joke.opener,
+      response: joke.response,
+      text: joke.text
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load a dad joke' })
+  }
 }
