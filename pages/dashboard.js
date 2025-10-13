@@ -56,21 +56,55 @@ function getJokeSnippet(joke) {
   return `${joke.slice(0, 157)}...`
 }
 
+function formatAuthorName(name) {
+  if (!name) {
+    return 'Unknown Author'
+  }
+  const trimmed = String(name).trim()
+  if (!trimmed) {
+    return 'Unknown Author'
+  }
+  const lower = trimmed.toLowerCase()
+  if (lower === 'unknown') {
+    return 'Unknown Author'
+  }
+  if (lower === 'fatherhood.gov' || lower === 'fatherhood.com') {
+    return 'Fatherhood.gov'
+  }
+  if (lower === 'ai generated' || lower === 'ai') {
+    return 'AI Generated'
+  }
+  return trimmed
+}
+
 function formatMode(mode) {
   return mode === 'daily' ? 'Daily' : 'Live'
 }
 
 function describePerformer(performer) {
+  let description
   if (performer.mode === 'daily') {
     if (performer.date) {
-      return `Daily highlight for ${formatDate(performer.date)}`
+      description = `Daily highlight for ${formatDate(performer.date)}`
+    } else {
+      description = 'Daily highlight'
     }
-    return 'Daily highlight'
+  } else {
+    description = getJokeSnippet(performer.joke) || performer.jokeId || 'Live joke'
   }
-  return getJokeSnippet(performer.joke) || performer.jokeId || 'Live joke'
+  if (performer.author) {
+    return `${description} — ${formatAuthorName(performer.author)}`
+  }
+  return description
 }
 
 export default function Dashboard({ summary, error }) {
+  const authorStats = summary?.totals?.byAuthor || []
+  const topAuthor = authorStats[0] || null
+  const secondaryAuthor = authorStats[1] || null
+  const authorCount = authorStats.length
+  const authorDistributions = summary?.ratingDistribution?.byAuthor || {}
+
   return (
     <div className={styles.container}>
       <Head>
@@ -81,9 +115,9 @@ export default function Dashboard({ summary, error }) {
         <section className={styles.hero}>
           <h1>Joke Insights Dashboard</h1>
           <p>
-            A streamlined look at how daily spotlights and live generated jokes are landing with
-            audiences. Track the big totals, distribution trends, top highlights, and the latest
-            feedback without wading through extra tables.
+            A streamlined look at how our joke authors are landing with audiences. Track the big
+            totals, author trends, top highlights, and the latest feedback without wading through
+            extra tables.
           </p>
         </section>
         {error && (
@@ -105,19 +139,42 @@ export default function Dashboard({ summary, error }) {
                 <h2>Average Score</h2>
                 <p className={styles.metric}>{formatAverage(summary.totals.overallAverage)}</p>
                 <p className={styles.subtext}>
-                  Live jokes average {formatAverage(summary.totals.live.average)} while daily spotlights
-                  average {formatAverage(summary.totals.daily.average)}.
+                  {authorCount > 0
+                    ? `Top author ${formatAuthorName(topAuthor.author)} averages ${formatAverage(
+                        topAuthor.average
+                      )} stars.`
+                    : 'Author averages will appear after the first ratings roll in.'}
                 </p>
               </article>
               <article className={styles.card}>
-                <h2>Live Ratings</h2>
-                <p className={styles.metric}>{formatNumber(summary.totals.live.totalRatings)}</p>
-                <p className={styles.subtext}>Streaming jokes rated in real time.</p>
+                <h2>Top Author Ratings</h2>
+                <p className={styles.metric}>{formatNumber(topAuthor?.totalRatings || 0)}</p>
+                <p className={styles.subtext}>
+                  {topAuthor
+                    ? `${formatAuthorName(topAuthor.author)} averages ${formatAverage(topAuthor.average)} stars.`
+                    : 'No author-specific ratings have been captured yet.'}
+                </p>
               </article>
               <article className={styles.card}>
-                <h2>Daily Ratings</h2>
-                <p className={styles.metric}>{formatNumber(summary.totals.daily.totalRatings)}</p>
-                <p className={styles.subtext}>Votes on the curated daily feature.</p>
+                {secondaryAuthor ? (
+                  <>
+                    <h2>Next Author</h2>
+                    <p className={styles.metric}>{formatNumber(secondaryAuthor.totalRatings)}</p>
+                    <p className={styles.subtext}>
+                      {formatAuthorName(secondaryAuthor.author)} averages {formatAverage(
+                        secondaryAuthor.average
+                      )} stars.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2>Authors Tracked</h2>
+                    <p className={styles.metric}>{formatNumber(authorCount)}</p>
+                    <p className={styles.subtext}>
+                      We&apos;ll highlight more authors as soon as additional ratings arrive.
+                    </p>
+                  </>
+                )}
               </article>
             </section>
 
@@ -128,15 +185,18 @@ export default function Dashboard({ summary, error }) {
                   <h3>Overall</h3>
                   {renderRatingCounts(summary.ratingDistribution.overall)}
                 </article>
-                <article className={styles.card}>
-                  <h3>Live Jokes</h3>
-                  {renderRatingCounts(summary.ratingDistribution.live)}
-                </article>
-                <article className={styles.card}>
-                  <h3>Daily Spotlights</h3>
-                  {renderRatingCounts(summary.ratingDistribution.daily)}
-                </article>
+                {authorStats.map((author) => (
+                  <article key={author.author} className={styles.card}>
+                    <h3>{formatAuthorName(author.author)}</h3>
+                    {renderRatingCounts(authorDistributions[author.author])}
+                  </article>
+                ))}
               </div>
+              {authorStats.length === 0 && (
+                <p className={styles.emptyState}>
+                  Author-level distributions will appear once ratings are tied to specific authors.
+                </p>
+              )}
             </section>
 
             <section className={styles.section}>
@@ -190,6 +250,9 @@ export default function Dashboard({ summary, error }) {
                       <div className={styles.recentMeta}>
                         <span className={styles.recentMode}>{item.mode === 'daily' ? 'Daily' : 'Live'}</span>
                         <span>{formatDate(item.submittedAt || item.date)}</span>
+                        {item.author && (
+                          <span className={styles.recentAuthor}>{formatAuthorName(item.author)}</span>
+                        )}
                         <span className={styles.recentRating}>{item.rating}★</span>
                       </div>
                       <p className={styles.recentJoke}>
@@ -216,19 +279,18 @@ Dashboard.propTypes = {
       overallAverage: PropTypes.number,
       uniqueJokes: PropTypes.number,
       ratingCounts: PropTypes.object,
-      live: PropTypes.shape({
-        totalRatings: PropTypes.number,
-        average: PropTypes.number
-      }),
-      daily: PropTypes.shape({
-        totalRatings: PropTypes.number,
-        average: PropTypes.number
-      })
+      byAuthor: PropTypes.arrayOf(
+        PropTypes.shape({
+          author: PropTypes.string,
+          totalRatings: PropTypes.number,
+          average: PropTypes.number,
+          lastRatedAt: PropTypes.string
+        })
+      )
     }),
     ratingDistribution: PropTypes.shape({
       overall: PropTypes.object,
-      live: PropTypes.object,
-      daily: PropTypes.object
+      byAuthor: PropTypes.object
     }),
     topPerformers: PropTypes.arrayOf(
       PropTypes.shape({
@@ -238,7 +300,8 @@ Dashboard.propTypes = {
         date: PropTypes.string,
         totalRatings: PropTypes.number,
         average: PropTypes.number,
-        lastRatedAt: PropTypes.string
+        lastRatedAt: PropTypes.string,
+        author: PropTypes.string
       })
     ),
     recentRatings: PropTypes.arrayOf(
@@ -248,7 +311,8 @@ Dashboard.propTypes = {
         rating: PropTypes.number,
         joke: PropTypes.string,
         submittedAt: PropTypes.string,
-        date: PropTypes.string
+        date: PropTypes.string,
+        author: PropTypes.string
       })
     )
   }),

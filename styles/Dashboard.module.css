@@ -196,6 +196,11 @@
   text-transform: uppercase;
 }
 
+.recentAuthor {
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.9);
+}
+
 .recentRating {
   font-weight: 700;
   font-size: 1.1rem;
