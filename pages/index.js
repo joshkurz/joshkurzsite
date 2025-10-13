@@ -40,7 +40,15 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
-      loadedJokeId: null
+      currentJokeAuthor: '',
+      loadedJokeId: null,
+      isSubmitFormOpen: false,
+      submitSetup: '',
+      submitPunchline: '',
+      submitAuthor: '',
+      isSubmittingJoke: false,
+      submitError: null,
+      submitMessage: ''
     };
   }
 
@@ -170,6 +178,68 @@ class OpenAIData extends React.Component {
     this.setState({ hoveredRating: null });
   };
 
+  toggleSubmitForm = () => {
+    this.setState((prev) => ({
+      isSubmitFormOpen: !prev.isSubmitFormOpen,
+      submitMessage: '',
+      submitError: null
+    }));
+  };
+
+  handleSubmitFieldChange = (event) => {
+    const { name, value } = event.target;
+    if (!['submitSetup', 'submitPunchline', 'submitAuthor'].includes(name)) {
+      return;
+    }
+    this.setState({ [name]: value });
+  };
+
+  handleSubmitJoke = async (event) => {
+    event.preventDefault();
+    const { submitSetup, submitPunchline, submitAuthor } = this.state;
+    const payload = {
+      setup: submitSetup.trim(),
+      punchline: submitPunchline.trim(),
+      author: submitAuthor.trim()
+    };
+    if (!payload.setup || !payload.punchline || !payload.author) {
+      this.setState({ submitError: 'All fields are required.' });
+      return;
+    }
+    this.setState({ isSubmittingJoke: true, submitError: null, submitMessage: '' });
+    try {
+      const response = await fetch('/api/custom-jokes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to share your joke.');
+      }
+      if (data.status === 'accepted') {
+        this.setState({
+          submitMessage: 'Thanks for sharing! Your joke was accepted.',
+          submitSetup: '',
+          submitPunchline: '',
+          submitAuthor: ''
+        });
+      } else {
+        this.setState({
+          submitMessage: `Thanks for submitting! Our moderator said: ${data.reason}`
+        });
+      }
+    } catch (err) {
+      this.setState({
+        submitError: err.message || 'Unable to share your joke. Please try again.'
+      });
+    } finally {
+      this.setState({ isSubmittingJoke: false });
+    }
+  };
+
   fetchJoke = async () => {
     this.setState({
       error: null,
@@ -188,6 +258,7 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
+      currentJokeAuthor: '',
       loadedJokeId: null
     });
 
@@ -211,7 +282,8 @@ class OpenAIData extends React.Component {
           isLoaded: true,
           isComplete: true,
           error: null,
-          loadedJokeId: data.id || null
+          loadedJokeId: data.id || null,
+          currentJokeAuthor: data.author || 'Unknown'
         },
         () => {
           this.prepareJokeMetadata();
@@ -240,7 +312,15 @@ class OpenAIData extends React.Component {
       hoveredRating,
       isSubmittingRating,
       ratingError,
-      hasSubmittedRating
+      hasSubmittedRating,
+      currentJokeAuthor,
+      isSubmitFormOpen,
+      submitSetup,
+      submitPunchline,
+      submitAuthor,
+      isSubmittingJoke,
+      submitError,
+      submitMessage
     } = this.state;
 
     const displayQuestionTokens =
@@ -264,7 +344,7 @@ class OpenAIData extends React.Component {
     }
     return (
       <div className={styles.jokeContainer}>
-        <h2 className={styles.jokeHeader}>Fresh Groaners from Fatherhood.gov</h2>
+        <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
         {displayQuestionTokens.length > 0 && (
           <p className={styles.question}>
             {displayQuestionTokens.map((t, i) => (
@@ -277,6 +357,11 @@ class OpenAIData extends React.Component {
             {displayAnswerTokens.map((t, i) => (
               <span key={i} className={styles.fadeIn}>{t}</span>
             ))}
+          </p>
+        )}
+        {currentJokeAuthor && (
+          <p className={styles.authorTag}>
+            <span className={styles.authorLabel}>Author:</span> {currentJokeAuthor}
           </p>
         )}
         {isComplete && (
@@ -364,6 +449,50 @@ class OpenAIData extends React.Component {
             New Joke
           </button>
         )}
+        <div className={styles.shareSection}>
+          <button className={styles.shareButton} onClick={this.toggleSubmitForm}>
+            {isSubmitFormOpen ? 'Cancel' : 'Share Your Joke'}
+          </button>
+          {isSubmitFormOpen && (
+            <form className={styles.shareForm} onSubmit={this.handleSubmitJoke}>
+              <label className={styles.shareLabel}>
+                <span>Setup</span>
+                <textarea
+                  name="submitSetup"
+                  className={styles.shareInput}
+                  value={submitSetup}
+                  onChange={this.handleSubmitFieldChange}
+                  rows={3}
+                />
+              </label>
+              <label className={styles.shareLabel}>
+                <span>Punchline</span>
+                <textarea
+                  name="submitPunchline"
+                  className={styles.shareInput}
+                  value={submitPunchline}
+                  onChange={this.handleSubmitFieldChange}
+                  rows={3}
+                />
+              </label>
+              <label className={styles.shareLabel}>
+                <span>Author</span>
+                <input
+                  type="text"
+                  name="submitAuthor"
+                  className={styles.shareInput}
+                  value={submitAuthor}
+                  onChange={this.handleSubmitFieldChange}
+                />
+              </label>
+              {submitError && <p className={styles.shareError}>{submitError}</p>}
+              {submitMessage && <p className={styles.shareMessage}>{submitMessage}</p>}
+              <button className={styles.submitButton} type="submit" disabled={isSubmittingJoke}>
+                {isSubmittingJoke ? 'Submitting...' : 'Submit Joke'}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     );
   }
