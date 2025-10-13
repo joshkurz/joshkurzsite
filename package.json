@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "update-dashboard-summary": "node scripts/update-dashboard-summary.mjs",
+    "watch-dashboard-summary": "node scripts/update-dashboard-summary.mjs --watch"
   },
   "dependencies": {
     "@vercel/analytics": "^0.1.6",
