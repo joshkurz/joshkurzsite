@@ -66,10 +66,10 @@ export default function SpeechHelper() {
   const loadRandomJoke = async () => {
     const res = await fetch('/api/random-joke');
     const data = await res.json();
-    const [q, a] = data.joke.split('\n');
-    const question = q.replace(/^Question:\s*/i, '');
-    const answer = (a || '').replace(/^Answer:\s*/i, '');
-    setInputValue(`${question}          ${answer}`);
+    const question = (data.opener || '').replace(/^Question:\s*/i, '').trim();
+    const answer = (data.response || '').replace(/^Answer:\s*/i, '').trim();
+    const combined = answer ? `${question}          ${answer}` : question;
+    setInputValue(combined);
   };
 
   useEffect(() => {
