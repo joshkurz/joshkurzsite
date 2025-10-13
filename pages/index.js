@@ -123,7 +123,13 @@ class OpenAIData extends React.Component {
   }
 
   handleGroanClick = async (value) => {
-    const { currentJokeId, currentJokeText, hasSubmittedRating, isSubmittingRating } = this.state;
+    const {
+      currentJokeId,
+      currentJokeText,
+      currentJokeAuthor,
+      hasSubmittedRating,
+      isSubmittingRating
+    } = this.state;
     if (!currentJokeId || hasSubmittedRating || isSubmittingRating) {
       return;
     }
@@ -142,7 +148,8 @@ class OpenAIData extends React.Component {
         body: JSON.stringify({
           jokeId: currentJokeId,
           rating: value,
-          joke: currentJokeText
+          joke: currentJokeText,
+          author: currentJokeAuthor || undefined
         })
       });
       if (!response.ok) {
