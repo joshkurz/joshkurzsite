@@ -1,6 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import { createMocks } from 'node-mocks-http';
+import { getAllJokeTexts } from '../../lib/jokesData';
 
 function extractSSEPayload(raw) {
   return raw
@@ -47,8 +46,7 @@ describe('GET /api/openai', () => {
     await handler(req, res);
     const data = res._getData();
     const payload = extractSSEPayload(data);
-    const jokesPath = path.join(process.cwd(), 'data', 'dad_jokes.txt');
-    const jokes = fs.readFileSync(jokesPath, 'utf-8').split('\n\n').filter(Boolean);
+    const jokes = getAllJokeTexts();
     const found = jokes.some((j) => payload.includes(j));
     expect(found).toBe(true);
     expect(data).toContain('[DONE]');
@@ -106,8 +104,7 @@ describe('GET /api/openai', () => {
     await handler(req, res);
     const data = res._getData();
     const payload = extractSSEPayload(data);
-    const jokesPath = path.join(process.cwd(), 'data', 'dad_jokes.txt');
-    const jokes = fs.readFileSync(jokesPath, 'utf-8').split('\n\n').filter(Boolean);
+    const jokes = getAllJokeTexts();
     const found = jokes.some((j) => payload.includes(j));
     expect(found).toBe(true);
     expect(data).toContain('[DONE]');
