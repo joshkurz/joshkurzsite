@@ -31,7 +31,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { jokeId, rating, joke, date: requestedDate, mode: requestedMode } = req.body || {}
+    const {
+      jokeId,
+      rating,
+      joke,
+      author,
+      date: requestedDate,
+      mode: requestedMode
+    } = req.body || {}
     if (!jokeId || typeof jokeId !== 'string') {
       res.status(400).json({ error: 'Missing jokeId' })
       return
@@ -45,7 +52,7 @@ export default async function handler(req, res) {
     const dateKey = resolveDateKey(requestedDate)
 
     try {
-      await handleWriteReview({ mode, jokeId, dateKey, rating: parsedRating, joke })
+      await handleWriteReview({ mode, jokeId, dateKey, rating: parsedRating, joke, author })
       const refreshedStats = await handleReadStats({ mode, jokeId, dateKey })
       res.status(200).json(refreshedStats)
     } catch (error) {
