@@ -56,6 +56,20 @@ function getJokeSnippet(joke) {
   return `${joke.slice(0, 157)}...`
 }
 
+function formatMode(mode) {
+  return mode === 'daily' ? 'Daily' : 'Live'
+}
+
+function describePerformer(performer) {
+  if (performer.mode === 'daily') {
+    if (performer.date) {
+      return `Daily highlight for ${formatDate(performer.date)}`
+    }
+    return 'Daily highlight'
+  }
+  return getJokeSnippet(performer.joke) || performer.jokeId || 'Live joke'
+}
+
 export default function Dashboard({ summary, error }) {
   return (
     <div className={styles.container}>
@@ -67,8 +81,9 @@ export default function Dashboard({ summary, error }) {
         <section className={styles.hero}>
           <h1>Joke Insights Dashboard</h1>
           <p>
-            A quick look at how our daily spotlights and live generated jokes are landing with
-            audiences. Dive into top performers, voting trends, and recent activity.
+            A streamlined look at how daily spotlights and live generated jokes are landing with
+            audiences. Track the big totals, distribution trends, top highlights, and the latest
+            feedback without wading through extra tables.
           </p>
         </section>
         {error && (
@@ -126,103 +141,33 @@ export default function Dashboard({ summary, error }) {
 
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <h2>Top Live Crowd Pleasers</h2>
-                <p>
-                  Sorted by average rating. We include ties by total vote volume so the true crowd
-                  favorites rise to the top.
-                </p>
+                <h2>Top Performers</h2>
+                <p>High-scoring jokes and highlights ranked by average rating and vote volume.</p>
               </div>
-              {summary.topLiveJokes.length === 0 ? (
-                <p className={styles.emptyState}>No live joke ratings captured yet.</p>
+              {summary.topPerformers.length === 0 ? (
+                <p className={styles.emptyState}>
+                  We need a few more votes before top performers can be determined.
+                </p>
               ) : (
                 <div className={styles.tableWrapper}>
                   <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th>Joke</th>
+                        <th>Mode</th>
+                        <th>Highlight</th>
                         <th>Average</th>
                         <th>Votes</th>
                         <th>Last Rated</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {summary.topLiveJokes.map((joke) => (
-                        <tr key={joke.jokeId}>
-                          <td>{getJokeSnippet(joke.joke) || joke.jokeId}</td>
-                          <td>{formatAverage(joke.average)}</td>
-                          <td>{formatNumber(joke.totalRatings)}</td>
-                          <td>{formatDate(joke.lastRatedAt)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2>Daily Spotlight Leaders</h2>
-                <p>
-                  Which daily feature earned the biggest laughs? A mix of strong averages and solid
-                  participation.
-                </p>
-              </div>
-              {summary.topDailyHighlights.length === 0 ? (
-                <p className={styles.emptyState}>Daily jokes haven&apos;t been rated yet.</p>
-              ) : (
-                <div className={styles.tableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Average</th>
-                        <th>Total Votes</th>
-                        <th>Daily Votes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {summary.topDailyHighlights.map((item) => (
-                        <tr key={item.date}>
-                          <td>{formatDate(item.date)}</td>
-                          <td>{formatAverage(item.average)}</td>
-                          <td>{formatNumber(item.totalRatings)}</td>
-                          <td>{formatNumber(item.dailyRatings)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2>Most Active Dates</h2>
-                <p>The busiest days across both joke modes, with average sentiment for each day.</p>
-              </div>
-              {summary.highestVolumeDates.length === 0 ? (
-                <p className={styles.emptyState}>No voting activity recorded yet.</p>
-              ) : (
-                <div className={styles.tableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Total Votes</th>
-                        <th>Live Votes</th>
-                        <th>Daily Votes</th>
-                        <th>Average</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {summary.highestVolumeDates.map((item) => (
-                        <tr key={item.date}>
-                          <td>{formatDate(item.date)}</td>
-                          <td>{formatNumber(item.totalRatings)}</td>
-                          <td>{formatNumber(item.liveRatings)}</td>
-                          <td>{formatNumber(item.dailyRatings)}</td>
-                          <td>{formatAverage(item.average)}</td>
+                      {summary.topPerformers.map((performer) => (
+                        <tr key={`${performer.mode}-${performer.jokeId || performer.date || 'unknown'}`}>
+                          <td>{formatMode(performer.mode)}</td>
+                          <td>{describePerformer(performer)}</td>
+                          <td>{formatAverage(performer.average)}</td>
+                          <td>{formatNumber(performer.totalRatings)}</td>
+                          <td>{formatDate(performer.lastRatedAt)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -285,30 +230,15 @@ Dashboard.propTypes = {
       live: PropTypes.object,
       daily: PropTypes.object
     }),
-    topLiveJokes: PropTypes.arrayOf(
+    topPerformers: PropTypes.arrayOf(
       PropTypes.shape({
+        mode: PropTypes.string,
         jokeId: PropTypes.string,
         joke: PropTypes.string,
+        date: PropTypes.string,
         totalRatings: PropTypes.number,
         average: PropTypes.number,
         lastRatedAt: PropTypes.string
-      })
-    ),
-    topDailyHighlights: PropTypes.arrayOf(
-      PropTypes.shape({
-        date: PropTypes.string,
-        totalRatings: PropTypes.number,
-        average: PropTypes.number,
-        dailyRatings: PropTypes.number
-      })
-    ),
-    highestVolumeDates: PropTypes.arrayOf(
-      PropTypes.shape({
-        date: PropTypes.string,
-        totalRatings: PropTypes.number,
-        liveRatings: PropTypes.number,
-        dailyRatings: PropTypes.number,
-        average: PropTypes.number
       })
     ),
     recentRatings: PropTypes.arrayOf(
