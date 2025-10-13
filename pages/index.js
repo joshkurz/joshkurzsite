@@ -336,13 +336,18 @@ class OpenAIData extends React.Component {
                 })}
               </div>
               <div className={styles.ratingSummary}>
-                {ratingStats.totalRatings > 0 ? (
-                  <p>
-                    Average rating: <strong>{ratingStats.average}</strong> groans ·{' '}
-                    {ratingStats.totalRatings} total rating{ratingStats.totalRatings === 1 ? '' : 's'}
-                  </p>
+                {hasSubmittedRating ? (
+                  ratingStats.totalRatings > 0 ? (
+                    <p>
+                      Average rating: <strong>{ratingStats.average}</strong> groans ·{' '}
+                      {ratingStats.totalRatings} total rating
+                      {ratingStats.totalRatings === 1 ? '' : 's'}
+                    </p>
+                  ) : (
+                    <p>Be the first to rate this groaner.</p>
+                  )
                 ) : (
-                  <p>Be the first to rate this groaner.</p>
+                  <p>Cast your vote to reveal the crowd rating.</p>
                 )}
                 {hasSubmittedRating && (
                   <p className={styles.ratingThanks}>Thanks for letting us know how much you groaned!</p>
