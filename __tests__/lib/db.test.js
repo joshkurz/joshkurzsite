@@ -1,4 +1,10 @@
-import { buildAwsConnectionString } from '../../lib/db'
+import { buildAwsConnectionString, getDatabasePool, resetDatabase, isMockDatabase } from '../../lib/db'
+
+afterEach(async () => {
+  if (isMockDatabase()) {
+    await resetDatabase()
+  }
+})
 
 describe('buildAwsConnectionString', () => {
   it('returns null when required values are missing', () => {
@@ -38,5 +44,14 @@ describe('buildAwsConnectionString', () => {
     expect(connection).toBe(
       'postgresql://legacy-user:legacy-password@legacy.cluster-abcdef.us-west-2.rds.amazonaws.com:6543/legacydb'
     )
+  })
+
+  it('creates the jokes table and seeds the fatherhood catalog on first connect', async () => {
+    const pool = await getDatabasePool()
+    const result = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM jokes WHERE source = 'fatherhood'`
+    )
+
+    expect(Number(result.rows[0].count)).toBeGreaterThan(0)
   })
 })

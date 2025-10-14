@@ -35,7 +35,11 @@ The home page now lets visitors rate each joke on a five groan scale. Ratings, a
    optionally `AWS_RDS_PORT` / `AWS_RDS_SSL` (or the legacy `RDS_*` equivalents) and the
    application will construct a secure PostgreSQL connection string automatically.
 
-3. Redeploy. On first run the app seeds the `jokes` table from `data/fatherhood_jokes.json`. Subsequent requests pull exclusively from PostgreSQL, including the `/api/random-joke`, `/api/custom-jokes`, and `/api/ratings` endpoints.
+3. Redeploy. On first run the app creates the required tables and seeds the `jokes` table from
+   `data/fatherhood_jokes.json`. Subsequent requests pull exclusively from PostgreSQL, including the
+   `/api/random-joke`, `/api/custom-jokes`, and `/api/ratings` endpoints. If you want to warm the
+   database outside of a request cycle, run `npm run db:bootstrap` to create the schema and sync the
+   Fatherhood.gov catalog up front.
 
 ## Fatherhood.gov joke dataset
 

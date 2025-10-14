@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
+    "db:bootstrap": "node scripts/bootstrap-database.mjs",
     "update-dashboard-summary": "node scripts/update-dashboard-summary.mjs",
     "watch-dashboard-summary": "node scripts/update-dashboard-summary.mjs --watch"
   },
