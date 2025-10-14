@@ -1,4 +1,10 @@
-import { buildAwsConnectionString, getDatabasePool, resetDatabase, isMockDatabase } from '../../lib/db'
+import {
+  buildAwsConnectionString,
+  getDatabasePool,
+  resetDatabase,
+  isMockDatabase,
+  sanitizeConnectionString
+} from '../../lib/db'
 
 afterEach(async () => {
   if (isMockDatabase()) {
@@ -53,5 +59,23 @@ describe('buildAwsConnectionString', () => {
     )
 
     expect(Number(result.rows[0].count)).toBeGreaterThan(0)
+  })
+
+  it('sanitizes connection strings that include reserved characters', () => {
+    const raw = 'postgresql://awspostgres:)*j6Blw$u0P7J#WI8tAPZuCX<$-p@database-1.cluster.aws:5432/dadabase'
+    const sanitized = sanitizeConnectionString(raw)
+
+    expect(sanitized).toBe(
+      'postgresql://awspostgres:)*j6Blw%24u0P7J%23WI8tAPZuCX%3C%24-p@database-1.cluster.aws:5432/dadabase'
+    )
+    expect(() => new URL(sanitized)).not.toThrow()
+  })
+
+  it('sanitizes credentials that contain an @ symbol', () => {
+    const raw = 'postgresql://encuser:p@ssw@rd@db.example.com:5432/appdb'
+    const sanitized = sanitizeConnectionString(raw)
+
+    expect(sanitized).toBe('postgresql://encuser:p%40ssw%40rd@db.example.com:5432/appdb')
+    expect(() => new URL(sanitized)).not.toThrow()
   })
 })
