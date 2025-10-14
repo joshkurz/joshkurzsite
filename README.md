@@ -18,26 +18,48 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-## Groan ratings & free storage option
+## Groan ratings & PostgreSQL storage
 
-The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
+The home page now lets visitors rate each joke on a five groan scale. Ratings, accepted custom jokes, and the seed Fatherhood.gov catalog are stored in PostgreSQL. All API routes read from and write to the database, and the dashboard relies exclusively on aggregate SQL queries to keep traffic lean.
 
-1. In the Vercel dashboard, create a Blob store (the free hobby tier is plenty for text-sized payloads).
-2. Copy the `BLOB_READ_WRITE_TOKEN` from the store settings and expose it to the app:
+1. Provision a PostgreSQL database (Supabase, Neon, Railway, and Render all work great). Note the connection string.
+2. Expose the connection string via one of the supported environment variables:
 
    ```bash
-   BLOB_READ_WRITE_TOKEN=<value>
+   DATABASE_URL=postgresql://user:password@host:5432/dbname
+   # or POSTGRES_URL / PG_CONNECTION_STRING / SUPABASE_DB_URL / SUPABASE_POSTGRES_URL
    ```
 
-3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+   When running on AWS you can also provide discrete RDS environment variables. Set
+   `AWS_RDS_HOST`, `AWS_RDS_USERNAME`, `AWS_RDS_PASSWORD`, `AWS_RDS_DATABASE`, and
+   optionally `AWS_RDS_PORT` / `AWS_RDS_SSL` (or the legacy `RDS_*` equivalents) and the
+   application will construct a secure PostgreSQL connection string automatically.
+
+3. Redeploy. On first run the app seeds the `jokes` table from `data/fatherhood_jokes.json`. Subsequent requests pull exclusively from PostgreSQL, including the `/api/random-joke`, `/api/custom-jokes`, and `/api/ratings` endpoints.
 
 ## Fatherhood.gov joke dataset
 
-The homepage now pulls directly from the public [Fatherhood.gov dad joke library](https://www.fatherhood.gov/for-dads/dad-jokes). A helper script (`scripts/fetch-fatherhood-jokes.mjs`) crawls the JSON:API endpoint, normalizes each joke, and saves them to `data/fatherhood_jokes.json`. The file powers the `/api/random-joke` endpoint, the OpenAI fallback responses, and any other features that need a reliable supply of groan-worthy material. Run the script whenever you want to refresh the dataset:
+The homepage now pulls directly from the public [Fatherhood.gov dad joke library](https://www.fatherhood.gov/for-dads/dad-jokes). A helper script (`scripts/fetch-fatherhood-jokes.mjs`) crawls the JSON:API endpoint, normalizes each joke, and saves them to `data/fatherhood_jokes.json`. On boot the dataset is synchronized into PostgreSQL, which powers `/api/random-joke`, the OpenAI fallback responses, and any other features that need a reliable supply of groan-worthy material. Run the script whenever you want to refresh the dataset:
 
 ```bash
 node scripts/fetch-fatherhood-jokes.mjs
 ```
+
+## AWS PostgreSQL with Terraform
+
+The `terraform/` directory provisions a production-ready Amazon RDS PostgreSQL
+instance, subnet group, and security group. Supply your AWS credentials and run:
+
+```bash
+cd terraform
+terraform init
+terraform apply -var="db_username=postgres" -var="db_password=super-secret"
+```
+
+By default the module targets the default VPC in the selected region. Adjust the
+input variables to point at a dedicated VPC or to tighten the allowed CIDR blocks
+for database access. The apply output includes a ready-to-use connection string
+that you can surface via the environment variables listed above.
 
 ## Learn More
 

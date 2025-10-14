@@ -1,36 +1,27 @@
-import path from 'node:path'
-import { rm } from 'node:fs/promises'
+import { jest } from '@jest/globals'
 
 describe('custom jokes storage', () => {
-  const cacheDir = path.join('/tmp', 'custom-jokes-test-cache')
-  const storageDir = path.join('/tmp', 'custom-jokes-test-storage')
   let customJokes
+  let db
 
   async function loadModule() {
     jest.resetModules()
-    delete globalThis.__customJokesState
-    process.env.CUSTOM_JOKES_CACHE_DIR = cacheDir
-    process.env.CUSTOM_JOKES_STORAGE_DIR = storageDir
-    process.env.CUSTOM_JOKES_TTL_MS = '0'
+    delete globalThis.__databaseState
     customJokes = await import('../../lib/customJokes.js')
+    db = await import('../../lib/db.js')
   }
 
   beforeEach(async () => {
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
+    await loadModule()
+    if (db.resetDatabase) {
+      await db.resetDatabase().catch(() => {})
+    }
+    delete globalThis.__databaseState
     await loadModule()
   })
 
-  afterEach(async () => {
-    if (customJokes?.clearCustomJokesCache) {
-      customJokes.clearCustomJokesCache()
-    }
-    delete process.env.CUSTOM_JOKES_CACHE_DIR
-    delete process.env.CUSTOM_JOKES_STORAGE_DIR
-    delete process.env.CUSTOM_JOKES_TTL_MS
-    delete globalThis.__customJokesState
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
+  afterEach(() => {
+    delete globalThis.__databaseState
   })
 
   it('records accepted jokes and makes them available', async () => {
@@ -43,20 +34,20 @@ describe('custom jokes storage', () => {
     expect(saved.author).toBe('Tester')
     expect(saved.opener).toContain('chicken')
 
-    const jokes = customJokes.getCustomJokes()
+    const jokes = await customJokes.getCustomJokes()
     const found = jokes.find((joke) => joke.id === saved.id)
     expect(found).toBeDefined()
     expect(found.author).toBe('Tester')
   })
 
-  it('records rejected jokes without affecting accepted cache', async () => {
+  it('records rejected jokes without affecting accepted list', async () => {
     await customJokes.recordAcceptedJoke({
       opener: 'What do you call cheese that is not yours?',
       response: 'Nacho cheese!',
       author: 'Tester'
     })
 
-    const beforeCount = customJokes.getCustomJokes().length
+    const before = await customJokes.getCustomJokes()
 
     const rejected = await customJokes.recordRejectedJoke({
       opener: 'inappropriate joke',
@@ -68,7 +59,7 @@ describe('custom jokes storage', () => {
     expect(rejected.id).toBeDefined()
     expect(rejected.reason).toContain('family friendly')
 
-    const afterCount = customJokes.getCustomJokes().length
-    expect(afterCount).toBe(beforeCount)
+    const after = await customJokes.getCustomJokes()
+    expect(after.length).toBe(before.length)
   })
 })

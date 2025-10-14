@@ -4,7 +4,7 @@ import { getAllJokes } from '../../lib/jokesData';
 
 describe('GET /api/random-joke', () => {
   it('returns a joke from the dataset', async () => {
-    const jokes = getAllJokes();
+    const jokes = await getAllJokes();
     const { req, res } = createMocks({ method: 'GET' });
     await handler(req, res);
     expect(res._getStatusCode()).toBe(200);

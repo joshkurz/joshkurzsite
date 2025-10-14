@@ -14,8 +14,6 @@ function writeSSE(res, payload) {
   if (res.flush) res.flush();
 }
 
-const openai = getOpenAIClient();
-
 export default async function handler(req, res) {
   // Configure Server-Sent Events headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -32,8 +30,10 @@ export default async function handler(req, res) {
       timeoutId = setTimeout(() => reject(new Error('timeout')), timeoutMs);
     });
 
+    const openaiClient = await getOpenAIClient();
+
     const jokePromise = createResponseWithFallback(
-      openai,
+      openaiClient,
       {
         input: prompt,
         temperature: 1.0,
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     console.warn('[openai] Streaming joke failed, falling back to local file', {
       error: error?.message || String(error)
     });
-    const joke = getRandomLocalJoke();
+    const joke = await getRandomLocalJoke();
     writeSSE(res, joke);
     res.write('data: [DONE]\n\n');
     res.end();

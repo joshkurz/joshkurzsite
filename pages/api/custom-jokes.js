@@ -114,7 +114,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const openai = getOpenAIClient()
+  const openai = await getOpenAIClient()
 
   try {
     const evaluation = await evaluateFamilyFriendly(openai, { opener, response })

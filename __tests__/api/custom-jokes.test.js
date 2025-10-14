@@ -1,46 +1,24 @@
-import path from 'node:path'
-import { rm } from 'node:fs/promises'
+import { jest } from '@jest/globals'
 import { createMocks } from 'node-mocks-http'
 
+async function loadHandler() {
+  jest.resetModules()
+  delete globalThis.__databaseState
+  return (await import('../../pages/api/custom-jokes')).default
+}
+
 describe('POST /api/custom-jokes', () => {
-  const cacheDir = path.join('/tmp', 'custom-jokes-api-cache')
-  const storageDir = path.join('/tmp', 'custom-jokes-api-storage')
-
-  async function prepareEnvironment() {
-    jest.resetModules()
-    delete globalThis.__customJokesState
+  beforeEach(() => {
     process.env.MOCK_OPENAI = 'true'
-    process.env.CUSTOM_JOKES_CACHE_DIR = cacheDir
-    process.env.CUSTOM_JOKES_STORAGE_DIR = storageDir
-    process.env.CUSTOM_JOKES_TTL_MS = '0'
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
-  }
-
-  beforeEach(async () => {
-    await prepareEnvironment()
   })
 
-  afterEach(async () => {
-    try {
-      const moduleRef = require('../../lib/customJokes.js')
-      if (moduleRef?.clearCustomJokesCache) {
-        moduleRef.clearCustomJokesCache()
-      }
-    } catch (error) {
-      // ignore
-    }
+  afterEach(() => {
     delete process.env.MOCK_OPENAI
-    delete process.env.CUSTOM_JOKES_CACHE_DIR
-    delete process.env.CUSTOM_JOKES_STORAGE_DIR
-    delete process.env.CUSTOM_JOKES_TTL_MS
-    delete globalThis.__customJokesState
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
+    delete globalThis.__databaseState
   })
 
   it('accepts a family-friendly submission', async () => {
-    const handler = require('../../pages/api/custom-jokes').default
+    const handler = await loadHandler()
     const { req, res } = createMocks({
       method: 'POST',
       body: {
@@ -60,7 +38,7 @@ describe('POST /api/custom-jokes', () => {
   })
 
   it('rejects submissions flagged by the moderator', async () => {
-    const handler = require('../../pages/api/custom-jokes').default
+    const handler = await loadHandler()
     const { req, res } = createMocks({
       method: 'POST',
       body: {
@@ -79,7 +57,7 @@ describe('POST /api/custom-jokes', () => {
   })
 
   it('validates required fields', async () => {
-    const handler = require('../../pages/api/custom-jokes').default
+    const handler = await loadHandler()
     const { req, res } = createMocks({
       method: 'POST',
       body: {
