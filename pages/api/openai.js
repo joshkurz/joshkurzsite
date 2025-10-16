@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     console.warn('[openai] Streaming joke failed, falling back to local file', {
       error: error?.message || String(error)
     });
-    const joke = getRandomLocalJoke();
+    const joke = await getRandomLocalJoke();
     writeSSE(res, joke);
     res.write('data: [DONE]\n\n');
     res.end();

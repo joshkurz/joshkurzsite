@@ -46,7 +46,7 @@ describe('GET /api/openai', () => {
     await handler(req, res);
     const data = res._getData();
     const payload = extractSSEPayload(data);
-    const jokes = getAllJokeTexts();
+    const jokes = await getAllJokeTexts();
     const found = jokes.some((j) => payload.includes(j));
     expect(found).toBe(true);
     expect(data).toContain('[DONE]');
@@ -104,7 +104,7 @@ describe('GET /api/openai', () => {
     await handler(req, res);
     const data = res._getData();
     const payload = extractSSEPayload(data);
-    const jokes = getAllJokeTexts();
+    const jokes = await getAllJokeTexts();
     const found = jokes.some((j) => payload.includes(j));
     expect(found).toBe(true);
     expect(data).toContain('[DONE]');
