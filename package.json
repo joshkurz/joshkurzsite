@@ -12,8 +12,8 @@
     "watch-dashboard-summary": "node scripts/update-dashboard-summary.mjs --watch"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.645.0",
     "@vercel/analytics": "^0.1.6",
-    "@vercel/blob": "^2.0.0",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.6",
     "next": "13.0.6",

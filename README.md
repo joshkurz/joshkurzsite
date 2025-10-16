@@ -20,16 +20,21 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 ## Groan ratings & free storage option
 
-The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in [Vercel Blob](https://vercel.com/docs/storage/vercel-blob). Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
+The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in Amazon S3. Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
 
-1. In the Vercel dashboard, create a Blob store (the free hobby tier is plenty for text-sized payloads).
-2. Copy the `BLOB_READ_WRITE_TOKEN` from the store settings and expose it to the app:
+1. Create an S3 bucket (the standard free tier is plenty for text-sized payloads).
+2. Expose the bucket information and AWS credentials to the app. The storage helpers look for the following environment variables:
 
    ```bash
-   BLOB_READ_WRITE_TOKEN=<value>
+   S3_BUCKET_NAME=<your-bucket-name>
+   AWS_REGION=<bucket-region>
+   AWS_ACCESS_KEY_ID=<access-key-id>
+   AWS_SECRET_ACCESS_KEY=<secret-access-key>
    ```
 
-3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON blobs. When the token is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
+   `S3_BUCKET` or `AWS_S3_BUCKET` can be used in place of `S3_BUCKET_NAME` if you already have those set.
+
+3. Redeploy. The `/api/ratings` route will start reading/writing daily JSON objects in S3. When the bucket configuration is absent (for example during local development), the route falls back to an in-memory store so the UI can still be exercised.
 
 ## Fatherhood.gov joke dataset
 
