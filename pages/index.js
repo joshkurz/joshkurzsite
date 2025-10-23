@@ -4,6 +4,11 @@ import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import { parseStream } from '../lib/parseJokeStream'
+import {
+  getAiJokeNickname,
+  parseAiAuthorSignature,
+  resolveNicknameFromMetadata
+} from '../lib/aiJokeNicknames'
 
 const defaultRatingStats = {
   counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -17,6 +22,19 @@ function normalizeStats(stats = {}) {
     average: Number(stats.average || 0),
     totalRatings: Number(stats.totalRatings || 0)
   }
+}
+
+function resolveDisplayAuthor(author, metadata) {
+  const normalizedAuthor = typeof author === 'string' ? author.trim() : ''
+  const nickname = resolveNicknameFromMetadata(metadata)
+  if (nickname) {
+    return nickname
+  }
+  const signature = parseAiAuthorSignature(normalizedAuthor)
+  if (signature) {
+    return getAiJokeNickname(signature.model, signature.promptVersion)
+  }
+  return normalizedAuthor || 'Unknown'
 }
 
 
@@ -41,6 +59,7 @@ class OpenAIData extends React.Component {
       currentJokeId: null,
       currentJokeText: '',
       currentJokeAuthor: '',
+      currentJokeDisplayAuthor: '',
       currentJokeMetadata: null,
       loadedJokeId: null,
       isSubmitFormOpen: false,
@@ -267,6 +286,7 @@ class OpenAIData extends React.Component {
       currentJokeId: null,
       currentJokeText: '',
       currentJokeAuthor: '',
+      currentJokeDisplayAuthor: '',
       currentJokeMetadata: null,
       loadedJokeId: null
     });
@@ -292,6 +312,9 @@ class OpenAIData extends React.Component {
         pendingQuestion: ''
       };
       const parsed = parseStream(data.text || '', initialState);
+      const storedAuthor = data.author || 'Unknown';
+      const metadata = data.metadata || null;
+      const displayAuthor = resolveDisplayAuthor(storedAuthor, metadata);
       this.setState(
         {
           ...parsed,
@@ -299,8 +322,9 @@ class OpenAIData extends React.Component {
           isComplete: true,
           error: null,
           loadedJokeId: data.id || null,
-          currentJokeAuthor: data.author || 'Unknown',
-          currentJokeMetadata: data.metadata || null
+          currentJokeAuthor: storedAuthor,
+          currentJokeDisplayAuthor: displayAuthor,
+          currentJokeMetadata: metadata
         },
         () => {
           this.prepareJokeMetadata();
@@ -339,6 +363,7 @@ class OpenAIData extends React.Component {
       ratingError,
       hasSubmittedRating,
       currentJokeAuthor,
+      currentJokeDisplayAuthor,
       isSubmitFormOpen,
       submitSetup,
       submitPunchline,
@@ -384,9 +409,9 @@ class OpenAIData extends React.Component {
             ))}
           </p>
         )}
-        {currentJokeAuthor && (
+        {currentJokeDisplayAuthor && (
           <p className={styles.authorTag}>
-            <span className={styles.authorLabel}>Author:</span> {currentJokeAuthor}
+            <span className={styles.authorLabel}>Author:</span> {currentJokeDisplayAuthor}
           </p>
         )}
         {isComplete && (

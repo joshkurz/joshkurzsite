@@ -6,6 +6,7 @@ import {
   getResponseModels
 } from '../../lib/openaiClient'
 import { recordAcceptedJoke } from '../../lib/customJokes'
+import { getAiJokeNickname } from '../../lib/aiJokeNicknames'
 
 const openai = getOpenAIClient()
 
@@ -148,6 +149,7 @@ export default async function handler(req, res) {
 
   const modelName = resolveModelName(responseModel)
   const author = `${modelName} · AI Joke Prompt v${AI_JOKE_PROMPT_VERSION}`
+  const nickname = getAiJokeNickname(modelName, AI_JOKE_PROMPT_VERSION)
 
   try {
     const shouldPersist = jokePayload.persist !== false
@@ -175,6 +177,7 @@ export default async function handler(req, res) {
       whyThisIsFunny: jokePayload.why,
       promptVersion: AI_JOKE_PROMPT_VERSION,
       model: modelName,
+      nickname,
       source: jokePayload.source,
       persisted: shouldPersist
     }
