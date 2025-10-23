@@ -504,7 +504,7 @@ class OpenAIData extends React.Component {
               type="button"
               onClick={this.fetchAiJoke}
             >
-              AI Joke
+              Feeling Groany?
             </button>
           </div>
         )}
