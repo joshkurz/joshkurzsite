@@ -4,6 +4,11 @@ import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import { parseStream } from '../lib/parseJokeStream'
+import {
+  getAiJokeNickname,
+  parseAiAuthorSignature,
+  resolveNicknameFromMetadata
+} from '../lib/aiJokeNicknames'
 
 const defaultRatingStats = {
   counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -17,6 +22,19 @@ function normalizeStats(stats = {}) {
     average: Number(stats.average || 0),
     totalRatings: Number(stats.totalRatings || 0)
   }
+}
+
+function resolveDisplayAuthor(author, metadata) {
+  const normalizedAuthor = typeof author === 'string' ? author.trim() : ''
+  const nickname = resolveNicknameFromMetadata(metadata)
+  if (nickname) {
+    return nickname
+  }
+  const signature = parseAiAuthorSignature(normalizedAuthor)
+  if (signature) {
+    return getAiJokeNickname(signature.model, signature.promptVersion)
+  }
+  return normalizedAuthor || 'Unknown'
 }
 
 
@@ -41,6 +59,8 @@ class OpenAIData extends React.Component {
       currentJokeId: null,
       currentJokeText: '',
       currentJokeAuthor: '',
+      currentJokeDisplayAuthor: '',
+      currentJokeMetadata: null,
       loadedJokeId: null,
       isSubmitFormOpen: false,
       submitSetup: '',
@@ -247,7 +267,7 @@ class OpenAIData extends React.Component {
     }
   };
 
-  fetchJoke = async () => {
+  loadJokeFromEndpoint = async (endpoint, { method = 'GET', body } = {}) => {
     this.setState({
       error: null,
       isLoaded: false,
@@ -266,13 +286,22 @@ class OpenAIData extends React.Component {
       currentJokeId: null,
       currentJokeText: '',
       currentJokeAuthor: '',
+      currentJokeDisplayAuthor: '',
+      currentJokeMetadata: null,
       loadedJokeId: null
     });
 
     try {
-      const res = await fetch('/api/random-joke');
+      const fetchOptions = { method };
+      if (method && method.toUpperCase() !== 'GET') {
+        fetchOptions.headers = { 'Content-Type': 'application/json' };
+        fetchOptions.body = body !== undefined ? JSON.stringify(body) : '{}';
+      }
+
+      const res = await fetch(endpoint, fetchOptions);
       if (!res.ok) {
-        throw new Error('Unable to load a dad joke');
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || 'Unable to load a dad joke');
       }
       const data = await res.json();
       const initialState = {
@@ -283,6 +312,9 @@ class OpenAIData extends React.Component {
         pendingQuestion: ''
       };
       const parsed = parseStream(data.text || '', initialState);
+      const storedAuthor = data.author || 'Unknown';
+      const metadata = data.metadata || null;
+      const displayAuthor = resolveDisplayAuthor(storedAuthor, metadata);
       this.setState(
         {
           ...parsed,
@@ -290,7 +322,9 @@ class OpenAIData extends React.Component {
           isComplete: true,
           error: null,
           loadedJokeId: data.id || null,
-          currentJokeAuthor: data.author || 'Unknown'
+          currentJokeAuthor: storedAuthor,
+          currentJokeDisplayAuthor: displayAuthor,
+          currentJokeMetadata: metadata
         },
         () => {
           this.prepareJokeMetadata();
@@ -303,6 +337,14 @@ class OpenAIData extends React.Component {
         isComplete: true
       });
     }
+  }
+
+  fetchJoke = () => {
+    this.loadJokeFromEndpoint('/api/random-joke');
+  }
+
+  fetchAiJoke = () => {
+    this.loadJokeFromEndpoint('/api/ai-joke', { method: 'POST' });
   }
 
   render() {
@@ -321,6 +363,7 @@ class OpenAIData extends React.Component {
       ratingError,
       hasSubmittedRating,
       currentJokeAuthor,
+      currentJokeDisplayAuthor,
       isSubmitFormOpen,
       submitSetup,
       submitPunchline,
@@ -366,9 +409,9 @@ class OpenAIData extends React.Component {
             ))}
           </p>
         )}
-        {currentJokeAuthor && (
+        {currentJokeDisplayAuthor && (
           <p className={styles.authorTag}>
-            <span className={styles.authorLabel}>Author:</span> {currentJokeAuthor}
+            <span className={styles.authorLabel}>Author:</span> {currentJokeDisplayAuthor}
           </p>
         )}
         {isComplete && (
@@ -452,9 +495,18 @@ class OpenAIData extends React.Component {
           </>
         )}
         {isComplete && (
-          <button className={styles.newJokeButton} onClick={this.fetchJoke}>
-            New Joke
-          </button>
+          <div className={styles.jokeActions}>
+            <button className={styles.newJokeButton} type="button" onClick={this.fetchJoke}>
+              New Joke
+            </button>
+            <button
+              className={`${styles.newJokeButton} ${styles.aiJokeButton}`}
+              type="button"
+              onClick={this.fetchAiJoke}
+            >
+              Feeling Groany?
+            </button>
+          </div>
         )}
         <div className={styles.shareSection}>
           <button className={styles.shareButton} onClick={this.toggleSubmitForm}>
