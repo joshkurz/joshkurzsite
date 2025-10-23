@@ -173,7 +173,7 @@
 /* Custom styles for displaying dad jokes clearly */
 .jokeContainer {
   /* Constrain the width for readability and center within the page container */
-  max-width: 800px;
+  width: min(90%, 800px);
   margin: 0 auto;
   padding: 1rem;
   text-align: left;
