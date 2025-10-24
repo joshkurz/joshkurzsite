@@ -3,6 +3,7 @@ import React from 'react'
 import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
+import JokeSpeaker from '../components/JokeSpeaker'
 import { parseStream } from '../lib/parseJokeStream'
 import {
   getAiJokeNickname,
@@ -58,6 +59,7 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
+      currentJokeSpeechText: '',
       currentJokeAuthor: '',
       currentJokeDisplayAuthor: '',
       currentJokeMetadata: null,
@@ -98,6 +100,10 @@ class OpenAIData extends React.Component {
     if (question) parts.push(question);
     if (answer) parts.push(answer);
     const jokeText = parts.join(' || ').trim();
+    const speechText = parts
+      .join('. ')
+      .replace(/\s+/g, ' ')
+      .trim();
     const jokeId = loadedJokeId || this.createJokeId(jokeText);
     if (jokeId === currentJokeId) {
       return;
@@ -106,6 +112,7 @@ class OpenAIData extends React.Component {
       {
         currentJokeId: jokeId,
         currentJokeText: jokeText,
+        currentJokeSpeechText: speechText || jokeText,
         ratingStats: { ...defaultRatingStats },
         userRating: null,
         hoveredRating: null,
@@ -285,6 +292,7 @@ class OpenAIData extends React.Component {
       hasSubmittedRating: false,
       currentJokeId: null,
       currentJokeText: '',
+      currentJokeSpeechText: '',
       currentJokeAuthor: '',
       currentJokeDisplayAuthor: '',
       currentJokeMetadata: null,
@@ -364,6 +372,7 @@ class OpenAIData extends React.Component {
       hasSubmittedRating,
       currentJokeAuthor,
       currentJokeDisplayAuthor,
+      currentJokeSpeechText,
       isSubmitFormOpen,
       submitSetup,
       submitPunchline,
@@ -493,6 +502,14 @@ class OpenAIData extends React.Component {
               </div>
             </div>
           </>
+        )}
+        {isComplete && currentJokeSpeechText && (
+          <div className={styles.speakSection}>
+            <JokeSpeaker
+              text={currentJokeSpeechText}
+              buttonLabel="🔊 Hear this joke"
+            />
+          </div>
         )}
         {isComplete && (
           <div className={styles.jokeActions}>
