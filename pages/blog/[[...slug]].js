@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import Head from 'next/head';
-import cheerio from 'cheerio';
+import { load as loadHtml } from 'cheerio';
 import Header from '../../components/Header';
 import styles from '../../styles/BlogPage.module.css';
 
@@ -92,7 +92,7 @@ export async function getStaticProps({ params }) {
   const filePath = path.join(baseDir, relativePath);
 
   const html = await fs.readFile(filePath, 'utf8');
-  const $ = cheerio.load(html);
+  const $ = loadHtml(html);
   const title = $('head > title').text() || 'Blog';
   const description = $('meta[name="description"]').attr('content') || null;
   const body = $('body').html() || '';
