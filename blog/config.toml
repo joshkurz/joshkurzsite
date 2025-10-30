@@ -1,0 +1,8 @@
+baseURL = "/blog/"
+languageCode = "en-us"
+title = "Josh Kurz Blog"
+publishDir = "../public/blog"
+canonifyURLs = true
+enableRobotsTXT = true
+[permalinks]
+  posts = "/posts/:slug/"

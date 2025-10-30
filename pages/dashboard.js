@@ -7,7 +7,8 @@ import { loadDashboardSummary } from '../lib/dashboardSummary'
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
   { href: '/speak', label: 'Speak' },
-  { href: '/dashboard', label: 'Dashboard' }
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/blog', label: 'Blog' }
 ]
 
 function formatNumber(value) {

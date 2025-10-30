@@ -1,0 +1,22 @@
+{{ define "title" }}{{ .Site.Title }}{{ end }}
+{{ define "main" }}
+<header class="blog-header">
+  <h1 class="blog-title">{{ .Site.Title }}</h1>
+  {{ with .Content }}
+  <div class="blog-intro">{{ . }}</div>
+  {{ end }}
+</header>
+<section class="blog-list">
+  {{ range .Pages }}
+  <article class="blog-card">
+    <h2 class="blog-card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    {{ with .Params.description }}
+    <p class="blog-card-description">{{ . }}</p>
+    {{ end }}
+    <p class="blog-card-date">{{ .Date.Format "January 2, 2006" }}</p>
+  </article>
+  {{ else }}
+  <p class="blog-empty">There are no posts yet. Check back soon!</p>
+  {{ end }}
+</section>
+{{ end }}

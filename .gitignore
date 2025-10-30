@@ -21,6 +21,7 @@ speech.mp3
 .DS_Store
 *.pem
 data/dashboard-summary.json
+blog/.hugo_build.lock
 
 # debug
 npm-debug.log*

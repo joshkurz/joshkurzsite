@@ -18,6 +18,18 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Blog workflow
+
+The `/blog` section is generated with [Hugo](https://gohugo.io/) from AsciiDoc sources.
+
+1. Add new `.adoc` files in `blog/posts-src/`. Each file must include YAML front matter (title, date, description, etc.) followed by the article content.
+2. Run `npm run build:blog` to convert the AsciiDoc files into Hugo content and rebuild the static output in `public/blog/`.
+   - The script looks for a `hugo` binary on your `PATH`. If one is not available, the last generated output in `public/blog/` is kept so that local development still works.
+   - To preview the blog with live reload, run `npm run blog:serve`. This reuses the same helper script but starts `hugo server` instead of a one-off build.
+3. Start the Next.js dev server with `npm run dev`. The `/blog` routes read the HTML that Hugo produced, so you will see the rendered content immediately.
+
+The generated files under `public/blog/` are committed so that the site can deploy even in environments where installing Hugo is not possible. Always run `npm run build:blog` after editing any AsciiDoc source so the static output stays in sync.
+
 ## Groan ratings & free storage option
 
 The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in Amazon S3. Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ block "title" . }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
+    {{ with .Params.description }}
+    <meta name="description" content="{{ . }}" />
+    {{ end }}
+    <link rel="stylesheet" href="{{ "styles.css" | relURL }}" />
+  </head>
+  <body>
+    <div class="blog-page">
+      {{ block "main" . }}{{ end }}
+    </div>
+  </body>
+</html>

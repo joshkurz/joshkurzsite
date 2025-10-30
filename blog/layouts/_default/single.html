@@ -1,0 +1,16 @@
+{{ define "title" }}{{ .Title }} | {{ .Site.Title }}{{ end }}
+{{ define "main" }}
+<article class="blog-article">
+  <header class="blog-article-header">
+    <p class="blog-breadcrumb"><a href="{{ "/" | relURL }}">← Back to all posts</a></p>
+    <h1 class="blog-article-title">{{ .Title }}</h1>
+    <p class="blog-article-date">{{ .Date.Format "January 2, 2006" }}</p>
+    {{ with .Params.description }}
+    <p class="blog-article-description">{{ . }}</p>
+    {{ end }}
+  </header>
+  <div class="blog-article-content">
+    {{ .Content }}
+  </div>
+</article>
+{{ end }}

@@ -1,0 +1,15 @@
+.blogWrapper {
+  background: #e5e7eb;
+  min-height: 100vh;
+  padding: 2rem 0 4rem;
+}
+
+.blogContent {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 0 1rem;
+}
+
+.blogContent :global(.blog-page) {
+  width: 100%;
+}
