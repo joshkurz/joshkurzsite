@@ -99,6 +99,7 @@ export async function getStaticProps({ params }) {
         const fallbackBody = [
           '<div class="blog-article-body">',
           '  <p>The blog will be back shortly. Run <code>npm run build:blog</code> locally to regenerate the static output before deploying.</p>',
+          '  <p>Getting that on the page.</p>',
           '</div>'
         ].join('\n');
 

@@ -86,6 +86,7 @@ describe('blog catch-all page data fetching', () => {
         }),
       );
       expect(result.props.body).toContain('The blog will be back shortly');
+      expect(result.props.body).toContain('Getting that on the page.');
     } finally {
       cwdSpy.mockRestore();
       await cleanupTempProject(tmpRoot);
