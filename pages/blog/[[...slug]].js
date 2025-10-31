@@ -14,14 +14,13 @@ function buildNavLinks() {
   ];
 }
 
-export default function BlogPage({ title, description, body, slugPath, hasStylesheet }) {
+export default function BlogPage({ title, description, body, slugPath }) {
   const navLinks = buildNavLinks();
   return (
     <>
       <Head>
         <title>{title}</title>
         {description ? <meta name="description" content={description} /> : null}
-        {hasStylesheet ? <link rel="stylesheet" href="/blog/styles.css" /> : null}
         <link rel="canonical" href={`https://joshkurz.com/blog${slugPath}`} />
       </Head>
       <Header navLinks={navLinks} />
@@ -90,17 +89,6 @@ export async function getStaticProps({ params }) {
   const baseDir = path.join(process.cwd(), 'public', 'blog');
   const relativePath = slug.length ? path.join(...slug, 'index.html') : 'index.html';
   const filePath = path.join(baseDir, relativePath);
-  const stylesheetPath = path.join(baseDir, 'styles.css');
-
-  let hasStylesheet = false;
-  try {
-    await fs.access(stylesheetPath);
-    hasStylesheet = true;
-  } catch (error) {
-    if (error?.code !== 'ENOENT') {
-      console.warn('[blog] Unable to verify blog stylesheet:', error);
-    }
-  }
 
   let html;
   try {
@@ -119,8 +107,7 @@ export async function getStaticProps({ params }) {
             title: 'Blog',
             description: null,
             body: fallbackBody,
-            slugPath,
-            hasStylesheet
+            slugPath
           }
         };
       }
@@ -143,8 +130,7 @@ export async function getStaticProps({ params }) {
       title,
       description,
       body,
-      slugPath,
-      hasStylesheet
+      slugPath
     }
   };
 }
