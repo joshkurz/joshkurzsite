@@ -22,6 +22,9 @@ speech.mp3
 *.pem
 data/dashboard-summary.json
 blog/.hugo_build.lock
+blog/content/posts/
+blog/public/
+public/blog/
 
 # debug
 npm-debug.log*

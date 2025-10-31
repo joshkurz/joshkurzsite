@@ -24,11 +24,11 @@ The `/blog` section is generated with [Hugo](https://gohugo.io/) from AsciiDoc s
 
 1. Add new `.adoc` files in `blog/posts-src/`. Each file must include YAML front matter (title, date, description, etc.) followed by the article content.
 2. Run `npm run build:blog` to convert the AsciiDoc files into Hugo content and rebuild the static output in `public/blog/`.
-   - The script looks for a `hugo` binary on your `PATH`. If one is not available, the last generated output in `public/blog/` is kept so that local development still works.
+   - The helper script first looks for a locally installed [`hugo-bin`](https://www.npmjs.com/package/hugo-bin) package and falls back to a `hugo` binary on your `PATH`.
    - To preview the blog with live reload, run `npm run blog:serve`. This reuses the same helper script but starts `hugo server` instead of a one-off build.
 3. Start the Next.js dev server with `npm run dev`. The `/blog` routes read the HTML that Hugo produced, so you will see the rendered content immediately.
 
-The generated files under `public/blog/` are committed so that the site can deploy even in environments where installing Hugo is not possible. Always run `npm run build:blog` after editing any AsciiDoc source so the static output stays in sync.
+The generated files in `public/blog/` are ignored by git and are produced automatically during `npm run build`. Run `npm run build:blog` locally whenever you change a post so the Next.js preview reflects the latest content.
 
 ## Groan ratings & free storage option
 
