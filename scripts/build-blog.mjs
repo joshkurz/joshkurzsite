@@ -2,12 +2,17 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
+import matter from 'gray-matter';
+import { load as loadHtml } from 'cheerio';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
 const blogDir = path.join(projectRoot, 'blog');
 const destinationDir = path.join(projectRoot, 'public', 'blog');
+const postsDir = path.join(blogDir, 'content', 'posts');
+const indexMarkdownPath = path.join(blogDir, 'content', '_index.md');
+const staticAssetsDir = path.join(blogDir, 'static');
 
 async function ensureDir(targetPath) {
   await fs.mkdir(targetPath, { recursive: true });
@@ -16,6 +21,252 @@ async function ensureDir(targetPath) {
 async function emptyDir(targetPath) {
   await fs.rm(targetPath, { recursive: true, force: true });
   await ensureDir(targetPath);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/`/g, '&#96;');
+}
+
+function formatDateParts(input) {
+  if (!input) {
+    return { iso: null, human: null };
+  }
+
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) {
+    return { iso: null, human: null };
+  }
+
+  const human = date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  return { iso: date.toISOString(), human };
+}
+
+async function copyStaticAssets() {
+  try {
+    await fs.cp(staticAssetsDir, destinationDir, { recursive: true });
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn('[blog] Unable to copy static assets:', error.message);
+    }
+  }
+}
+
+function wrapDocument({ title, description, body }) {
+  const safeTitle = escapeHtml(title || 'Blog');
+  const descriptionMeta = description
+    ? `  <meta name="description" content="${escapeAttribute(description)}" />\n`
+    : '';
+
+  return [
+    '<!DOCTYPE html>',
+    '<html lang="en">',
+    '<head>',
+    '  <meta charset="utf-8" />',
+    `  <title>${safeTitle}</title>`,
+    descriptionMeta.trimEnd(),
+    '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
+    '  <link rel="stylesheet" href="/blog/styles.css" />',
+    '</head>',
+    '<body>',
+    body,
+    '</body>',
+    '</html>'
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function renderIntroMarkdown(markdown) {
+  const trimmed = (markdown || '').trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const paragraphs = trimmed.split(/\r?\n\s*\r?\n/);
+  return paragraphs
+    .map((paragraph) => {
+      const safe = escapeHtml(paragraph.replace(/\r?\n/g, ' ').trim());
+      return safe ? `<p>${safe}</p>` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
+async function collectPreparedPosts(baseDir) {
+  let posts = [];
+  try {
+    const entries = await fs.readdir(baseDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryPath = path.join(baseDir, entry.name);
+      if (entry.isDirectory()) {
+        const nested = await collectPreparedPosts(entryPath);
+        posts = posts.concat(nested);
+      } else if (entry.isFile() && entry.name === 'index.html') {
+        const raw = await fs.readFile(entryPath, 'utf8');
+        const parsed = matter(raw);
+        const slugParts = path
+          .relative(postsDir, path.dirname(entryPath))
+          .split(path.sep)
+          .filter(Boolean);
+        const slug = slugParts.join('/');
+        const { iso, human } = formatDateParts(parsed.data?.date);
+        const $ = loadHtml(parsed.content);
+        const existingBody = $('.blog-article-body').first();
+        const bodyHtml = existingBody.length ? existingBody.html() || '' : parsed.content;
+
+        posts.push({
+          slug,
+          slugParts,
+          title: parsed.data?.title || 'Untitled post',
+          description: parsed.data?.description || '',
+          isoDate: iso,
+          humanDate: human,
+          sortDate: iso ? new Date(iso).getTime() : 0,
+          body: bodyHtml?.trim() || ''
+        });
+      }
+    }
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  return posts;
+}
+
+async function renderFallbackStaticSite() {
+  await emptyDir(destinationDir);
+  await copyStaticAssets();
+
+  let indexData = { data: {}, content: '' };
+  try {
+    const rawIndex = await fs.readFile(indexMarkdownPath, 'utf8');
+    indexData = matter(rawIndex);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn('[blog] Unable to read blog index markdown:', error.message);
+    }
+  }
+
+  const posts = await collectPreparedPosts(postsDir);
+  const sortedPosts = posts.sort((a, b) => b.sortDate - a.sortDate);
+
+  const postsListHtml = sortedPosts
+    .map((post) => {
+      const lines = [
+        '<article class="blog-card">',
+        `  <h2 class="blog-card-title"><a href="/blog/posts/${post.slug}/">${escapeHtml(post.title)}</a></h2>`
+      ];
+      if (post.description) {
+        lines.push(`  <p class="blog-card-description">${escapeHtml(post.description)}</p>`);
+      }
+      if (post.isoDate && post.humanDate) {
+        lines.push(
+          `  <p class="blog-card-date"><time datetime="${escapeAttribute(post.isoDate)}">${escapeHtml(post.humanDate)}</time></p>`
+        );
+      }
+      lines.push('</article>');
+      return lines.join('\n');
+    })
+    .join('\n');
+
+  const introHtml = renderIntroMarkdown(indexData.content);
+  const indexBody = [
+    '<div class="blog-page">',
+    '  <header class="blog-header">',
+    `    <h1 class="blog-title">${escapeHtml(indexData.data?.title || 'Blog')}</h1>`,
+    indexData.data?.description
+      ? `    <p class="blog-intro">${escapeHtml(indexData.data.description)}</p>`
+      : '',
+    '  </header>',
+    introHtml ? `  <div class="blog-article-body">${introHtml}</div>` : '',
+    postsListHtml ? '  <section class="blog-list">' : '',
+    postsListHtml,
+    postsListHtml ? '  </section>' : '',
+    '</div>'
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const indexHtml = wrapDocument({
+    title: indexData.data?.title || 'Blog',
+    description: indexData.data?.description || null,
+    body: indexBody
+  });
+
+  await fs.writeFile(path.join(destinationDir, 'index.html'), indexHtml, 'utf8');
+
+  if (sortedPosts.length) {
+    const postsListingBody = [
+      '<div class="blog-page">',
+      '  <header class="blog-header">',
+      '    <h1 class="blog-title">Posts</h1>',
+      '  </header>',
+      '  <section class="blog-list">',
+      postsListHtml,
+      '  </section>',
+      '</div>'
+    ].join('\n');
+
+    const postsListingHtml = wrapDocument({
+      title: 'Posts',
+      description: indexData.data?.description || null,
+      body: postsListingBody
+    });
+
+    const postsDestination = path.join(destinationDir, 'posts');
+    await ensureDir(postsDestination);
+    await fs.writeFile(path.join(postsDestination, 'index.html'), postsListingHtml, 'utf8');
+  }
+
+  await Promise.all(
+    sortedPosts.map(async (post) => {
+      const postBody = [
+        '<div class="blog-page">',
+        '  <nav class="blog-breadcrumb"><a href="/blog/">Blog</a></nav>',
+        '  <article class="blog-article">',
+        `    <h1 class="blog-article-title">${escapeHtml(post.title)}</h1>`,
+        post.description
+          ? `    <p class="blog-article-description">${escapeHtml(post.description)}</p>`
+          : '',
+        post.isoDate && post.humanDate
+          ? `    <p class="blog-article-date"><time datetime="${escapeAttribute(post.isoDate)}">${escapeHtml(post.humanDate)}</time></p>`
+          : '',
+        '    <div class="blog-article-body">',
+        post.body,
+        '    </div>',
+        '  </article>',
+        '</div>'
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      const postHtml = wrapDocument({
+        title: post.title,
+        description: post.description || null,
+        body: postBody
+      });
+
+      const targetDir = path.join(destinationDir, 'posts', ...post.slugParts);
+      await ensureDir(targetDir);
+      await fs.writeFile(path.join(targetDir, 'index.html'), postHtml, 'utf8');
+    })
+  );
 }
 
 function runCommand(command, args, options = {}) {
@@ -86,8 +337,8 @@ async function buildBlog() {
   const isServeMode = process.argv.includes('--serve');
 
   if (!hugoBinary) {
-    await ensureDir(destinationDir);
-    console.warn('[blog] Hugo binary not found. Skipping static site generation.');
+    console.warn('[blog] Hugo binary not found. Falling back to Node renderer.');
+    await renderFallbackStaticSite();
     return;
   }
 
