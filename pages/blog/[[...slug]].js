@@ -14,14 +14,14 @@ function buildNavLinks() {
   ];
 }
 
-export default function BlogPage({ title, description, body, slugPath }) {
+export default function BlogPage({ title, description, body, slugPath, hasStylesheet }) {
   const navLinks = buildNavLinks();
   return (
     <>
       <Head>
         <title>{title}</title>
         {description ? <meta name="description" content={description} /> : null}
-        <link rel="stylesheet" href="/blog/styles.css" />
+        {hasStylesheet ? <link rel="stylesheet" href="/blog/styles.css" /> : null}
         <link rel="canonical" href={`https://joshkurz.com/blog${slugPath}`} />
       </Head>
       <Header navLinks={navLinks} />
@@ -90,8 +90,49 @@ export async function getStaticProps({ params }) {
   const baseDir = path.join(process.cwd(), 'public', 'blog');
   const relativePath = slug.length ? path.join(...slug, 'index.html') : 'index.html';
   const filePath = path.join(baseDir, relativePath);
+  const stylesheetPath = path.join(baseDir, 'styles.css');
 
-  const html = await fs.readFile(filePath, 'utf8');
+  let hasStylesheet = false;
+  try {
+    await fs.access(stylesheetPath);
+    hasStylesheet = true;
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn('[blog] Unable to verify blog stylesheet:', error);
+    }
+  }
+
+  let html;
+  try {
+    html = await fs.readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      if (slug.length === 0) {
+        const fallbackBody = [
+          '<div class="blog-article-body">',
+          '  <p>The blog will be back shortly. Run <code>npm run build:blog</code> locally to regenerate the static output before deploying.</p>',
+          '</div>'
+        ].join('\n');
+
+        return {
+          props: {
+            title: 'Blog',
+            description: null,
+            body: fallbackBody,
+            slugPath,
+            hasStylesheet
+          }
+        };
+      }
+
+      return {
+        notFound: true
+      };
+    }
+
+    throw error;
+  }
+
   const $ = loadHtml(html);
   const title = $('head > title').text() || 'Blog';
   const description = $('meta[name="description"]').attr('content') || null;
@@ -102,7 +143,8 @@ export async function getStaticProps({ params }) {
       title,
       description,
       body,
-      slugPath
+      slugPath,
+      hasStylesheet
     }
   };
 }
