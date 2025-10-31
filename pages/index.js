@@ -578,8 +578,8 @@ export default function Home() {
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
     { href: '/speak', label: 'Speak' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/blog', label: 'Blog' }
+    { href: '/blog', label: 'Blog' },
+    { href: '/dashboard', label: 'Dashboard' }
   ];
   return (
     <div className={styles.container}>

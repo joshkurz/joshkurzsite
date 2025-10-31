@@ -7,7 +7,18 @@
   {{ end }}
 </header>
 <section class="blog-list">
-  {{ range .Pages }}
+  {{ $pages := .Pages }}
+  {{ if .IsHome }}
+    {{ $pages = where .Site.RegularPages "Section" "posts" }}
+    {{ $pages = sort $pages "Date" "desc" }}
+  {{ else if .IsSection }}
+    {{ $pages = sort .RegularPages "Date" "desc" }}
+  {{ else if eq .Kind "taxonomyTerm" }}
+    {{ $pages = sort .Pages "Title" }}
+  {{ else if eq .Kind "taxonomy" }}
+    {{ $pages = sort .Pages "Date" "desc" }}
+  {{ end }}
+  {{ range $pages }}
   <article class="blog-card">
     <h2 class="blog-card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     {{ with .Params.description }}

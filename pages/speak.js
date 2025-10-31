@@ -16,8 +16,8 @@ export default function SpeechHelper() {
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
     { href: '/speak', label: 'Speak' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/blog', label: 'Blog' }
+    { href: '/blog', label: 'Blog' },
+    { href: '/dashboard', label: 'Dashboard' }
   ];
 
   const handleInputChange = (event) => {

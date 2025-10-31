@@ -7,10 +7,10 @@ import styles from '../../styles/BlogPage.module.css';
 
 function buildNavLinks() {
   return [
-    { href: '/', label: 'Home' },
-    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/', label: 'Live Jokes' },
     { href: '/speak', label: 'Speak' },
-    { href: '/blog', label: 'Blog' }
+    { href: '/blog', label: 'Blog' },
+    { href: '/dashboard', label: 'Dashboard' }
   ];
 }
 
