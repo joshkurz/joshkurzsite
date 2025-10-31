@@ -6,12 +6,12 @@
     <description>Recent content in Posts on Josh Kurz Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 01 May 2024 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Fri, 31 Oct 2025 12:00:00 +0000</lastBuildDate>
     <atom:link href="/blog/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Hello, Hugo!</title>
       <link>/blog/posts/hello-hugo/</link>
-      <pubDate>Wed, 01 May 2024 12:00:00 +0000</pubDate>
+      <pubDate>Fri, 31 Oct 2025 12:00:00 +0000</pubDate>
       <guid>/blog/posts/hello-hugo/</guid>
       <description>Welcome to the very first post on the new blog. From now on, longer-form thoughts, experiments, and announcements will live here so they are easy to reference and easy to share.&#xA;What to expect Behind-the-scenes looks at projects before they ship&#xA;Notes about lessons learned while building new features&#xA;Occasional deep dives into the tooling that powers the site&#xA;Thanks for reading, and stay tuned for more updates soon!</description>
     </item>
