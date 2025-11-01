@@ -85,6 +85,8 @@ describe('blog catch-all page data fetching', () => {
           props: expect.objectContaining({
             title: 'Blog',
             slugPath: '/',
+            metaTags: expect.any(Array),
+            linkTags: expect.any(Array),
           }),
         }),
       );
@@ -136,7 +138,9 @@ describe('blog catch-all page data fetching', () => {
         expect.objectContaining({
           props: expect.objectContaining({
             title: 'Hello Hugo',
-            description: 'Test description',
+            metaTags: expect.arrayContaining([
+              expect.objectContaining({ name: 'description', content: 'Test description' }),
+            ]),
           }),
         })
       );

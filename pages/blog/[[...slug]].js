@@ -1,36 +1,36 @@
 import fs from 'fs/promises';
 import path from 'path';
 import Head from 'next/head';
-import Header from '../../components/Header';
 import { loadHtml } from '../../lib/htmlLoader.js';
 import { parseMatter } from '../../lib/frontMatter.js';
-import styles from '../../styles/BlogPage.module.css';
 
-function buildNavLinks() {
-  return [
-    { href: '/', label: 'Live Jokes' },
-    { href: '/speak', label: 'Speak' },
-    { href: '/blog', label: 'Blog' },
-    { href: '/dashboard', label: 'Dashboard' }
-  ];
-}
+export default function BlogPage({
+  title,
+  body,
+  slugPath,
+  metaTags = [],
+  linkTags = []
+}) {
+  const canonicalHref = `https://joshkurz.com/blog${slugPath}`;
+  const hasCanonicalLink = linkTags.some(
+    (attrs) => typeof attrs.rel === 'string' && attrs.rel.toLowerCase() === 'canonical'
+  );
 
-export default function BlogPage({ title, description, body, slugPath }) {
-  const navLinks = buildNavLinks();
   return (
     <>
       <Head>
-        <title>{title}</title>
-        {description ? <meta name="description" content={description} /> : null}
-        <link rel="canonical" href={`https://joshkurz.com/blog${slugPath}`} />
+        {title ? <title>{title}</title> : null}
+        {metaTags.map((attributes, index) => (
+          <meta key={`meta-${index}`} {...attributes} />
+        ))}
+        {linkTags.map((attributes, index) => (
+          <link key={`link-${index}`} {...attributes} />
+        ))}
+        {!hasCanonicalLink ? (
+          <link rel="canonical" href={canonicalHref} />
+        ) : null}
       </Head>
-      <Header navLinks={navLinks} />
-      <div className={styles.blogWrapper}>
-        <div
-          className={styles.blogContent}
-          dangerouslySetInnerHTML={{ __html: body }}
-        />
-      </div>
+      <div dangerouslySetInnerHTML={{ __html: body }} />
     </>
   );
 }
@@ -234,18 +234,23 @@ export async function getStaticProps({ params }) {
     if (error?.code === 'ENOENT') {
       if (slug.length === 0) {
         const fallbackBody = [
-          '<div class="blog-article-body">',
-          '  <p>The blog will be back shortly. Run <code>npm run build:blog</code> locally to regenerate the static output before deploying.</p>',
-          '  <p>Getting that on the page.</p>',
+          '<div class="blog-page">',
+          '  <article class="blog-article">',
+          '    <div class="blog-article-body">',
+          '      <p>The blog will be back shortly. Run <code>npm run build:blog</code> locally to regenerate the static output before deploying.</p>',
+          '      <p>Getting that on the page.</p>',
+          '    </div>',
+          '  </article>',
           '</div>'
         ].join('\n');
 
         return {
           props: {
             title: 'Blog',
-            description: null,
             body: fallbackBody,
-            slugPath
+            slugPath,
+            metaTags: [],
+            linkTags: []
           }
         };
       }
@@ -259,8 +264,13 @@ export async function getStaticProps({ params }) {
   }
 
   const $ = loadHtml(html);
-  const title = $('head > title').text() || 'Blog';
-  const description = $('meta[name="description"]').attr('content') || null;
+  const title = $('head > title').first().text() || 'Blog';
+  const metaTags = $('head > meta')
+    .toArray()
+    .map((element) => normalizeAttributes(element.attribs ?? {}));
+  const linkTags = $('head > link')
+    .toArray()
+    .map((element) => normalizeAttributes(element.attribs ?? {}));
   let body = $('body').html() || '';
 
   if (slug.length && slug[0] === 'posts') {
@@ -277,9 +287,34 @@ export async function getStaticProps({ params }) {
   return {
     props: {
       title,
-      description,
       body,
-      slugPath
+      slugPath,
+      metaTags,
+      linkTags
     }
   };
+}
+
+function normalizeAttributes(attributes = {}) {
+  const normalized = {};
+  for (const [rawKey, value] of Object.entries(attributes)) {
+    const key = normalizeAttributeName(rawKey);
+    if (typeof value !== 'undefined') {
+      normalized[key] = value;
+    }
+  }
+  return normalized;
+}
+
+function normalizeAttributeName(name) {
+  if (name === 'class') {
+    return 'className';
+  }
+  if (name === 'charset') {
+    return 'charSet';
+  }
+  if (name === 'http-equiv') {
+    return 'httpEquiv';
+  }
+  return name;
 }
