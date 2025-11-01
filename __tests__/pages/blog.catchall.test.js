@@ -148,6 +148,13 @@ describe('blog catch-all page data fetching', () => {
   });
 
   it('injects prepared article body content when the generated HTML is empty', async () => {
+    const repoRoot = process.cwd();
+    const sourcePath = path.join(repoRoot, 'blog', 'posts-src', 'hello-hugo.adoc');
+    const rawAsciiDoc = await fs.readFile(sourcePath, 'utf8');
+    const parsedSource = parseMatter(rawAsciiDoc);
+    const convertedHtml = convertAsciiDoc(parsedSource.content).trim();
+    const bodyWrapper = [`<div class="blog-article-body">`, convertedHtml, `</div>`].join('\n');
+
     const { tmpRoot, blogDir } = await createTempProject();
     const cwdSpy = jest.spyOn(process, 'cwd').mockReturnValue(tmpRoot);
 
@@ -158,8 +165,10 @@ describe('blog catch-all page data fetching', () => {
         '<!doctype html>',
         '<html>',
         '  <head>',
-        '    <title>Hello Hugo</title>',
-        '    <meta name="description" content="Test description" />',
+        `    <title>${parsedSource.data.title}</title>`,
+        parsedSource.data.description
+          ? `    <meta name="description" content="${parsedSource.data.description}" />`
+          : '',
         '  </head>',
         '  <body>',
         '    <article class="blog-article">',
@@ -171,23 +180,70 @@ describe('blog catch-all page data fetching', () => {
 
       await fs.writeFile(path.join(postDir, 'index.html'), emptyHtml, 'utf8');
 
-      const contentDir = path.join(tmpRoot, 'blog', 'content', 'posts', 'hello-hugo');
-      await fs.mkdir(contentDir, { recursive: true });
-      const preparedMarkdown = [
-        '---',
-        'title: "Hello Hugo"',
-        '---',
-        '',
-        '<div class="blog-article-body">',
-        '<p>Prepared body</p>',
-        '</div>'
-      ].join('\n');
-
-      await fs.writeFile(path.join(contentDir, 'index.md'), preparedMarkdown, 'utf8');
+      const preparedDir = path.join(tmpRoot, 'blog', 'content', 'posts', 'hello-hugo');
+      await fs.mkdir(preparedDir, { recursive: true });
+      const preparedMarkdown = stringifyMatter(`${bodyWrapper}\n`, parsedSource.data);
+      await fs.writeFile(path.join(preparedDir, 'index.md'), preparedMarkdown, 'utf8');
 
       const result = await getStaticProps({ params: { slug: ['posts', 'hello-hugo'] } });
 
-      expect(result.props.body).toContain('<p>Prepared body</p>');
+      const renderedBodyHtml = loadHtml(result.props.body)('.blog-article-body').html() ?? '';
+      const normalize = (value) => value.replace(/\s+/g, ' ').trim();
+
+      expect(normalize(renderedBodyHtml)).toBe(normalize(convertedHtml));
+    } finally {
+      cwdSpy.mockRestore();
+      await cleanupTempProject(tmpRoot);
+    }
+  });
+
+  it('replaces comment-only article bodies with the prepared AsciiDoc output', async () => {
+    const repoRoot = process.cwd();
+    const sourcePath = path.join(repoRoot, 'blog', 'posts-src', 'hello-hugo.adoc');
+    const rawAsciiDoc = await fs.readFile(sourcePath, 'utf8');
+    const parsedSource = parseMatter(rawAsciiDoc);
+    const convertedHtml = convertAsciiDoc(parsedSource.content).trim();
+    const bodyWrapper = [`<div class="blog-article-body">`, convertedHtml, `</div>`].join('\n');
+
+    const { tmpRoot, blogDir } = await createTempProject();
+    const cwdSpy = jest.spyOn(process, 'cwd').mockReturnValue(tmpRoot);
+
+    try {
+      const postDir = path.join(blogDir, 'posts', 'hello-hugo');
+      await fs.mkdir(postDir, { recursive: true });
+      const commentHtml = [
+        '<!doctype html>',
+        '<html>',
+        '  <head>',
+        `    <title>${parsedSource.data.title}</title>`,
+        parsedSource.data.description
+          ? `    <meta name="description" content="${parsedSource.data.description}" />`
+          : '',
+        '  </head>',
+        '  <body>',
+        '    <article class="blog-article">',
+        '      <div class="blog-article-body"><!-- raw HTML omitted --></div>',
+        '    </article>',
+        '  </body>',
+        '</html>'
+      ].join('\n');
+
+      await fs.writeFile(path.join(postDir, 'index.html'), commentHtml, 'utf8');
+
+      const preparedDir = path.join(tmpRoot, 'blog', 'content', 'posts', 'hello-hugo');
+      await fs.mkdir(preparedDir, { recursive: true });
+      const preparedMarkdown = stringifyMatter(`${bodyWrapper}\n`, parsedSource.data);
+      await fs.writeFile(path.join(preparedDir, 'index.md'), preparedMarkdown, 'utf8');
+
+      const result = await getStaticProps({ params: { slug: ['posts', 'hello-hugo'] } });
+
+      const renderedBodyHtml = loadHtml(result.props.body)('.blog-article-body').html() ?? '';
+      const renderedText = loadHtml(result.props.body)('.blog-article-body').text();
+      const expectedText = loadHtml(bodyWrapper)('.blog-article-body').text();
+      const normalize = (value) => value.replace(/\s+/g, ' ').trim();
+
+      expect(normalize(renderedBodyHtml)).toBe(normalize(convertedHtml));
+      expect(normalize(renderedText)).toBe(normalize(expectedText));
     } finally {
       cwdSpy.mockRestore();
       await cleanupTempProject(tmpRoot);

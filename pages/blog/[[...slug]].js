@@ -77,6 +77,10 @@ function findArticleBodyRange(html = '') {
   return null;
 }
 
+function stripHtmlComments(html = '') {
+  return html.replace(/<!--[\s\S]*?-->/g, '').trim();
+}
+
 function extractArticleBody(html) {
   if (!html) {
     return '';
@@ -88,6 +92,19 @@ function extractArticleBody(html) {
   }
 
   return html.slice(range.innerStart, range.innerEnd).trim();
+}
+
+function hasMeaningfulArticleBody(html) {
+  if (!html) {
+    return false;
+  }
+
+  const trimmed = html.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  return stripHtmlComments(trimmed).length > 0;
 }
 
 function replaceArticleBody(documentHtml, newBodyHtml) {
@@ -249,7 +266,7 @@ export async function getStaticProps({ params }) {
   if (slug.length && slug[0] === 'posts') {
     const articleBody = extractArticleBody(body);
 
-    if (!articleBody) {
+    if (!hasMeaningfulArticleBody(articleBody)) {
       const preparedBody = await loadPreparedArticleBody(slug);
       if (preparedBody) {
         body = replaceArticleBody(body, preparedBody);
