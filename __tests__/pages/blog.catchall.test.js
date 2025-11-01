@@ -143,4 +143,51 @@ describe('blog catch-all page data fetching', () => {
       await cleanupTempProject(tmpRoot);
     }
   });
+
+  it('injects prepared article body content when the generated HTML is empty', async () => {
+    const { tmpRoot, blogDir } = await createTempProject();
+    const cwdSpy = jest.spyOn(process, 'cwd').mockReturnValue(tmpRoot);
+
+    try {
+      const postDir = path.join(blogDir, 'posts', 'hello-hugo');
+      await fs.mkdir(postDir, { recursive: true });
+      const emptyHtml = [
+        '<!doctype html>',
+        '<html>',
+        '  <head>',
+        '    <title>Hello Hugo</title>',
+        '    <meta name="description" content="Test description" />',
+        '  </head>',
+        '  <body>',
+        '    <article class="blog-article">',
+        '      <div class="blog-article-body"></div>',
+        '    </article>',
+        '  </body>',
+        '</html>'
+      ].join('\n');
+
+      await fs.writeFile(path.join(postDir, 'index.html'), emptyHtml, 'utf8');
+
+      const contentDir = path.join(tmpRoot, 'blog', 'content', 'posts', 'hello-hugo');
+      await fs.mkdir(contentDir, { recursive: true });
+      const preparedMarkdown = [
+        '---',
+        'title: "Hello Hugo"',
+        '---',
+        '',
+        '<div class="blog-article-body">',
+        '<p>Prepared body</p>',
+        '</div>'
+      ].join('\n');
+
+      await fs.writeFile(path.join(contentDir, 'index.md'), preparedMarkdown, 'utf8');
+
+      const result = await getStaticProps({ params: { slug: ['posts', 'hello-hugo'] } });
+
+      expect(result.props.body).toContain('<p>Prepared body</p>');
+    } finally {
+      cwdSpy.mockRestore();
+      await cleanupTempProject(tmpRoot);
+    }
+  });
 });

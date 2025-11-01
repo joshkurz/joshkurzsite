@@ -3,6 +3,7 @@ import path from 'path';
 import Head from 'next/head';
 import Header from '../../components/Header';
 import { loadHtml } from '../../lib/htmlLoader.js';
+import { parseMatter } from '../../lib/frontMatter.js';
 import styles from '../../styles/BlogPage.module.css';
 
 function buildNavLinks() {
@@ -39,6 +40,80 @@ function formatSlugPath(slug = []) {
     return '/';
   }
   return `/${slug.join('/')}/`;
+}
+
+function extractArticleBody(html) {
+  if (!html) {
+    return '';
+  }
+
+  const match = html.match(
+    /<div[^>]*class=("|')[^"']*blog-article-body[^"']*\1[^>]*>([\s\S]*?)<\/div>/i
+  );
+
+  if (!match) {
+    return '';
+  }
+
+  return match[2].trim();
+}
+
+function replaceArticleBody(documentHtml, newBodyHtml) {
+  if (!documentHtml || !newBodyHtml) {
+    return documentHtml;
+  }
+
+  const bodyPattern = /(<div[^>]*class=("|')[^"']*blog-article-body[^"']*\2[^>]*>)([\s\S]*?)(<\/div>)/i;
+
+  if (bodyPattern.test(documentHtml)) {
+    return documentHtml.replace(bodyPattern, `$1${newBodyHtml}$4`);
+  }
+
+  const articlePattern = /(<article[^>]*class=("|')[^"']*blog-article[^"']*\2[^>]*>[\s\S]*?)(<\/article>)/i;
+
+  if (articlePattern.test(documentHtml)) {
+    return documentHtml.replace(
+      articlePattern,
+      `$1<div class="blog-article-body">${newBodyHtml}</div>$3`
+    );
+  }
+
+  return `${documentHtml}\n<div class="blog-article-body">${newBodyHtml}</div>`;
+}
+
+async function loadPreparedArticleBody(slugParts) {
+  if (!Array.isArray(slugParts) || slugParts.length === 0) {
+    return '';
+  }
+
+  const contentDir = path.join(process.cwd(), 'blog', 'content');
+  const targetPath = path.join(contentDir, ...slugParts, 'index.md');
+
+  let raw;
+  try {
+    raw = await fs.readFile(targetPath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return '';
+    }
+    throw error;
+  }
+
+  const parsed = parseMatter(raw);
+  const content = parsed.content || '';
+  const $ = loadHtml(content);
+  const preparedBody = $('.blog-article-body').first().html();
+
+  if (typeof preparedBody === 'string' && preparedBody.trim()) {
+    return preparedBody.trim();
+  }
+
+  const extracted = extractArticleBody(content);
+  if (extracted) {
+    return extracted;
+  }
+
+  return content.trim();
 }
 
 async function discoverBlogPaths(baseDir) {
@@ -124,7 +199,18 @@ export async function getStaticProps({ params }) {
   const $ = loadHtml(html);
   const title = $('head > title').text() || 'Blog';
   const description = $('meta[name="description"]').attr('content') || null;
-  const body = $('body').html() || '';
+  let body = $('body').html() || '';
+
+  if (slug.length && slug[0] === 'posts') {
+    const articleBody = extractArticleBody(body);
+
+    if (!articleBody) {
+      const preparedBody = await loadPreparedArticleBody(slug);
+      if (preparedBody) {
+        body = replaceArticleBody(body, preparedBody);
+      }
+    }
+  }
 
   return {
     props: {
