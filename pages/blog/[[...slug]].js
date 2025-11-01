@@ -42,20 +42,52 @@ function formatSlugPath(slug = []) {
   return `/${slug.join('/')}/`;
 }
 
+function findArticleBodyRange(html = '') {
+  const openPattern = /<div[^>]*class=("|')[^"']*blog-article-body[^"']*\1[^>]*>/i;
+  const openMatch = openPattern.exec(html);
+
+  if (!openMatch || typeof openMatch.index !== 'number') {
+    return null;
+  }
+
+  const startIndex = openMatch.index;
+  const openTagLength = openMatch[0].length;
+  const innerStart = startIndex + openTagLength;
+  const search = html.slice(innerStart);
+  const tagPattern = /<div\b[^>]*>|<\/div\s*>/gi;
+  let depth = 1;
+  let match;
+
+  while ((match = tagPattern.exec(search))) {
+    const token = match[0];
+    const isClosing = /^<\/div/i.test(token);
+
+    if (isClosing) {
+      depth -= 1;
+      if (depth === 0) {
+        const innerEnd = innerStart + match.index;
+        const endIndex = innerEnd + token.length;
+        return { startIndex, endIndex, innerStart, innerEnd };
+      }
+    } else {
+      depth += 1;
+    }
+  }
+
+  return null;
+}
+
 function extractArticleBody(html) {
   if (!html) {
     return '';
   }
 
-  const match = html.match(
-    /<div[^>]*class=("|')[^"']*blog-article-body[^"']*\1[^>]*>([\s\S]*?)<\/div>/i
-  );
-
-  if (!match) {
+  const range = findArticleBodyRange(html);
+  if (!range) {
     return '';
   }
 
-  return match[2].trim();
+  return html.slice(range.innerStart, range.innerEnd).trim();
 }
 
 function replaceArticleBody(documentHtml, newBodyHtml) {
@@ -63,22 +95,35 @@ function replaceArticleBody(documentHtml, newBodyHtml) {
     return documentHtml;
   }
 
-  const bodyPattern = /(<div[^>]*class=("|')[^"']*blog-article-body[^"']*\2[^>]*>)([\s\S]*?)(<\/div>)/i;
-
-  if (bodyPattern.test(documentHtml)) {
-    return documentHtml.replace(bodyPattern, `$1${newBodyHtml}$4`);
+  const trimmedBody = newBodyHtml.trim();
+  if (!trimmedBody) {
+    return documentHtml;
   }
 
-  const articlePattern = /(<article[^>]*class=("|')[^"']*blog-article[^"']*\2[^>]*>[\s\S]*?)(<\/article>)/i;
-
-  if (articlePattern.test(documentHtml)) {
-    return documentHtml.replace(
-      articlePattern,
-      `$1<div class="blog-article-body">${newBodyHtml}</div>$3`
+  const range = findArticleBodyRange(documentHtml);
+  if (range) {
+    return (
+      documentHtml.slice(0, range.innerStart) +
+      trimmedBody +
+      documentHtml.slice(range.innerEnd)
     );
   }
 
-  return `${documentHtml}\n<div class="blog-article-body">${newBodyHtml}</div>`;
+  const articlePattern = /<article[^>]*class=("|')[^"']*blog-article[^"']*\1[^>]*>/i;
+  const articleMatch = articlePattern.exec(documentHtml);
+
+  if (articleMatch && typeof articleMatch.index === 'number') {
+    const insertIndex = articleMatch.index + articleMatch[0].length;
+    return (
+      documentHtml.slice(0, insertIndex) +
+      `<div class="blog-article-body">${trimmedBody}</div>` +
+      documentHtml.slice(insertIndex)
+    );
+  }
+
+  return (
+    `${documentHtml}\n<div class="blog-article-body">${trimmedBody}</div>`
+  );
 }
 
 async function loadPreparedArticleBody(slugParts) {
