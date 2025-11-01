@@ -1,20 +1,80 @@
 ---
-title: "Hello, Hugo!"
+title: "Hello World, Prepare to Groan"
 date: 2025-10-31T12:00:00Z
-description: "Introducing the new Hugo-powered blog on joshkurz.com."
+description: "Kicking off the blog with an unstoppable wave of dad jokes."
 draft: false
 ---
 
-= Hello, Hugo!
+= Hello World, Prepare to Groan
 
-Welcome to the very first post on the new blog. From now on, longer-form
-thoughts, experiments, and announcements will live here so they are easy to
-reference and easy to share.
+You know how every new project starts with a "Hello World"?
+Yeah… well this one starts with something far more important:
 
-== What to expect
+A Dad.
+With jokes.
+And no one to stop him.
 
-* Behind-the-scenes looks at projects before they ship
-* Notes about lessons learned while building new features
-* Occasional deep dives into the tooling that powers the site
+Welcome to JoshKurz.net — a place where the jokes are like my lawn:
+I'll tell them whether you want them or not.
 
-Thanks for reading, and stay tuned for more updates soon!
+== So, Why a Dad Joke Website?
+
+Because someone once told me:
+
+"With great power comes great responsibility."
+
+But I misheard it as:
+
+"With great pun-er comes great possibility."
+
+And honestly? That just feels more on brand.
+
+Also, my children can only run so fast.
+The internet, however, cannot escape.
+
+== Let's Set Expectations
+
+If you're here for:
+
+* ✅ Groan-inducing punchlines
+* ✅ Eye-rolling one-liners
+* ✅ Jokes so cheesy that lactose intolerant people must look away
+
+You're in the right place.
+
+If you're here for:
+
+* ❌ Nuanced irony
+* ❌ Aristotelian narrative arcs
+* ❌ Humor that would impress anyone under age 15
+
+Uh, maybe just… stick around anyway. It builds character.
+
+== A Sample to Get You Started
+
+Q: Why don't eggs tell jokes?
+A: They'd crack each other up.
+
+I'll show myself out.
+(No I won't. This is my website.)
+
+Q: What do you call a factory that makes okay products?
+A: A satisfactory.
+
+I promise they'll get better.
+(They will not get better.)
+
+== Final Thoughts
+
+This site has a simple goal:
+To share joy, one groan at a time.
+
+If at any point you laugh against your will — you owe me a high five.
+If you don't laugh… don't worry. I have hundreds more.
+I have become unstoppable.
+
+Welcome to the dad joke dimension.
+Take a seat. Buckle up.
+There is no escape.
+
+— Josh
