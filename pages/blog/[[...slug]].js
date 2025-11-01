@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import Head from 'next/head';
-import { load as loadHtml } from 'cheerio';
 import Header from '../../components/Header';
+import { loadHtml } from '../../lib/htmlLoader.js';
 import styles from '../../styles/BlogPage.module.css';
 
 function buildNavLinks() {

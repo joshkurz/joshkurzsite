@@ -1,16 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
-import asciidoctorFactory from '@asciidoctor/core';
+import { convertAsciiDoc } from '../lib/asciidoc.js';
+import { parseMatter, stringifyMatter } from '../lib/frontMatter.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.join(__dirname, '..');
+const scriptFilename = fileURLToPath(import.meta.url);
+const scriptDirname = path.dirname(scriptFilename);
+const projectRoot = path.join(scriptDirname, '..');
 const sourceDir = path.join(projectRoot, 'blog', 'posts-src');
 const contentDir = path.join(projectRoot, 'blog', 'content', 'posts');
-
-const asciidoctor = asciidoctorFactory();
 
 async function ensureDir(targetPath) {
   await fs.mkdir(targetPath, { recursive: true });
@@ -44,21 +42,18 @@ function slugFromPath(filePath) {
 
 async function convertAdocFile(filePath) {
   const raw = await fs.readFile(filePath, 'utf8');
-  const parsed = matter(raw);
+  const parsed = parseMatter(raw);
   if (!parsed.data || Object.keys(parsed.data).length === 0) {
     throw new Error(`Missing front matter metadata in ${path.relative(sourceDir, filePath)}`);
   }
-  const html = asciidoctor.convert(parsed.content, {
-    safe: 'safe',
-    doctype: 'article'
-  });
+  const html = convertAsciiDoc(parsed.content);
   const slugParts = slugFromPath(filePath);
   const targetDir = path.join(contentDir, ...slugParts);
   await ensureDir(targetDir);
-  const frontMatter = matter.stringify('', parsed.data);
+  const frontMatter = stringifyMatter('', parsed.data);
   const wrappedHtml = `<div class="blog-article-body">\n${html.trim()}\n</div>\n`;
   const output = `${frontMatter}\n${wrappedHtml}`;
-  const outputPath = path.join(targetDir, 'index.html');
+  const outputPath = path.join(targetDir, 'index.md');
   await fs.writeFile(outputPath, output, 'utf8');
 }
 
@@ -78,4 +73,6 @@ async function main() {
   }
 }
 
-await main();
+if (process.argv[1] === scriptFilename) {
+  await main();
+}

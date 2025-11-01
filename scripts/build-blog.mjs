@@ -2,17 +2,18 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
-import matter from 'gray-matter';
-import { load as loadHtml } from 'cheerio';
+import { loadHtml } from '../lib/htmlLoader.js';
+import { parseMatter } from '../lib/frontMatter.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.join(__dirname, '..');
+const scriptFilename = fileURLToPath(import.meta.url);
+const scriptDirname = path.dirname(scriptFilename);
+const projectRoot = path.join(scriptDirname, '..');
 const blogDir = path.join(projectRoot, 'blog');
 const destinationDir = path.join(projectRoot, 'public', 'blog');
 const postsDir = path.join(blogDir, 'content', 'posts');
 const indexMarkdownPath = path.join(blogDir, 'content', '_index.md');
 const staticAssetsDir = path.join(blogDir, 'static');
+const allowedIndexFiles = new Set(['index.html', 'index.md']);
 
 async function ensureDir(targetPath) {
   await fs.mkdir(targetPath, { recursive: true });
@@ -106,20 +107,24 @@ function renderIntroMarkdown(markdown) {
     .join('\n');
 }
 
-async function collectPreparedPosts(baseDir) {
-  let posts = [];
+async function collectPreparedPosts(baseDir, rootDir = baseDir) {
+  const posts = new Map();
   try {
     const entries = await fs.readdir(baseDir, { withFileTypes: true });
     for (const entry of entries) {
       const entryPath = path.join(baseDir, entry.name);
       if (entry.isDirectory()) {
-        const nested = await collectPreparedPosts(entryPath);
-        posts = posts.concat(nested);
-      } else if (entry.isFile() && entry.name === 'index.html') {
+        const nested = await collectPreparedPosts(entryPath, rootDir);
+        for (const nestedPost of nested) {
+          if (!posts.has(nestedPost.slug)) {
+            posts.set(nestedPost.slug, nestedPost);
+          }
+        }
+      } else if (entry.isFile() && allowedIndexFiles.has(entry.name)) {
         const raw = await fs.readFile(entryPath, 'utf8');
-        const parsed = matter(raw);
+        const parsed = parseMatter(raw);
         const slugParts = path
-          .relative(postsDir, path.dirname(entryPath))
+          .relative(rootDir, path.dirname(entryPath))
           .split(path.sep)
           .filter(Boolean);
         const slug = slugParts.join('/');
@@ -128,7 +133,7 @@ async function collectPreparedPosts(baseDir) {
         const existingBody = $('.blog-article-body').first();
         const bodyHtml = existingBody.length ? existingBody.html() || '' : parsed.content;
 
-        posts.push({
+        const postRecord = {
           slug,
           slugParts,
           title: parsed.data?.title || 'Untitled post',
@@ -137,7 +142,12 @@ async function collectPreparedPosts(baseDir) {
           humanDate: human,
           sortDate: iso ? new Date(iso).getTime() : 0,
           body: bodyHtml?.trim() || ''
-        });
+        };
+
+        const existing = posts.get(slug);
+        if (!existing || entry.name === 'index.md') {
+          posts.set(slug, postRecord);
+        }
       }
     }
   } catch (error) {
@@ -146,7 +156,7 @@ async function collectPreparedPosts(baseDir) {
     }
   }
 
-  return posts;
+  return Array.from(posts.values());
 }
 
 async function renderFallbackStaticSite() {
@@ -156,7 +166,7 @@ async function renderFallbackStaticSite() {
   let indexData = { data: {}, content: '' };
   try {
     const rawIndex = await fs.readFile(indexMarkdownPath, 'utf8');
-    indexData = matter(rawIndex);
+    indexData = parseMatter(rawIndex);
   } catch (error) {
     if (error?.code !== 'ENOENT') {
       console.warn('[blog] Unable to read blog index markdown:', error.message);
@@ -328,7 +338,7 @@ async function findHugoBinary() {
 }
 
 async function prepareContent() {
-  await runCommand('node', [path.join(__dirname, 'prepare-blog.mjs')]);
+  await runCommand('node', [path.join(scriptDirname, 'prepare-blog.mjs')]);
 }
 
 async function buildBlog() {
@@ -364,7 +374,11 @@ async function buildBlog() {
   await runCommand(hugoBinary, args, { cwd: projectRoot });
 }
 
-buildBlog().catch((error) => {
-  console.error('[blog] Failed to build blog:', error);
-  process.exitCode = 1;
-});
+if (process.argv[1] === scriptFilename) {
+  buildBlog().catch((error) => {
+    console.error('[blog] Failed to build blog:', error);
+    process.exitCode = 1;
+  });
+}
+
+export { collectPreparedPosts, renderFallbackStaticSite, buildBlog };
