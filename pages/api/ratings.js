@@ -1,10 +1,7 @@
 import {
-  getMode,
-  resolveDateKey,
-  handleReadStats,
-  handleWriteReview,
-  validateRating
-} from '../../lib/ratingsStorage'
+  readStats,
+  writeRating
+} from '../../lib/ratingsStorageDynamo'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -16,7 +13,7 @@ export default async function handler(req, res) {
     const mode = getMode(Array.isArray(requestedMode) ? requestedMode[0] : requestedMode)
     const dateKey = resolveDateKey(Array.isArray(requestedDate) ? requestedDate[0] : requestedDate)
     try {
-      const stats = await handleReadStats({ mode, jokeId, dateKey })
+      const stats = await readStats({ jokeId })
       res.status(200).json(stats)
     } catch (error) {
       console.error('[ratings] Failed to load ratings', {
@@ -52,8 +49,8 @@ export default async function handler(req, res) {
     const dateKey = resolveDateKey(requestedDate)
 
     try {
-      await handleWriteReview({ mode, jokeId, dateKey, rating: parsedRating, joke, author })
-      const refreshedStats = await handleReadStats({ mode, jokeId, dateKey })
+      await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey })
+      const refreshedStats = await readStats({ jokeId })
       res.status(200).json(refreshedStats)
     } catch (error) {
       console.error('[ratings] Failed to save rating', {

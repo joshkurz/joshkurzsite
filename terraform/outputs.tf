@@ -36,6 +36,11 @@ output "lambda_function_arn" {
   value       = aws_lambda_function.ratings_aggregator.arn
 }
 
+output "app_dynamodb_policy_arn" {
+  description = "ARN of the IAM policy for application DynamoDB access"
+  value       = aws_iam_policy.app_dynamodb_access.arn
+}
+
 # Environment variables to add to Vercel
 output "vercel_env_vars" {
   description = "Environment variables to configure in Vercel"
