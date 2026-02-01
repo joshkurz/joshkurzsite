@@ -2,6 +2,11 @@ import {
   readStats,
   writeRating
 } from '../../lib/ratingsStorageDynamo'
+import {
+  getMode,
+  resolveDateKey,
+  validateRating
+} from '../../lib/ratingsStorage'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
