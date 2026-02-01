@@ -1,0 +1,17 @@
+{
+  "name": "ratings-aggregator",
+  "version": "1.0.0",
+  "description": "Lambda function to aggregate joke ratings from DynamoDB Streams",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test",
+    "deploy": "cd ../../terraform && terraform apply -auto-approve"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.645.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
