@@ -12,7 +12,9 @@
     "watch-dashboard-summary": "node scripts/update-dashboard-summary.mjs --watch"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.978.0",
     "@aws-sdk/client-s3": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.978.0",
     "@vercel/analytics": "^0.1.6",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.6",

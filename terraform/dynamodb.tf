@@ -10,7 +10,7 @@ resource "aws_dynamodb_table" "joke_ratings" {
   name         = "dad-jokes-ratings-${var.environment}"
   billing_mode = var.billing_mode
   hash_key     = "PK"
-  sort_key     = "SK"
+  range_key    = "SK"
 
   # Only set capacity for provisioned mode
   read_capacity  = var.billing_mode == "PROVISIONED" ? var.read_capacity : null
@@ -99,7 +99,7 @@ resource "aws_dynamodb_table" "joke_stats" {
   name         = "dad-jokes-stats-${var.environment}"
   billing_mode = var.billing_mode
   hash_key     = "PK"
-  sort_key     = "SK"
+  range_key    = "SK"
 
   read_capacity  = var.billing_mode == "PROVISIONED" ? var.read_capacity : null
   write_capacity = var.billing_mode == "PROVISIONED" ? var.write_capacity : null
@@ -295,4 +295,30 @@ resource "aws_lambda_event_source_mapping" "ratings_stream" {
   depends_on = [
     aws_iam_role_policy.lambda_dynamodb
   ]
+}
+
+# IAM Policy for Application DynamoDB Access
+resource "aws_iam_policy" "app_dynamodb_access" {
+  name        = "dad-jokes-app-dynamodb-${var.environment}"
+  description = "Allows the application to read/write ratings and read stats from DynamoDB"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Query"
+        ]
+        Resource = [
+          aws_dynamodb_table.joke_ratings.arn,
+          "${aws_dynamodb_table.joke_ratings.arn}/index/*",
+          aws_dynamodb_table.joke_stats.arn,
+          "${aws_dynamodb_table.joke_stats.arn}/index/*"
+        ]
+      }
+    ]
+  })
 }
