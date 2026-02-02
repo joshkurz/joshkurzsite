@@ -1,39 +1,39 @@
-import path from 'node:path'
-import { rm } from 'node:fs/promises'
+const mockSend = jest.fn()
+
+jest.mock('../../lib/dynamoClient.js', () => ({
+  getDynamoClient: () => ({ send: mockSend }),
+  RATINGS_TABLE: 'test-ratings-table',
+  PutCommand: jest.fn().mockImplementation((params) => ({ type: 'Put', params })),
+  QueryCommand: jest.fn().mockImplementation((params) => ({ type: 'Query', params }))
+}))
 
 describe('custom jokes storage', () => {
-  const cacheDir = path.join('/tmp', 'custom-jokes-test-cache')
-  const storageDir = path.join('/tmp', 'custom-jokes-test-storage')
   let customJokes
 
   async function loadModule() {
     jest.resetModules()
     delete globalThis.__customJokesState
-    process.env.CUSTOM_JOKES_CACHE_DIR = cacheDir
-    process.env.CUSTOM_JOKES_STORAGE_DIR = storageDir
-    process.env.CUSTOM_JOKES_TTL_MS = '0'
     customJokes = await import('../../lib/customJokes.js')
   }
 
   beforeEach(async () => {
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
+    mockSend.mockReset()
+    // Mock empty initial query result
+    mockSend.mockResolvedValue({ Items: [] })
     await loadModule()
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     if (customJokes?.clearCustomJokesCache) {
       customJokes.clearCustomJokesCache()
     }
-    delete process.env.CUSTOM_JOKES_CACHE_DIR
-    delete process.env.CUSTOM_JOKES_STORAGE_DIR
-    delete process.env.CUSTOM_JOKES_TTL_MS
     delete globalThis.__customJokesState
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
   })
 
   it('records accepted jokes and makes them available', async () => {
+    // Mock the PutCommand to succeed
+    mockSend.mockResolvedValueOnce({}) // For the put
+
     const saved = await customJokes.recordAcceptedJoke({
       opener: 'Why did the chicken cross the road?',
       response: 'To get to the other side!',
@@ -43,20 +43,23 @@ describe('custom jokes storage', () => {
     expect(saved.author).toBe('Tester')
     expect(saved.opener).toContain('chicken')
 
+    // Verify DynamoDB was called with correct data
+    expect(mockSend).toHaveBeenCalled()
+    const putCall = mockSend.mock.calls.find(call => call[0]?.type === 'Put')
+    expect(putCall).toBeDefined()
+    expect(putCall[0].params.Item.author).toBe('Tester')
+    expect(putCall[0].params.Item.status).toBe('accepted')
+    expect(putCall[0].params.Item.GSI1PK).toBe('CUSTOM_JOKES_ACCEPTED')
+
     const jokes = customJokes.getCustomJokes()
     const found = jokes.find((joke) => joke.id === saved.id)
     expect(found).toBeDefined()
     expect(found.author).toBe('Tester')
   })
 
-  it('records rejected jokes without affecting accepted cache', async () => {
-    await customJokes.recordAcceptedJoke({
-      opener: 'What do you call cheese that is not yours?',
-      response: 'Nacho cheese!',
-      author: 'Tester'
-    })
-
-    const beforeCount = customJokes.getCustomJokes().length
+  it('records rejected jokes and stores them in DynamoDB with rejected status', async () => {
+    // Mock the PutCommand to succeed
+    mockSend.mockResolvedValueOnce({})
 
     const rejected = await customJokes.recordRejectedJoke({
       opener: 'inappropriate joke',
@@ -68,7 +71,40 @@ describe('custom jokes storage', () => {
     expect(rejected.id).toBeDefined()
     expect(rejected.reason).toContain('family friendly')
 
-    const afterCount = customJokes.getCustomJokes().length
-    expect(afterCount).toBe(beforeCount)
+    // Verify rejected joke was stored with correct status in DynamoDB
+    const putCall = mockSend.mock.calls.find(call => call[0]?.type === 'Put')
+    expect(putCall).toBeDefined()
+    expect(putCall[0].params.Item.status).toBe('rejected')
+    expect(putCall[0].params.Item.GSI1PK).toBe('CUSTOM_JOKES_REJECTED')
+    expect(putCall[0].params.Item.reason).toContain('family friendly')
+  })
+
+  it('loads accepted jokes from DynamoDB on initialization', async () => {
+    // Reset and set up mock to return jokes
+    mockSend.mockReset()
+    mockSend.mockResolvedValue({
+      Items: [
+        {
+          PK: 'CUSTOM_JOKE#custom-123',
+          SK: 'METADATA',
+          id: 'custom-123',
+          opener: 'Test opener',
+          response: 'Test response',
+          author: 'Test Author',
+          status: 'accepted',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          GSI1PK: 'CUSTOM_JOKES_ACCEPTED',
+          GSI1SK: '2024-01-01T00:00:00.000Z'
+        }
+      ]
+    })
+
+    // Reload module to trigger initialization
+    await loadModule()
+    const jokes = await customJokes.getCustomJokesAsync()
+
+    expect(jokes.length).toBe(1)
+    expect(jokes[0].opener).toBe('Test opener')
+    expect(jokes[0].author).toBe('Test Author')
   })
 })

@@ -1,27 +1,28 @@
-import path from 'node:path'
-import { rm } from 'node:fs/promises'
+const mockSend = jest.fn()
+
+jest.mock('../../lib/dynamoClient.js', () => ({
+  getDynamoClient: () => ({ send: mockSend }),
+  RATINGS_TABLE: 'test-ratings-table',
+  PutCommand: jest.fn().mockImplementation((params) => ({ type: 'Put', params })),
+  QueryCommand: jest.fn().mockImplementation((params) => ({ type: 'Query', params }))
+}))
+
 import { createMocks } from 'node-mocks-http'
 
 describe('POST /api/custom-jokes', () => {
-  const cacheDir = path.join('/tmp', 'custom-jokes-api-cache')
-  const storageDir = path.join('/tmp', 'custom-jokes-api-storage')
-
   async function prepareEnvironment() {
     jest.resetModules()
     delete globalThis.__customJokesState
     process.env.MOCK_OPENAI = 'true'
-    process.env.CUSTOM_JOKES_CACHE_DIR = cacheDir
-    process.env.CUSTOM_JOKES_STORAGE_DIR = storageDir
-    process.env.CUSTOM_JOKES_TTL_MS = '0'
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
   }
 
   beforeEach(async () => {
+    mockSend.mockReset()
+    mockSend.mockResolvedValue({ Items: [] })
     await prepareEnvironment()
   })
 
-  afterEach(async () => {
+  afterEach(() => {
     try {
       const moduleRef = require('../../lib/customJokes.js')
       if (moduleRef?.clearCustomJokesCache) {
@@ -31,15 +32,11 @@ describe('POST /api/custom-jokes', () => {
       // ignore
     }
     delete process.env.MOCK_OPENAI
-    delete process.env.CUSTOM_JOKES_CACHE_DIR
-    delete process.env.CUSTOM_JOKES_STORAGE_DIR
-    delete process.env.CUSTOM_JOKES_TTL_MS
     delete globalThis.__customJokesState
-    await rm(cacheDir, { recursive: true, force: true })
-    await rm(storageDir, { recursive: true, force: true })
   })
 
   it('accepts a family-friendly submission', async () => {
+    mockSend.mockResolvedValue({}) // For the put command
     const handler = require('../../pages/api/custom-jokes').default
     const { req, res } = createMocks({
       method: 'POST',
@@ -60,6 +57,7 @@ describe('POST /api/custom-jokes', () => {
   })
 
   it('rejects submissions flagged by the moderator', async () => {
+    mockSend.mockResolvedValue({}) // For the put command
     const handler = require('../../pages/api/custom-jokes').default
     const { req, res } = createMocks({
       method: 'POST',
