@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import PropTypes from 'prop-types'
@@ -53,14 +54,118 @@ function getRankBadge(rank) {
   return { className: '', label: `#${rank}` }
 }
 
+function RatingButtons({ jokeId, jokeText, author, onRated }) {
+  const [hoveredRating, setHoveredRating] = useState(null)
+  const [userRating, setUserRating] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [ratingResult, setRatingResult] = useState(null)
+  const [error, setError] = useState(null)
+
+  const handleClick = async (value) => {
+    if (hasSubmitted || isSubmitting) return
+    setUserRating(value)
+    setHoveredRating(null)
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jokeId,
+          rating: value,
+          joke: jokeText,
+          author: author || undefined
+        })
+      })
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Unable to save rating')
+      }
+      const data = await response.json()
+      setRatingResult(data)
+      setHasSubmitted(true)
+      if (onRated) onRated(jokeId, data)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const canInteract = !isSubmitting && !hasSubmitted
+  const displayRating = hoveredRating || userRating || 0
+
+  return (
+    <div className={styles.ratingSection}>
+      <div
+        className={styles.groanButtonGroup}
+        onMouseLeave={canInteract ? () => setHoveredRating(null) : undefined}
+      >
+        {[1, 2, 3, 4, 5].map((value) => {
+          const isActive = value <= displayRating
+          const isSelected = userRating ? value <= userRating : false
+          const buttonClass = [
+            styles.groanButton,
+            isActive ? styles.groanButtonActive : '',
+            isSelected ? styles.groanButtonSelected : ''
+          ].filter(Boolean).join(' ')
+
+          return (
+            <button
+              key={value}
+              type="button"
+              className={buttonClass}
+              onClick={() => handleClick(value)}
+              disabled={isSubmitting || hasSubmitted}
+              aria-label={`${value} groan${value === 1 ? '' : 's'}`}
+              onMouseEnter={canInteract ? () => setHoveredRating(value) : undefined}
+            >
+              <span className={`${styles.groanEmoji} ${isActive ? styles.groanEmojiActive : ''}`}>
+                {value <= displayRating ? '🤦' : '🤦‍♂️'}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      {hasSubmitted && ratingResult && (
+        <div className={styles.ratingResult}>
+          Avg: {ratingResult.average} ({ratingResult.totalRatings} votes)
+        </div>
+      )}
+      {error && <div className={styles.ratingError}>{error}</div>}
+    </div>
+  )
+}
+
+RatingButtons.propTypes = {
+  jokeId: PropTypes.string.isRequired,
+  jokeText: PropTypes.string.isRequired,
+  author: PropTypes.string,
+  onRated: PropTypes.func
+}
+
+RatingButtons.defaultProps = {
+  author: '',
+  onRated: null
+}
+
 export default function AuthorPage({ data, error }) {
   const router = useRouter()
+  const [ratedJokeIds, setRatedJokeIds] = useState(new Set())
 
   if (router.isFallback) {
     return <div className={styles.container}>Loading...</div>
   }
 
   const authorName = formatAuthorName(data?.author)
+  const unratedJokes = (data?.unratedJokes || []).filter(j => !ratedJokeIds.has(j.jokeId))
+
+  const handleJokeRated = (jokeId) => {
+    setRatedJokeIds(prev => new Set([...prev, jokeId]))
+  }
 
   return (
     <div className={styles.container}>
@@ -95,12 +200,12 @@ export default function AuthorPage({ data, error }) {
             <section className={styles.statsSection}>
               <div className={styles.statsRow}>
                 <div className={styles.statBox}>
-                  <div className={styles.statValue}>{formatNumber(data.totalJokes)}</div>
-                  <div className={styles.statLabel}>Jokes</div>
+                  <div className={styles.statValue}>{formatNumber(data.jokes?.length || 0)}</div>
+                  <div className={styles.statLabel}>Rated</div>
                 </div>
                 <div className={styles.statBox}>
-                  <div className={styles.statValue}>{formatNumber(data.totalRatings)}</div>
-                  <div className={styles.statLabel}>Total Ratings</div>
+                  <div className={styles.statValue}>{formatNumber(unratedJokes.length)}</div>
+                  <div className={styles.statLabel}>Unrated</div>
                 </div>
                 <div className={styles.statBox}>
                   <div className={styles.statValue}>
@@ -112,8 +217,32 @@ export default function AuthorPage({ data, error }) {
               </div>
             </section>
 
+            {unratedJokes.length > 0 && (
+              <section className={styles.jokesSection}>
+                <h2>Unrated Jokes ({unratedJokes.length})</h2>
+                <p className={styles.unratedIntro}>Help rate these jokes!</p>
+                <div className={styles.jokesList}>
+                  {unratedJokes.map((joke) => (
+                    <div key={joke.jokeId} className={`${styles.jokeCard} ${styles.unratedCard}`}>
+                      <div className={styles.jokeContent}>
+                        <p className={styles.jokeText}>
+                          {joke.joke || `Joke #${joke.jokeId}`}
+                        </p>
+                        <RatingButtons
+                          jokeId={joke.jokeId}
+                          jokeText={joke.joke}
+                          author={joke.author}
+                          onRated={handleJokeRated}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section className={styles.jokesSection}>
-              <h2>All Jokes by {authorName}</h2>
+              <h2>Rated Jokes by {authorName}</h2>
               {data.jokes.length === 0 ? (
                 <p className={styles.emptyState}>No rated jokes found for this author.</p>
               ) : (
@@ -165,6 +294,13 @@ AuthorPage.propTypes = {
         totalRatings: PropTypes.number,
         average: PropTypes.number,
         rank: PropTypes.number
+      })
+    ),
+    unratedJokes: PropTypes.arrayOf(
+      PropTypes.shape({
+        jokeId: PropTypes.string,
+        joke: PropTypes.string,
+        author: PropTypes.string
       })
     )
   }),
