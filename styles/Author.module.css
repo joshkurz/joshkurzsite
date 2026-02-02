@@ -1,0 +1,274 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+  color: var(--color-text, #e2e8f0);
+}
+
+.main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.backLink {
+  margin-bottom: -0.5rem;
+}
+
+.backLink a {
+  color: #a78bfa;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.backLink a:hover {
+  color: #c4b5fd;
+  text-decoration: underline;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.heroLabel {
+  display: inline-block;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+/* Error Panel */
+.errorPanel {
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(248, 113, 113, 0.15);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Stats Section */
+.statsSection {
+  background: rgba(30, 27, 75, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.statBox {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.statUnit {
+  font-size: 1.25rem;
+  color: #fbbf24;
+}
+
+.statLabel {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Jokes Section */
+.jokesSection {
+  background: rgba(30, 27, 75, 0.4);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.jokesSection h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.jokesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jokeCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.jokeCard:hover {
+  transform: translateX(4px);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.jokeCard.gold {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05));
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.jokeCard.silver {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15), rgba(156, 163, 175, 0.05));
+  border-color: rgba(156, 163, 175, 0.4);
+}
+
+.jokeCard.bronze {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.15), rgba(217, 119, 6, 0.05));
+  border-color: rgba(217, 119, 6, 0.4);
+}
+
+.jokeRank {
+  min-width: 3.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.rankNumber {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: rgba(226, 232, 240, 0.4);
+}
+
+.gold .rankNumber {
+  color: #fbbf24;
+}
+
+.silver .rankNumber {
+  color: #9ca3af;
+}
+
+.bronze .rankNumber {
+  color: #d97706;
+}
+
+.jokeContent {
+  flex: 1;
+}
+
+.jokeText {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #f8fafc;
+}
+
+.jokeStats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.starRating {
+  color: #fbbf24;
+  letter-spacing: 0.03em;
+}
+
+.halfStar {
+  opacity: 0.5;
+}
+
+.jokeAverage {
+  font-weight: 600;
+}
+
+.jokeVotes {
+  color: rgba(226, 232, 240, 0.5);
+}
+
+.emptyState {
+  margin: 0;
+  padding: 2rem;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.4);
+  color: rgba(226, 232, 240, 0.6);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .main {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .jokeCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .jokeRank {
+    justify-content: center;
+    min-width: auto;
+  }
+
+  .jokeStats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
