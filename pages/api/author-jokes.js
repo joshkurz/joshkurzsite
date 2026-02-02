@@ -36,8 +36,12 @@ export default async function handler(req, res) {
     }))
 
     // Group ratings by joke and calculate stats
+    // Skip custom joke records (they have PK starting with CUSTOM_JOKE#)
     const jokeMap = new Map()
     for (const item of ratingsResult.Items || []) {
+      if (item.PK.startsWith('CUSTOM_JOKE#')) {
+        continue // Skip custom joke records, only process ratings
+      }
       const jokeId = item.PK.replace('JOKE#', '')
       if (!jokeMap.has(jokeId)) {
         jokeMap.set(jokeId, {
