@@ -1,5 +1,16 @@
 // pages/api/author-jokes.js
 import { getDynamoClient, RATINGS_TABLE, STATS_TABLE, QueryCommand } from '../../lib/dynamoClient.js'
+import { getAllJokes } from '../../lib/jokesData.js'
+
+// Helper to create a jokeId from text (same logic as homepage)
+function createJokeId(text) {
+  let hash = 0
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash << 5) - hash + text.charCodeAt(i)
+    hash |= 0
+  }
+  return `joke-${Math.abs(hash)}`
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -65,6 +76,28 @@ export default async function handler(req, res) {
       rank: index + 1
     }))
 
+    // Get all jokes for this author to find unrated ones
+    const ratedJokeIds = new Set(jokeMap.keys())
+    const allJokesForAuthor = getAllJokes().filter(j => {
+      const jokeAuthor = (j.author || '').toLowerCase()
+      const queryAuthor = author.toLowerCase()
+      return jokeAuthor === queryAuthor ||
+             jokeAuthor.includes(queryAuthor) ||
+             queryAuthor.includes(jokeAuthor)
+    })
+
+    // Find unrated jokes
+    const unratedJokes = allJokesForAuthor
+      .map(j => {
+        const jokeId = j.id || createJokeId(j.text)
+        return {
+          jokeId,
+          joke: j.text,
+          author: j.author
+        }
+      })
+      .filter(j => !ratedJokeIds.has(j.jokeId))
+
     // Get author overall stats from global stats
     const authorStatsResult = await client.send(new QueryCommand({
       TableName: STATS_TABLE,
@@ -85,10 +118,11 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       author,
-      totalJokes: rankedJokes.length,
+      totalJokes: rankedJokes.length + unratedJokes.length,
       totalRatings,
       overallAverage,
-      jokes: rankedJokes
+      jokes: rankedJokes,
+      unratedJokes
     })
   } catch (error) {
     console.error('[author-jokes] Error:', error)
