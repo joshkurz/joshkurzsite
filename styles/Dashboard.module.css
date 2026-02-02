@@ -382,6 +382,22 @@
   gap: 1rem;
 }
 
+.authorCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.authorCardLink:hover .authorCard {
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+.authorCardLink:hover .authorInfo h4 {
+  color: #a78bfa;
+}
+
 .authorCard {
   display: flex;
   align-items: center;
@@ -390,6 +406,8 @@
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 1rem 1.25rem;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
 .authorRank {
@@ -403,6 +421,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #f8fafc;
+  transition: color 0.2s;
 }
 
 .authorMetrics {

@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import PropTypes from 'prop-types'
 import Header from '../components/Header'
 import styles from '../styles/Dashboard.module.css'
@@ -307,16 +308,22 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                 </p>
                 <div className={styles.authorShowdown}>
                   {authorStats.map((author, index) => (
-                    <div key={author.author} className={styles.authorCard}>
-                      <div className={styles.authorRank}>#{index + 1}</div>
-                      <div className={styles.authorInfo}>
-                        <h4>{formatAuthorName(author.author)}</h4>
-                        <div className={styles.authorMetrics}>
-                          <span>{formatNumber(author.totalRatings)} ratings</span>
-                          <span>{getStarRating(author.average)} {formatAverage(author.average)}</span>
+                    <Link
+                      key={author.author}
+                      href={`/author/${encodeURIComponent(author.author)}`}
+                      className={styles.authorCardLink}
+                    >
+                      <div className={styles.authorCard}>
+                        <div className={styles.authorRank}>#{index + 1}</div>
+                        <div className={styles.authorInfo}>
+                          <h4>{formatAuthorName(author.author)}</h4>
+                          <div className={styles.authorMetrics}>
+                            <span>{formatNumber(author.totalRatings)} ratings</span>
+                            <span>{getStarRating(author.average)} {formatAverage(author.average)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </section>
