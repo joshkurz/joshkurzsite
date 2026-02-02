@@ -525,9 +525,15 @@ class OpenAIData extends React.Component {
             </button>
           </div>
         )}
-        <div className={styles.shareSection}>
-          <button className={styles.shareButton} onClick={this.toggleSubmitForm}>
-            {isSubmitFormOpen ? 'Cancel' : 'Share Your Joke'}
+        <div className={styles.submitSection}>
+          <div className={styles.submitCallToAction}>
+            <h3 className={styles.submitHeading}>Got a Dad Joke?</h3>
+            <p className={styles.submitDescription}>
+              Submit your own joke and let the community rate it! Your joke will be added to the rotation for everyone to enjoy.
+            </p>
+          </div>
+          <button className={styles.submitToggleButton} onClick={this.toggleSubmitForm}>
+            {isSubmitFormOpen ? 'Cancel' : 'Submit Your Joke'}
           </button>
           {isSubmitFormOpen && (
             <form className={styles.shareForm} onSubmit={this.handleSubmitJoke}>
@@ -539,6 +545,7 @@ class OpenAIData extends React.Component {
                   value={submitSetup}
                   onChange={this.handleSubmitFieldChange}
                   rows={3}
+                  placeholder="e.g., Why don't scientists trust atoms?"
                 />
               </label>
               <label className={styles.shareLabel}>
@@ -549,16 +556,18 @@ class OpenAIData extends React.Component {
                   value={submitPunchline}
                   onChange={this.handleSubmitFieldChange}
                   rows={3}
+                  placeholder="e.g., Because they make up everything!"
                 />
               </label>
               <label className={styles.shareLabel}>
-                <span>Author</span>
+                <span>Your Name</span>
                 <input
                   type="text"
                   name="submitAuthor"
                   className={styles.shareInput}
                   value={submitAuthor}
                   onChange={this.handleSubmitFieldChange}
+                  placeholder="e.g., Dad Master 3000"
                 />
               </label>
               {submitError && <p className={styles.shareError}>{submitError}</p>}
