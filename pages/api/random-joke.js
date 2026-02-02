@@ -1,8 +1,8 @@
-import { getRandomJoke } from '../../lib/jokesData'
+import { getRandomJokeAsync } from '../../lib/jokesData'
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   try {
-    const joke = getRandomJoke()
+    const joke = await getRandomJokeAsync()
     res.status(200).json({
       id: joke.id,
       opener: joke.opener,
