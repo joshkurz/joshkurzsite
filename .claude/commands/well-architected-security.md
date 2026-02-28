@@ -17,10 +17,10 @@ Focus on **exploitable vulnerabilities** and **data exposure risks**:
 
 Read all of these before writing anything:
 - `pages/api/*.js` – every API handler
-- `lib/ratingsStorage.js` – data storage logic
+- `lib/ratingsStorageDynamo.js` – DynamoDB data storage logic
+- `lib/dynamoClient.js` – AWS credential and client setup
 - `lib/customJokes.js` – user submission handling
 - `lib/openaiClient.js` – API key handling
-- `lib/s3Storage.js` – AWS credential usage
 - `next.config.js` – server config
 - `.env*` files if present (check for committed secrets)
 - `.gitignore` – verify secrets are excluded
@@ -69,12 +69,12 @@ Report all HIGH and CRITICAL vulnerabilities with CVE numbers.
 
 Review how user-submitted joke content is rendered in `pages/index.js`. Is React's JSX escaping being bypassed anywhere? Look for `dangerouslySetInnerHTML`.
 
-### Step 7 – Check S3 Security
+### Step 7 – Check DynamoDB Security
 
-Review `lib/s3Storage.js` and `lib/ratingsStorage.js`:
-- Are S3 operations scoped to specific prefixes?
-- Is the S3 bucket configured as public or private?
-- Could user input affect which S3 objects are read/written?
+Review `lib/dynamoClient.js` and `lib/ratingsStorageDynamo.js`:
+- Are DynamoDB key expressions parameterized (no string concatenation into expressions)?
+- Could user input affect which DynamoDB items are read/written (PK injection)?
+- Are IAM permissions scoped to specific table ARNs, or overly broad?
 
 ### Step 8 – Deliver the Report
 

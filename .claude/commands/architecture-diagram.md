@@ -46,7 +46,7 @@ from diagrams.saas.analytics import Analytics
 # Use generic nodes for OpenAI and Vercel
 ```
 
-Show: User → Vercel/Next.js → [S3, OpenAI API, Static Data]
+Show: User → Vercel/Next.js → [DynamoDB (ratings + stats), DynamoDB Streams → Lambda (stats aggregation), OpenAI API, Static Data]
 
 **Diagram 2: API Route Map**
 Show each API endpoint as a node, what it reads/writes, and which lib module handles it.

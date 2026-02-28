@@ -17,8 +17,8 @@ Focus on **measurable performance** across these pillars:
 
 Read these files in full before making any recommendations:
 - `pages/index.js` – how the client fetches jokes and renders
-- `lib/ratingsStorage.js` – the caching logic (this is the most critical)
-- `lib/dashboardSummary.js` – TTL-based caching
+- `lib/ratingsStorageDynamo.js` – DynamoDB reads/writes and dashboard queries
+- `lib/dashboardSummary.js` – TTL-based filesystem caching layer
 - `pages/api/random-joke.js`
 - `pages/api/ai-joke.js`
 - `pages/api/ratings.js`
@@ -27,10 +27,10 @@ Read these files in full before making any recommendations:
 
 Answer these questions with specific file:line references:
 
-- What is cached in `ratingsStorage.js`? What's the TTL? Is it correct?
-- Does `dashboardSummary.js` actually prevent redundant S3 reads?
+- How does `ratingsStorageDynamo.js` avoid redundant DynamoDB reads? Are stats truly O(1)?
+- Does `dashboardSummary.js` actually prevent redundant DynamoDB queries? What's the TTL?
 - Is there any caching on the random-joke endpoint? Should there be?
-- What happens to cache when a serverless function cold-starts?
+- What happens to the filesystem cache when a serverless function cold-starts?
 
 ### Step 3 – Analyze API Latency
 

@@ -2,11 +2,23 @@ import {
   readStats,
   writeRating
 } from '../../lib/ratingsStorageDynamo'
-import {
-  getMode,
-  resolveDateKey,
-  validateRating
-} from '../../lib/ratingsStorage'
+
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+
+function getMode(value) {
+  return value === 'daily' ? 'daily' : 'live'
+}
+
+function resolveDateKey(input) {
+  if (typeof input === 'string' && DATE_REGEX.test(input)) return input
+  return new Date().toISOString().slice(0, 10)
+}
+
+function validateRating(value) {
+  const rating = Number(value)
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return null
+  return rating
+}
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {

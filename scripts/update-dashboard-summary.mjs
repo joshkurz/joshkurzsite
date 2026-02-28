@@ -2,7 +2,7 @@
 import { setInterval as setIntervalTimer } from 'node:timers'
 import process from 'node:process'
 import { writeSummaryFile } from '../lib/dashboardSummary.js'
-import { summarizeRatings } from '../lib/ratingsStorage.js'
+import { getDashboardStats } from '../lib/ratingsStorageDynamo.js'
 
 const DEFAULT_INTERVAL_MINUTES = 5
 
@@ -24,7 +24,7 @@ function parseIntervalMinutes() {
 async function updateSummaryOnce() {
   const start = Date.now()
   process.stdout.write('[dashboard-summary] Generating summary...\n')
-  const summary = await summarizeRatings()
+  const summary = await getDashboardStats()
   const duration = Date.now() - start
   const payload = await writeSummaryFile(summary)
   process.stdout.write(
