@@ -127,7 +127,7 @@ export default async function handler(req, res) {
       jokePayload = buildMockAiJoke()
       responseModel = 'mock-openai'
     } else {
-      const prompt = buildAiJokePrompt()
+      const prompt = await buildAiJokePrompt()
       const result = await createResponseWithFallback(
         openai,
         {

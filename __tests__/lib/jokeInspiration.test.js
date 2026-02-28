@@ -1,29 +1,37 @@
-import {
-  getInspirationPromptBlock,
-  __resetInspirationForTests,
-  __setInspirationCacheForTests
-} from '../../lib/jokeInspiration.mjs';
+import { buildInspirationBlock } from '../../lib/jokeInspiration.mjs';
 
-afterEach(() => {
-  __resetInspirationForTests();
+jest.mock('../../lib/ratingsStorageDynamo.js', () => ({
+  getDashboardStats: jest.fn()
+}));
+
+import { getDashboardStats } from '../../lib/ratingsStorageDynamo.js';
+
+beforeEach(() => {
+  jest.clearAllMocks();
 });
 
-describe('getInspirationPromptBlock', () => {
-  it('returns null when no jokes are cached', () => {
-    const result = getInspirationPromptBlock();
+describe('buildInspirationBlock', () => {
+  it('returns null when there are no top performers', async () => {
+    getDashboardStats.mockResolvedValue({ topPerformers: [] });
+    const result = await buildInspirationBlock();
     expect(result).toBeNull();
   });
 
-  it('renders a prompt section with the cached jokes', () => {
-    __setInspirationCacheForTests({
-      sampleSize: 75,
-      jokes: [
-        { jokeId: 'a', joke: 'Question: A?\nAnswer: A!', reviewCount: 3, averageRating: 4.67 },
-        { jokeId: 'b', joke: 'Question: B?\nAnswer: B!', reviewCount: 2, averageRating: 4.5 }
+  it('returns null when getDashboardStats throws', async () => {
+    getDashboardStats.mockRejectedValue(new Error('DynamoDB unavailable'));
+    const result = await buildInspirationBlock();
+    expect(result).toBeNull();
+  });
+
+  it('renders a prompt section with top performer jokes', async () => {
+    getDashboardStats.mockResolvedValue({
+      topPerformers: [
+        { jokeId: 'a', joke: 'Question: A?\nAnswer: A!', totalRatings: 3, average: 4.67 },
+        { jokeId: 'b', joke: 'Question: B?\nAnswer: B!', totalRatings: 2, average: 4.5 }
       ]
     });
 
-    const block = getInspirationPromptBlock();
+    const block = await buildInspirationBlock();
 
     expect(block).toContain('highest-rated jokes');
     expect(block).toContain('Question: A?');
@@ -31,18 +39,17 @@ describe('getInspirationPromptBlock', () => {
     expect(block).toContain('internal plan');
   });
 
-  it('limits prompt to 12 jokes when cache has more', () => {
-    const manyJokes = Array.from({ length: 20 }, (_, i) => ({
+  it('limits output to 12 jokes when more are available', async () => {
+    const manyPerformers = Array.from({ length: 20 }, (_, i) => ({
       jokeId: `joke-${i}`,
       joke: `Question: Q${i}?\nAnswer: A${i}!`,
-      reviewCount: 5,
-      averageRating: 4.8
+      totalRatings: 5,
+      average: 4.8
     }));
-    __setInspirationCacheForTests({ sampleSize: 20, jokes: manyJokes });
+    getDashboardStats.mockResolvedValue({ topPerformers: manyPerformers });
 
-    const block = getInspirationPromptBlock();
+    const block = await buildInspirationBlock();
 
-    // Should only include 12 jokes in the prompt
     const lines = block.split('\n').filter(l => /^\d+\./.test(l));
     expect(lines).toHaveLength(12);
   });
