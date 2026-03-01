@@ -1,3 +1,9 @@
+---
+name: architecture-diagram
+description: Analyze the joshkurz.net codebase and generate visual architecture diagrams using Python. Use when asked to visualize, explain, or document the system architecture.
+disable-model-invocation: true
+---
+
 # Architecture Diagram Generator
 
 Analyze the joshkurz.net codebase and generate visual architecture diagrams using Python. Run this live to show how the system is built.

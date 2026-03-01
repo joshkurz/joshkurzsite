@@ -1,3 +1,9 @@
+---
+name: well-architected-security
+description: Review joshkurz.net for real security vulnerabilities including credential exposure, injection, API authorization gaps, and CVEs. Produces a prioritized report with specific fixes. Use when asked to audit security.
+disable-model-invocation: true
+---
+
 # Well-Architected Review: Security
 
 Review joshkurz.net for real security vulnerabilities. Find actual issues in the code, not generic advice. This is a live demo.

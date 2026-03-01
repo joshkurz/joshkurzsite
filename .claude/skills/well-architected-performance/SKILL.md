@@ -1,3 +1,9 @@
+---
+name: well-architected-performance
+description: Review joshkurz.net for real performance issues across API latency, caching, bundle size, and streaming. Produces a prioritized report with specific code fixes. Use when asked to audit or improve performance.
+disable-model-invocation: true
+---
+
 # Well-Architected Review: Performance
 
 Review joshkurz.net for performance issues and optimization opportunities. This is a live demo – find real problems, not theoretical ones.

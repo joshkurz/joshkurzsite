@@ -1,3 +1,9 @@
+---
+name: pre-commit-scan
+description: Scan staged changes for security vulnerabilities before committing. Use before every commit to catch secrets, injection vectors, unsafe patterns, and known CVEs.
+disable-model-invocation: true
+---
+
 # Pre-Commit Vulnerability Scan
 
 Scan staged changes for security vulnerabilities before committing. Catches real issues: secrets, injection vectors, unsafe patterns, and known CVEs.

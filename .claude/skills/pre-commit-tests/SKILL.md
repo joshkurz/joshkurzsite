@@ -1,3 +1,9 @@
+---
+name: pre-commit-tests
+description: Run the full test suite and audit test quality before committing. Catches fluff tests, missing coverage, and broken tests. Use before every commit.
+disable-model-invocation: true
+---
+
 # Pre-Commit Test Suite
 
 Run the full test suite before committing and verify tests actually test real behavior. Fails loudly if tests are fluff, missing coverage, or broken.

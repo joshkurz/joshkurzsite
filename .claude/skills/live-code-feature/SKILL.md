@@ -1,3 +1,10 @@
+---
+name: live-code-feature
+description: Add a new feature to joshkurz.net live, start to finish. Covers spec, implementation, tests, and self-review. Use when asked to build a feature or demonstrate AI-assisted development.
+disable-model-invocation: true
+argument-hint: [feature-description]
+---
+
 # Live Code Feature
 
 Add a new feature to joshkurz.net live, with Claude, start to finish. This demonstrates the full AI-assisted development workflow: spec → implementation → tests → review.
