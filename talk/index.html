@@ -524,15 +524,15 @@
 
   <!-- ─── SLIDE 1: Title ─── -->
   <div class="slide title active">
-    <div class="eyebrow">Live Coding with Claude · 2026</div>
-    <h1>Building Real Software<br/>with AI</h1>
-    <p class="subtitle">A hands-on walkthrough of how I use Claude Code to develop, review, and ship joshkurz.net — and how you can use the same workflow on your own projects.</p>
+    <div class="eyebrow">IDE-Based Coding Agents · 2026</div>
+    <h1>Unlocking Engineering<br/>Productivity with<br/>Coding Agents</h1>
+    <p class="subtitle">A live demo of the full agentic workflow lifecycle — from understanding a codebase to shipping features and gating commits — running in Claude Code, a new-generation terminal-native IDE. Split-screen: site on the left, agent on the right.</p>
     <div class="badge-row">
+      <span class="badge yellow">Claude Code</span>
       <span class="badge blue">Next.js</span>
       <span class="badge green">DynamoDB</span>
       <span class="badge purple">OpenAI</span>
       <span class="badge orange">Vercel</span>
-      <span class="badge yellow">Claude Code</span>
     </div>
     <div style="margin-top:16px;">
       <span class="url">joshkurz.net</span>
@@ -608,7 +608,65 @@
     <div class="section-num">→</div>
   </div>
 
-  <!-- ─── SLIDE 4: Demo 1 – Architecture ─── -->
+  <!-- ─── SLIDE 4: Building Skills ─── -->
+  <div class="slide demo">
+    <div class="eyebrow">The Method</div>
+    <h2 style="font-size: 32px; margin-bottom: 8px;">Building Reusable Skills</h2>
+    <p style="margin-bottom: 16px;">Start by solving the problem with the agent. Once it's working, tell Claude you want a reusable skill — it auto-fetches the skill-docs spec. Spec it out, iterate. The goal: an intelligent interface on top of deterministic scripts.</p>
+
+    <div style="display: flex; gap: 48px; align-items: flex-start;">
+
+      <!-- Left: process + rationale -->
+      <div style="flex: 1; min-width: 0;">
+        <div class="cmd-block" style="font-size: 13px;">
+          <span class="comment"># 1. Solve the problem first with the agent</span><br/>
+          <span class="prompt">&gt; </span>let's turn this into a reusable skill<br/>
+          <span class="comment"># Claude auto-fetches /skill-docs</span><br/><br/>
+          <span class="comment"># 2. Spec it out together, iterate</span><br/>
+          <span class="comment"># 3. Build scripts to do the heavy lifting</span><br/>
+          <span class="comment"># 4. SKILL.md becomes the intelligent interface</span>
+        </div>
+        <ul style="margin-top: 16px;">
+          <li style="font-size: 15px;">
+            <span class="icon">🐍</span>
+            <div><strong>Why scripts?</strong><span class="desc">Code, PNGs, reports — deterministic output is richer and more consistent than LLM generation alone.</span></div>
+          </li>
+          <li style="font-size: 15px;">
+            <span class="icon">🧠</span>
+            <div><strong>Why the intelligent layer?</strong><span class="desc">SKILL.md knows the scripts, their params, their deps — and can update them when requirements change. The interface stays stable, the scripts stay sharp.</span></div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right: layer diagram -->
+      <div style="width: 260px; flex-shrink: 0; display: flex; flex-direction: column; align-items: stretch;">
+        <div style="background: var(--surface); border: 1.5px solid var(--accent); border-radius: 8px; padding: 14px 18px;">
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Intelligent Interface</div>
+          <div style="font-family: var(--font-mono); font-weight: 600; margin-bottom: 4px;">SKILL.md</div>
+          <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">Context-aware · knows scripts,<br/>params, deps · updates as needed</div>
+        </div>
+
+        <div style="text-align: center; padding: 4px 0; color: var(--muted); font-size: 20px; line-height: 1.2;">↕<br/><span style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em;">instructs &amp; updates</span></div>
+
+        <div style="background: var(--surface); border: 1.5px solid var(--green); border-radius: 8px; padding: 14px 18px;">
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Deterministic Layer</div>
+          <div style="font-family: var(--font-mono); font-weight: 600; margin-bottom: 4px;">Scripts &amp; Commands</div>
+          <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">Python · Shell · npm<br/>same input → same output</div>
+        </div>
+
+        <div style="text-align: center; padding: 4px 0; color: var(--muted); font-size: 20px; line-height: 1.2;">↓<br/><span style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em;">produces</span></div>
+
+        <div style="background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 14px 18px;">
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">Output</div>
+          <div style="font-family: var(--font-mono); font-weight: 600; margin-bottom: 4px;">Reproducible Artifacts</div>
+          <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">PNGs · Reports · Results<br/>Consistent every run</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 5: Demo 1 – Architecture ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number">01</div>
@@ -621,10 +679,10 @@
     <p>We don't read architecture docs — we generate diagrams from the actual code. Claude reads every file and writes a Python script that produces real PNG diagrams, committed to the repo and regenerated on every build.</p>
 
     <div class="cmd-block">
-      <span class="comment"># In Claude Code terminal:</span><br/>
       <span class="prompt">&gt; </span><span class="skill">/architecture-diagram</span><br/>
-      <span class="comment"># Or automatically on every build:</span><br/>
-      <span class="prompt">&gt; </span>npm run build
+      <span class="comment"># Skill checks diagram age vs last code change</span><br/>
+      <span class="comment"># If stale: reads code, updates scripts, regenerates</span><br/>
+      <span class="comment"># If fresh: skips — no unnecessary work</span>
     </div>
 
     <ul>
@@ -667,7 +725,7 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 5: Demo 2 – Performance ─── -->
+  <!-- ─── SLIDE 6: Demo 2 – Performance ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--green);">02</div>
@@ -695,7 +753,7 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 6: Demo 3 – Security ─── -->
+  <!-- ─── SLIDE 7: Demo 3 – Security ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--red);">03</div>
@@ -719,7 +777,7 @@
     </ul>
   </div>
 
-  <!-- ─── SLIDE 7: Demo 4 – Live Feature ─── -->
+  <!-- ─── SLIDE 8: Demo 4 – Live Feature ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--purple);">04</div>
@@ -747,7 +805,7 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 8: Demo 5 & 6 – Pre-commit ─── -->
+  <!-- ─── SLIDE 9: Demo 5 & 6 – Pre-commit ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--yellow); color: #000;">05–06</div>
@@ -785,7 +843,7 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 9: The Workflow ─── -->
+  <!-- ─── SLIDE 10: The Workflow ─── -->
   <div class="slide section">
     <div class="eyebrow">The Takeaway</div>
     <h2>The AI Dev Workflow</h2>
@@ -811,7 +869,7 @@
     <div class="section-num">✓</div>
   </div>
 
-  <!-- ─── SLIDE 10: Close ─── -->
+  <!-- ─── SLIDE 11: Close ─── -->
   <div class="slide title">
     <div class="eyebrow">Thanks for coming</div>
     <h1>Questions?</h1>
