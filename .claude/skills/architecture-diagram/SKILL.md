@@ -1,94 +1,106 @@
 ---
 name: architecture-diagram
-description: Analyze the joshkurz.net codebase and generate visual architecture diagrams using Python. Use when asked to visualize, explain, or document the system architecture.
+description: Generate up-to-date architecture diagrams from the codebase. Checks what has changed since diagrams were last generated, updates the diagram script if needed, then runs it. Use when asked to visualize or document the system architecture.
 disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, Bash(npm *), Bash(python3 *), Bash(pip3 *), Bash(brew *), Bash(dot *), Bash(git *)
 ---
 
 # Architecture Diagram Generator
 
-Analyze the joshkurz.net codebase and generate visual architecture diagrams using Python. Run this live to show how the system is built.
+IDE-based workflow. Do not assume you know the architecture — derive it from the code every time.
+Diagrams live in `diagrams/` (committed). The generation script is in `scripts/generate_diagrams.py`.
+Vercel serves the committed PNGs. Never wire diagram generation into `npm run build`.
 
-## What You'll Do
+## Supporting files
 
-1. **Analyze the codebase** - map all components, APIs, data flows, and external services
-2. **Generate Python diagram scripts** using the `diagrams` library
-3. **Run the scripts** to produce PNG architecture diagrams
-4. **Present findings** with a clear written architecture summary
+- **[scripts/generate_diagrams.py](scripts/generate_diagrams.py)** — Python script using the `diagrams` library. Edit this file when the architecture has changed before running it.
+- **[requirements.txt](requirements.txt)** — pinned Python deps (`diagrams==0.25.1`)
 
-## Steps
+---
 
-### Step 1 – Audit the Architecture
+## Pre-flight context (injected before you start)
 
-Read these files to understand the full system:
-- `pages/api/*.js` – all API routes and what they do
-- `lib/*.js` – core logic, storage, OpenAI integration
-- `package.json` – all dependencies
-- `next.config.js` – Next.js config
-- `CLAUDE.md` – architecture notes
+Last diagram commit (git is the state store — committing diagrams/ sets the reference point):
+!`git log --oneline --follow -- diagrams/ | head -1`
 
-Produce a structured summary covering:
-- Entry points (pages, API routes)
-- Data stores (DynamoDB tables, in-memory, static files)
-- External services (OpenAI, Vercel, Google Analytics)
-- Data flow for the three main user journeys: get a joke, rate a joke, generate AI joke
+Structural diff since that commit (empty = no changes; "NEVER_COMMITTED" = first run):
+!`sh .claude/skills/architecture-diagram/scripts/check_changes.sh`
 
-### Step 2 – Write Diagram Scripts
+---
 
-Create `talk/diagrams/generate_diagrams.py` using the `diagrams` Python library. Install it first if needed:
+## Decision — read the injected output above, then choose a path
 
-```bash
-pip install diagrams 2>/dev/null || pip3 install diagrams 2>/dev/null
-```
+**If the diff is empty** → no structural changes since diagrams were last committed. Go directly to Step 3 (display existing diagrams). Do not run the build.
 
-Generate **three diagrams**:
+**If the diff says `NEVER_COMMITTED`** → diagrams have never been generated. Treat as a full first run: go through Steps 1 → 2 → 3.
 
-**Diagram 1: High-Level System Architecture**
-```python
-from diagrams import Diagram, Cluster, Edge
-from diagrams.programming.framework import React
-from diagrams.onprem.client import User
-from diagrams.aws.database import Dynamodb
-from diagrams.saas.analytics import Analytics
-# Use generic nodes for OpenAI and Vercel
-```
+**If the diff is non-empty** → structural changes exist since last commit. Continue through Steps 1 → 2 → 3.
 
-Show: User → Vercel/Next.js → [DynamoDB (ratings + stats), DynamoDB Streams → Lambda (stats aggregation), OpenAI API, Static Data]
+---
 
-**Diagram 2: API Route Map**
-Show each API endpoint as a node, what it reads/writes, and which lib module handles it.
-
-**Diagram 3: Data Flow – AI Joke Generation**
-Show the streaming flow: User → `/api/ai-joke` → `openaiClient` → OpenAI → streaming response → `parseJokeStream` → UI
-
-### Step 3 – Run the Scripts
+## Step 1 — Check dependencies (only if rebuilding)
 
 ```bash
-cd talk/diagrams && python generate_diagrams.py
+python3 -c "from diagrams import Diagram; print('diagrams OK')"
+dot -V
 ```
 
-Save output PNGs to `talk/diagrams/output/`.
-
-### Step 4 – Present the Architecture
-
-After generating diagrams, output a concise architecture briefing:
-
-```
-## joshkurz.net Architecture
-
-**Runtime:** Next.js 13 on Vercel (serverless)
-**Data:** AWS DynamoDB for ratings and stats persistence, fatherhood.gov JSON for jokes
-**AI:** OpenAI GPT-4.1 with streaming, TTS via gpt-4o-mini-tts
-**Analytics:** Google Analytics + custom DynamoDB-backed dashboard
-
-### Key Design Decisions
-1. [explain the most interesting architectural choice]
-2. [explain the DynamoDB single-table design and O(1) stats lookup]
-3. [explain the streaming approach for AI]
-
-### Generated Diagrams
-- talk/diagrams/output/system_architecture.png
-- talk/diagrams/output/api_routes.png
-- talk/diagrams/output/ai_joke_flow.png
+If `diagrams` is missing:
+```bash
+pip3 install -r .claude/skills/architecture-diagram/requirements.txt
 ```
 
-Show the generated PNG files to the audience using the Read tool (images are rendered inline).
+If `dot` / Graphviz is missing:
+```bash
+brew install graphviz        # macOS
+# sudo apt-get install graphviz   # Ubuntu/Debian
+# https://graphviz.org/download/  # Windows
+```
+
+---
+
+## Step 2 — Update the diagram script (only if rebuilding)
+
+Read the current script to understand what it draws:
+`scripts/generate_diagrams.py`
+
+Then read the changed source files from the diff. Use Glob and Read to explore:
+- `pages/api/*.js` — what routes exist, what they call
+- `lib/*.js` — what services they use, what they read/write
+- `package.json` — what external dependencies are present
+
+Update `scripts/generate_diagrams.py` to reflect the current state:
+- Add nodes for new API routes, lib modules, or external services
+- Remove nodes for deleted routes or modules
+- Rewire edges to match the actual data flow
+- Do not remove or rename diagrams — update them in place unless entirely irrelevant
+
+Verify the script parses cleanly before running:
+```bash
+python3 -c "import ast; ast.parse(open('.claude/skills/architecture-diagram/scripts/generate_diagrams.py').read()); print('syntax OK')"
+```
+
+Then run the build:
+```bash
+npm run build:diagrams
+```
+
+---
+
+## Step 3 — Display and summarise
+
+Use the Read tool to show each PNG inline:
+- `diagrams/system_architecture.png`
+- `diagrams/api_routes.png`
+- `diagrams/ai_joke_flow.png`
+
+Write a short summary:
+- Whether diagrams were regenerated or served from the existing committed versions
+- What changed since the last diagrams (if anything)
+- What was updated in the script (if anything)
+
+If diagrams or the script were updated, remind the user to commit:
+```bash
+git add diagrams/ .claude/skills/architecture-diagram/scripts/generate_diagrams.py
+git commit -m "chore: regenerate architecture diagrams"
+```

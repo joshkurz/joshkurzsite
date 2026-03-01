@@ -405,6 +405,91 @@
     .hl-purple { color: var(--purple); }
     .hl-orange { color: var(--orange); }
 
+    /* Diagram thumbnails */
+    .diagram-strip {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .diagram-thumb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .diagram-thumb img {
+      width: 180px;
+      height: 110px;
+      object-fit: cover;
+      object-position: top left;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .diagram-thumb:hover img {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(88, 166, 255, 0.2);
+    }
+
+    .diagram-thumb span {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+      cursor: default;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-label {
+      position: absolute;
+      bottom: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
     /* Keyboard hint */
     .hint {
       position: fixed;
@@ -533,11 +618,13 @@
       </div>
     </div>
 
-    <p>We don't read architecture docs — we generate diagrams from the actual code. Claude reads every file and writes a Python script that produces real PNG diagrams.</p>
+    <p>We don't read architecture docs — we generate diagrams from the actual code. Claude reads every file and writes a Python script that produces real PNG diagrams, committed to the repo and regenerated on every build.</p>
 
     <div class="cmd-block">
       <span class="comment"># In Claude Code terminal:</span><br/>
-      <span class="prompt">&gt; </span><span class="skill">/architecture-diagram</span>
+      <span class="prompt">&gt; </span><span class="skill">/architecture-diagram</span><br/>
+      <span class="comment"># Or automatically on every build:</span><br/>
+      <span class="prompt">&gt; </span>npm run build
     </div>
 
     <ul>
@@ -552,17 +639,32 @@
         <span class="icon">🐍</span>
         <div>
           <strong>Generates</strong> Python using the <code>diagrams</code> library
-          <span class="desc">Produces: system overview · API route map · AI data flow</span>
+          <span class="desc">Script lives in <code>.claude/skills/architecture-diagram/scripts/</code></span>
         </div>
       </li>
       <li>
         <span class="icon">🖼️</span>
         <div>
-          <strong>Renders</strong> PNG diagrams inline in the terminal
-          <span class="desc">Shareable artifacts from a single command</span>
+          <strong>Commits</strong> PNGs to <code>diagrams/</code> on every build
+          <span class="desc">Always in sync with real code · referenced in README + docs</span>
         </div>
       </li>
     </ul>
+
+    <div class="diagram-strip">
+      <div class="diagram-thumb" onclick="openLightbox('../diagrams/system_architecture.png', 'System Architecture')">
+        <img src="../diagrams/system_architecture.png" alt="System Architecture" />
+        <span>System Architecture</span>
+      </div>
+      <div class="diagram-thumb" onclick="openLightbox('../diagrams/api_routes.png', 'API Route Map')">
+        <img src="../diagrams/api_routes.png" alt="API Route Map" />
+        <span>API Route Map</span>
+      </div>
+      <div class="diagram-thumb" onclick="openLightbox('../diagrams/ai_joke_flow.png', 'AI Joke Flow')">
+        <img src="../diagrams/ai_joke_flow.png" alt="AI Joke Flow" />
+        <span>AI Joke Flow</span>
+      </div>
+    </div>
   </div>
 
   <!-- ─── SLIDE 5: Demo 2 – Performance ─── -->
@@ -729,6 +831,13 @@
 
 </div><!-- /deck -->
 
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
+  <span class="lightbox-label" id="lightbox-label"></span>
+</div>
+
 <script>
   const slides = document.querySelectorAll('.slide');
   const total = slides.length;
@@ -745,7 +854,21 @@
   function next() { show(cur + 1); }
   function prev() { show(cur - 1); }
 
+  // Lightbox
+  function openLightbox(src, label) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox-img').alt = label;
+    document.getElementById('lightbox-label').textContent = label;
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeLightbox(); return; }
+    if (document.getElementById('lightbox').classList.contains('open')) return;
     if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'PageDown') { e.preventDefault(); next(); }
     if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
     if (e.key === 'f' || e.key === 'F') { document.documentElement.requestFullscreen?.(); }
