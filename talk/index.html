@@ -604,6 +604,11 @@
         <span class="label">Run real tests before committing</span>
         <span class="badge orange">/pre-commit-tests</span>
       </div>
+      <div class="agenda-item">
+        <span class="num">07</span>
+        <span class="label">Browse the web from Claude Code — live in cmux</span>
+        <span class="badge blue">/cmux-browser</span>
+      </div>
     </div>
     <div class="section-num">→</div>
   </div>
@@ -843,7 +848,65 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 10: The Workflow ─── -->
+  <!-- ─── SLIDE 10: Demo 7 – cmux Browser ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number" style="background: var(--accent);">07</div>
+      <div>
+        <div class="demo-label">Live Demo · Built Live in This Session</div>
+        <h2 style="margin:0; font-size: 32px;">Browse the Web from Claude Code</h2>
+      </div>
+    </div>
+
+    <p>cmux ships a scriptable in-app browser. We wrote a skill that lets Claude snapshot the accessibility tree, click, fill, scroll, and aggregate content — directly from the terminal, no switching apps.</p>
+
+    <div style="display: flex; gap: 32px; align-items: flex-start; margin-top: 4px;">
+
+      <div style="flex: 1; min-width: 0;">
+        <div class="cmd-block" style="font-size: 13px; margin-bottom: 16px;">
+          <span class="comment"># Claude sees this loop every time</span><br/>
+          <span class="comment"># 1. identify the browser surface</span><br/>
+          <span class="prompt">&gt; </span>cmux identify --json<br/><br/>
+          <span class="comment"># 2. snapshot the accessibility tree</span><br/>
+          <span class="prompt">&gt; </span>cmux browser surface:13 snapshot --interactive<br/><br/>
+          <span class="comment"># 3. act on what it sees</span><br/>
+          <span class="prompt">&gt; </span>cmux browser surface:13 click e2<br/>
+          <span class="prompt">&gt; </span>cmux browser surface:13 fill e5 "hello"<br/><br/>
+          <span class="comment"># 4. wait · re-snapshot · report</span>
+        </div>
+      </div>
+
+      <div style="width: 300px; flex-shrink: 0;">
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">What We demoed live</div>
+        <ul style="margin: 0;">
+          <li style="font-size: 14px; padding: 10px 0;">
+            <span class="icon">🃏</span>
+            <div>
+              <strong>joshkurz.net</strong>
+              <span class="desc">Navigated jokes, clicked rating buttons, triggered AI generation, explored the dashboard</span>
+            </div>
+          </li>
+          <li style="font-size: 14px; padding: 10px 0;">
+            <span class="icon">🗞️</span>
+            <div>
+              <strong>Hacker News</strong>
+              <span class="desc">Read the front page, opened story #18, got a full breakdown of an MCP context-saving tool</span>
+            </div>
+          </li>
+          <li style="font-size: 14px; padding: 10px 0;">
+            <span class="icon">🔍</span>
+            <div>
+              <strong>Google Search</strong>
+              <span class="desc">Searched "cmux navigating websites with Claude Code" — confirmed this is a novel workflow</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 11: The Workflow ─── -->
   <div class="slide section">
     <div class="eyebrow">The Takeaway</div>
     <h2>The AI Dev Workflow</h2>
@@ -863,6 +926,10 @@
       <div class="agenda-item">
         <span class="num">4</span>
         <span class="label"><span class="hl-yellow">Gate</span> – scan and test before every commit</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">5</span>
+        <span class="label"><span class="hl">Browse</span> – navigate, click, and aggregate the web from the terminal</span>
       </div>
     </div>
     <p style="margin-top:24px; font-size:16px;">These aren't one-off prompts — they're <span class="hl">repeatable skills</span> that run on any project.</p>
@@ -884,6 +951,7 @@
       <span class="badge purple">/live-code-feature</span>
       <span class="badge yellow">/pre-commit-scan</span>
       <span class="badge orange">/pre-commit-tests</span>
+      <span class="badge blue">/cmux-browser</span>
     </div>
   </div>
 
