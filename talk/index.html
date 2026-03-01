@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Coding with Claude – Josh Kurz</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 60px 80px;
+      flex-direction: column;
+      justify-content: center;
+      position: absolute;
+      inset: 0;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* Slide types */
+    .slide.title {
+      background: radial-gradient(ellipse at 20% 50%, #1a2744 0%, var(--bg) 60%);
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .slide.demo {
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+    }
+
+    .slide.section {
+      background: var(--surface);
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Typography */
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .subtitle {
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--muted);
+      max-width: 600px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    p {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 700px;
+      margin-bottom: 16px;
+    }
+
+    /* Code blocks */
+    .cmd {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      color: var(--green);
+      margin: 6px 0;
+    }
+
+    .cmd::before {
+      content: '$';
+      color: var(--muted);
+    }
+
+    .cmd-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      margin: 16px 0;
+      max-width: 680px;
+    }
+
+    .cmd-block .prompt { color: var(--muted); }
+    .cmd-block .skill { color: var(--accent); }
+    .cmd-block .comment { color: var(--muted); font-style: italic; }
+
+    /* Lists */
+    ul {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    li {
+      font-size: 18px;
+      color: var(--text);
+      padding: 10px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      line-height: 1.5;
+      border-bottom: 1px solid var(--border);
+      max-width: 700px;
+    }
+
+    li:last-child { border-bottom: none; }
+
+    li .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    li .desc {
+      font-size: 14px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+
+    /* Tags/badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .badge.blue { color: var(--accent); border-color: var(--accent); background: #1f3a5f22; }
+    .badge.green { color: var(--green); border-color: var(--green); background: #1a3a2022; }
+    .badge.yellow { color: var(--yellow); border-color: var(--yellow); background: #3a2a0022; }
+    .badge.purple { color: var(--purple); border-color: var(--purple); background: #2a1a4022; }
+    .badge.red { color: var(--red); border-color: var(--red); background: #3a0d0a22; }
+    .badge.orange { color: var(--orange); border-color: var(--orange); background: #3a220022; }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    /* Grid layouts */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 20px 0;
+      max-width: 900px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .card h3 { margin-bottom: 8px; }
+    .card p { font-size: 15px; margin: 0; }
+
+    /* Demo slide layout */
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .demo-number {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .demo-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Agenda items */
+    .agenda {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 600px;
+    }
+
+    .agenda-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .agenda-item:hover { border-color: var(--border); }
+
+    .agenda-item .num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      width: 20px;
+      text-align: right;
+    }
+
+    .agenda-item .label {
+      font-size: 16px;
+      color: var(--text);
+      flex: 1;
+    }
+
+    /* Stack arch */
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 500px;
+    }
+
+    .stack-layer {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 15px;
+    }
+
+    .stack-layer .layer-name { font-weight: 600; min-width: 110px; }
+    .stack-layer .layer-val { color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+
+    /* URL pill */
+    .url {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 8px 0;
+    }
+
+    /* Divider */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .nav-btn:hover { border-color: var(--accent); background: #1a2744; }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Progress bar */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+      z-index: 100;
+    }
+
+    /* Section number (big) */
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 120px;
+      font-weight: 700;
+      color: var(--border);
+      line-height: 1;
+      position: absolute;
+      right: 80px;
+      bottom: 60px;
+      user-select: none;
+    }
+
+    /* highlight */
+    .hl { color: var(--accent); }
+    .hl-green { color: var(--green); }
+    .hl-yellow { color: var(--yellow); }
+    .hl-red { color: var(--red); }
+    .hl-purple { color: var(--purple); }
+    .hl-orange { color: var(--orange); }
+
+    /* Keyboard hint */
+    .hint {
+      position: fixed;
+      bottom: 24px;
+      left: 32px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    kbd {
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> to navigate · <kbd>F</kbd> fullscreen</div>
+
+<nav>
+  <button class="nav-btn" onclick="prev()">←</button>
+  <span class="slide-counter" id="counter">1 / 10</span>
+  <button class="nav-btn" onclick="next()">→</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- ─── SLIDE 1: Title ─── -->
+  <div class="slide title active">
+    <div class="eyebrow">Live Coding with Claude · 2026</div>
+    <h1>Building Real Software<br/>with AI</h1>
+    <p class="subtitle">A hands-on walkthrough of how I use Claude Code to develop, review, and ship joshkurz.net — and how you can use the same workflow on your own projects.</p>
+    <div class="badge-row">
+      <span class="badge blue">Next.js</span>
+      <span class="badge green">DynamoDB</span>
+      <span class="badge purple">OpenAI</span>
+      <span class="badge orange">Vercel</span>
+      <span class="badge yellow">Claude Code</span>
+    </div>
+    <div style="margin-top:16px;">
+      <span class="url">joshkurz.net</span>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 2: The Project ─── -->
+  <div class="slide demo">
+    <div class="eyebrow">The Project</div>
+    <h2>joshkurz.net</h2>
+    <p>A full-stack web app for sharing, rating, and AI-generating dad jokes. Built with real tools, real storage, real AI — deployed to production on Vercel.</p>
+
+    <div class="stack">
+      <div class="stack-layer">
+        <span class="layer-name">Frontend</span>
+        <span class="layer-val">Next.js 13 · React 18 · CSS Modules</span>
+      </div>
+      <div class="stack-layer">
+        <span class="layer-name">API</span>
+        <span class="layer-val">Next.js serverless functions</span>
+      </div>
+      <div class="stack-layer">
+        <span class="layer-name">AI</span>
+        <span class="layer-val">OpenAI GPT-4.1 + TTS (streaming)</span>
+      </div>
+      <div class="stack-layer">
+        <span class="layer-name">Storage</span>
+        <span class="layer-val">AWS DynamoDB · fatherhood.gov dataset</span>
+      </div>
+      <div class="stack-layer">
+        <span class="layer-name">Deploy</span>
+        <span class="layer-val">Vercel · GitHub Actions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 3: Agenda ─── -->
+  <div class="slide section">
+    <div class="eyebrow">Today's Talk</div>
+    <h2>What We'll Demo</h2>
+    <div class="agenda">
+      <div class="agenda-item">
+        <span class="num">01</span>
+        <span class="label">Generate architecture diagrams with Python</span>
+        <span class="badge blue">/architecture-diagram</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">02</span>
+        <span class="label">Well-Architected review: Performance</span>
+        <span class="badge green">/well-architected-performance</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">03</span>
+        <span class="label">Well-Architected review: Security</span>
+        <span class="badge red">/well-architected-security</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">04</span>
+        <span class="label">Live code a new feature together</span>
+        <span class="badge purple">/live-code-feature</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">05</span>
+        <span class="label">Scan changes for vulnerabilities</span>
+        <span class="badge yellow">/pre-commit-scan</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">06</span>
+        <span class="label">Run real tests before committing</span>
+        <span class="badge orange">/pre-commit-tests</span>
+      </div>
+    </div>
+    <div class="section-num">→</div>
+  </div>
+
+  <!-- ─── SLIDE 4: Demo 1 – Architecture ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number">01</div>
+      <div>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Architecture Diagram Generator</h2>
+      </div>
+    </div>
+
+    <p>We don't read architecture docs — we generate diagrams from the actual code. Claude reads every file and writes a Python script that produces real PNG diagrams.</p>
+
+    <div class="cmd-block">
+      <span class="comment"># In Claude Code terminal:</span><br/>
+      <span class="prompt">&gt; </span><span class="skill">/architecture-diagram</span>
+    </div>
+
+    <ul>
+      <li>
+        <span class="icon">🔍</span>
+        <div>
+          <strong>Reads</strong> all API routes, lib modules, dependencies
+          <span class="desc">No manual mapping – Claude traces the actual code paths</span>
+        </div>
+      </li>
+      <li>
+        <span class="icon">🐍</span>
+        <div>
+          <strong>Generates</strong> Python using the <code>diagrams</code> library
+          <span class="desc">Produces: system overview · API route map · AI data flow</span>
+        </div>
+      </li>
+      <li>
+        <span class="icon">🖼️</span>
+        <div>
+          <strong>Renders</strong> PNG diagrams inline in the terminal
+          <span class="desc">Shareable artifacts from a single command</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ─── SLIDE 5: Demo 2 – Performance ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number" style="background: var(--green);">02</div>
+      <div>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Well-Architected: Performance</h2>
+      </div>
+    </div>
+
+    <p>Claude reads the hot paths — caching logic, API latency, bundle size, streaming — and finds real issues with file and line references.</p>
+
+    <div class="cmd-block">
+      <span class="prompt">&gt; </span><span class="skill">/well-architected-performance</span>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>What Gets Reviewed</h3>
+        <p>API latency · Cache TTLs · Bundle size · Streaming implementation · N+1 queries · Cold start impact</p>
+      </div>
+      <div class="card">
+        <h3>Output Format</h3>
+        <p>Critical issues with file:line refs · Code snippets for fixes · Specific metrics to track · Quick wins you can ship today</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 6: Demo 3 – Security ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number" style="background: var(--red);">03</div>
+      <div>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Well-Architected: Security</h2>
+      </div>
+    </div>
+
+    <p>Not a generic OWASP checklist. Claude reads your actual code, finds real vulnerabilities, and shows you the exploit scenario plus the fix.</p>
+
+    <div class="cmd-block">
+      <span class="prompt">&gt; </span><span class="skill">/well-architected-security</span>
+    </div>
+
+    <ul>
+      <li><span class="icon">🔑</span><div><strong>Secrets scan</strong> – hardcoded credentials, exposed env vars<span class="desc">Checks every API handler and lib module</span></div></li>
+      <li><span class="icon">💉</span><div><strong>Injection vectors</strong> – path traversal, XSS, unsafe eval<span class="desc">Traces user input through to storage</span></div></li>
+      <li><span class="icon">🚫</span><div><strong>Missing controls</strong> – no rate limiting, no auth, open endpoints<span class="desc">Flags public endpoints that should be protected</span></div></li>
+      <li><span class="icon">📦</span><div><strong>CVE audit</strong> – npm audit for known vulnerabilities<span class="desc">Highlights HIGH and CRITICAL with CVE IDs</span></div></li>
+    </ul>
+  </div>
+
+  <!-- ─── SLIDE 7: Demo 4 – Live Feature ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number" style="background: var(--purple);">04</div>
+      <div>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Live Coding: New Feature</h2>
+      </div>
+    </div>
+
+    <p>We add a real feature, live, with Claude. From spec to working code to passing tests — in front of the audience.</p>
+
+    <div class="cmd-block">
+      <span class="prompt">&gt; </span><span class="skill">/live-code-feature</span><span style="color:var(--muted);"> "joke streaks"</span>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3 style="color: var(--purple);">The Workflow</h3>
+        <p>1. Write the spec first<br/>2. Read before writing<br/>3. Implement with narration<br/>4. Write real tests<br/>5. Self-review</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--purple);">The Rules</h3>
+        <p>No new dependencies · Follow existing patterns · Tests must actually test behavior · No fluff</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 8: Demo 5 & 6 – Pre-commit ─── -->
+  <div class="slide demo">
+    <div class="demo-header">
+      <div class="demo-number" style="background: var(--yellow); color: #000;">05–06</div>
+      <div>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Before You Commit</h2>
+      </div>
+    </div>
+
+    <p>Two skills that run before every commit. One checks security, one checks test quality. Both block commits that shouldn't ship.</p>
+
+    <div style="display:flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
+      <div style="flex:1; min-width: 280px;">
+        <h3 style="color: var(--yellow);">Security Scan</h3>
+        <div class="cmd-block" style="margin:0 0 12px 0;">
+          <span class="prompt">&gt; </span><span class="skill">/pre-commit-scan</span>
+        </div>
+        <ul style="margin:0;">
+          <li style="font-size:15px;"><span class="icon">🔍</span> Scans the staged diff for secrets, injection, unsafe patterns</li>
+          <li style="font-size:15px;"><span class="icon">📦</span> Runs npm audit on dependencies</li>
+          <li style="font-size:15px;"><span class="icon">🚫</span> Blocks commit with clear PASS/FAIL verdict</li>
+        </ul>
+      </div>
+      <div style="flex:1; min-width: 280px;">
+        <h3 style="color: var(--orange);">Test Runner</h3>
+        <div class="cmd-block" style="margin:0 0 12px 0;">
+          <span class="prompt">&gt; </span><span class="skill">/pre-commit-tests</span>
+        </div>
+        <ul style="margin:0;">
+          <li style="font-size:15px;"><span class="icon">✅</span> Runs the full Jest suite</li>
+          <li style="font-size:15px;"><span class="icon">🧐</span> Audits test quality — catches fluff tests</li>
+          <li style="font-size:15px;"><span class="icon">🚩</span> Flags changed files with no test coverage</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 9: The Workflow ─── -->
+  <div class="slide section">
+    <div class="eyebrow">The Takeaway</div>
+    <h2>The AI Dev Workflow</h2>
+    <div class="agenda">
+      <div class="agenda-item">
+        <span class="num">1</span>
+        <span class="label"><span class="hl">Understand</span> – generate diagrams from code</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">2</span>
+        <span class="label"><span class="hl-green">Review</span> – performance and security with file:line refs</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">3</span>
+        <span class="label"><span class="hl-purple">Build</span> – spec → implement → test, all in one session</span>
+      </div>
+      <div class="agenda-item">
+        <span class="num">4</span>
+        <span class="label"><span class="hl-yellow">Gate</span> – scan and test before every commit</span>
+      </div>
+    </div>
+    <p style="margin-top:24px; font-size:16px;">These aren't one-off prompts — they're <span class="hl">repeatable skills</span> that run on any project.</p>
+    <div class="section-num">✓</div>
+  </div>
+
+  <!-- ─── SLIDE 10: Close ─── -->
+  <div class="slide title">
+    <div class="eyebrow">Thanks for coming</div>
+    <h1>Questions?</h1>
+    <p class="subtitle">All skills are in <code style="color:var(--accent);">.claude/commands/</code> — fork the repo, adapt them to your stack, run them on your own project.</p>
+    <div style="margin-top:32px;">
+      <span class="url">joshkurz.net</span>
+    </div>
+    <div class="badge-row" style="margin-top:16px;">
+      <span class="badge blue">/architecture-diagram</span>
+      <span class="badge green">/well-architected-performance</span>
+      <span class="badge red">/well-architected-security</span>
+      <span class="badge purple">/live-code-feature</span>
+      <span class="badge yellow">/pre-commit-scan</span>
+      <span class="badge orange">/pre-commit-tests</span>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, total - 1));
+    slides[cur].classList.add('active');
+    document.getElementById('counter').textContent = `${cur + 1} / ${total}`;
+    document.getElementById('progress').style.width = `${((cur + 1) / total) * 100}%`;
+  }
+
+  function next() { show(cur + 1); }
+  function prev() { show(cur - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'f' || e.key === 'F') { document.documentElement.requestFullscreen?.(); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(total - 1);
+  });
+
+  // Touch/swipe support
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) dx > 0 ? next() : prev();
+  });
+
+  // Init progress
+  show(0);
+</script>
+</body>
+</html>

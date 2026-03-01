@@ -14,7 +14,7 @@ This document provides guidance for AI assistants working with this codebase.
 | UI | React 18.2.0 |
 | Styling | CSS Modules |
 | AI | OpenAI SDK v5.12.0 (gpt-4o-mini-tts for speech) |
-| Storage | AWS S3 (@aws-sdk/client-s3 v3.645.0) |
+| Storage | AWS DynamoDB (@aws-sdk/client-dynamodb + @aws-sdk/lib-dynamodb) |
 | Analytics | React GA (Google Analytics) |
 | Testing | Jest 30.0.5, @testing-library/react |
 | Linting | ESLint 8.28.0 with next/core-web-vitals |
@@ -37,23 +37,25 @@ This document provides guidance for AI assistants working with this codebase.
 │   ├── Header.js       # Navigation header
 │   ├── JokeSpeaker.js  # Audio player with loading/error states
 │   └── Spinner.js      # Loading spinner (CSS)
-├── lib/                # Core business logic (~1,700 LOC)
-│   ├── ratingsStorage.js    # S3/memory rating persistence
-│   ├── customJokes.js       # User joke management
-│   ├── s3Storage.js         # AWS S3 client operations
-│   ├── dashboardSummary.js  # Analytics caching
+├── lib/                # Core business logic
+│   ├── dynamoClient.js      # DynamoDB Document Client + table constants
+│   ├── ratingsStorageDynamo.js  # Ratings read/write + dashboard queries
+│   ├── customJokes.js       # User joke management (DynamoDB)
+│   ├── dashboardSummary.js  # Analytics caching (filesystem TTL)
 │   ├── openaiClient.js      # OpenAI client setup
 │   ├── aiJokeNicknames.js   # AI model naming
 │   ├── aiJokePrompt.js      # Prompt engineering
+│   ├── jokeInspiration.mjs  # Top-rated jokes for AI inspiration
 │   ├── parseJokeStream.js   # Streaming text parser
 │   └── jokesData.js         # Joke data loader
 ├── data/               # Static data files
 │   └── fatherhood_jokes.json  # Joke dataset from fatherhood.gov
 ├── scripts/            # Maintenance scripts
 │   ├── fetch-fatherhood-jokes.mjs   # Refresh joke dataset
-│   └── update-dashboard-summary.mjs # Generate analytics
+│   └── update-dashboard-summary.mjs # Generate analytics cache
 ├── styles/             # CSS Modules
 ├── __tests__/          # Jest test suite
+├── talk/               # Conference talk slides (deployed to GitHub Pages)
 └── public/             # Static assets
 ```
 
@@ -65,7 +67,7 @@ npm run build        # Production build
 npm run start        # Start production server
 npm run lint         # Run ESLint
 npm run test         # Run Jest tests
-npm run update-dashboard-summary  # Generate dashboard analytics
+npm run update-dashboard-summary  # Regenerate dashboard analytics cache
 ```
 
 ## Environment Variables
@@ -76,11 +78,12 @@ npm run update-dashboard-summary  # Generate dashboard analytics
 # OpenAI (for AI joke generation and speech)
 OPENAI_API_KEY        # or API_KEY
 
-# AWS S3 (for ratings persistence)
-S3_BUCKET_NAME        # or AWS_S3_BUCKET or DAD_AWS_S3_BUCKET
-AWS_REGION            # or AWS_DEFAULT_REGION
+# AWS DynamoDB (for ratings persistence)
+AWS_REGION            # or AWS_DEFAULT_REGION (default: us-east-1)
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
+DYNAMODB_RATINGS_TABLE  # default: dad-jokes-ratings-prod
+DYNAMODB_STATS_TABLE    # default: dad-jokes-stats-prod
 ```
 
 ### Optional configuration:
@@ -93,7 +96,7 @@ MOCK_OPENAI=true           # Use mock data instead of OpenAI
 ```
 
 ### Fallback behavior:
-- Without S3 config: Falls back to in-memory storage (development mode)
+- Without DynamoDB config: ratings writes will fail; reads return empty stats
 - Without OpenAI config: AI features will fail, but static jokes still work
 
 ## Key Conventions
@@ -104,14 +107,28 @@ MOCK_OPENAI=true           # Use mock data instead of OpenAI
 - CSS Modules for styling (*.module.css)
 - ESLint with Next.js core-web-vitals ruleset
 
-### Data Storage Pattern
+### DynamoDB Data Model
+
+Two tables:
+
+**RATINGS_TABLE** (`dad-jokes-ratings-prod`)
 ```
-S3 Structure:
-├── groan-ratings/YYYY-MM-DD/<joke-id>.json  # Daily ratings
-├── custom-jokes/accepted/<id>.json          # Approved submissions
-├── custom-jokes/rejected/<id>.json          # Rejected submissions
-└── dashboard-summary/...                    # Analytics cache
+PK: JOKE#<jokeId>          SK: RATING#<timestamp>#<uuid>   → rating records
+PK: CUSTOM_JOKE#<id>       SK: METADATA                    → custom joke records
+GSI1PK: ALL_RATINGS        GSI1SK: <timestamp>             → recent ratings index
+GSI2PK: AUTHOR#<name>      GSI2SK: <timestamp>             → author index
 ```
+
+**STATS_TABLE** (`dad-jokes-stats-prod`)
+```
+PK: STATS#<jokeId>         SK: AGGREGATE    → pre-computed per-joke stats
+PK: GLOBAL                 SK: AGGREGATE    → global totals
+PK: GLOBAL                 SK: AUTHOR#<n>   → per-author totals
+GSI1PK: TOP_PERFORMERS     GSI1SK: <avg>    → top jokes by average rating
+```
+
+Stats are updated asynchronously via DynamoDB Streams + Lambda after each write.
+All reads are O(1) GetItem lookups against pre-computed stats.
 
 ### API Response Patterns
 - Success responses return JSON with data
@@ -163,13 +180,15 @@ node scripts/fetch-fatherhood-jokes.mjs
 - Prompt template: `lib/aiJokePrompt.js`
 - Model nicknames: `lib/aiJokeNicknames.js`
 - Client config: `lib/openaiClient.js`
+- Inspiration data: `lib/jokeInspiration.mjs` (reads top performers from DynamoDB)
 
 ## Important Files
 
 | File | Purpose |
 |------|---------|
 | `pages/index.js` | Main homepage - joke display, rating UI, submission form |
-| `lib/ratingsStorage.js` | Core ratings logic, S3 integration, caching |
+| `lib/ratingsStorageDynamo.js` | All ratings logic - writes, O(1) reads, dashboard queries |
+| `lib/dynamoClient.js` | DynamoDB client singleton + table name constants |
 | `lib/openaiClient.js` | OpenAI setup with model fallbacks |
 | `data/fatherhood_jokes.json` | Primary joke dataset |
 | `next.config.js` | Next.js configuration (React Strict Mode) |
@@ -185,6 +204,6 @@ Use `/tmp` directory for temporary files. Check `VERCEL` env var to detect platf
 3. Try `MOCK_OPENAI=true` for testing without API
 
 ### Ratings not persisting
-1. Verify S3 credentials
-2. Check bucket permissions
-3. Falls back to in-memory (lost on restart)
+1. Verify AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)
+2. Check `DYNAMODB_RATINGS_TABLE` and `DYNAMODB_STATS_TABLE` env vars
+3. Confirm IAM permissions include `dynamodb:PutItem`, `dynamodb:GetItem`, `dynamodb:Query`
