@@ -35,7 +35,7 @@ Answer these questions with specific file:line references:
 ### Step 3 – Analyze API Latency
 
 For each API route, identify:
-- What external calls does it make (S3, OpenAI)?
+- What external calls does it make (DynamoDB, OpenAI)?
 - Are external calls made in parallel or sequentially?
 - What's the worst-case latency path?
 - Are there any N+1 patterns?

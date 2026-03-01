@@ -41,12 +41,12 @@ Check how API keys are accessed – are they always read from `process.env`?
 
 For each API endpoint, check:
 - Is user input validated before use?
-- Could a user inject arbitrary data into S3 key paths?
+- Could a user inject arbitrary data into DynamoDB key expressions?
 - Is joke content sanitized before storing or rendering?
 - Are there any endpoints that expose internal error details?
 
 Specifically check `pages/api/custom-jokes.js` and `pages/api/ratings.js` for:
-- Path traversal: can a user control part of the S3 key?
+- Key injection: can a user control part of the DynamoDB PK/SK?
 - Size limits: is there a max body size enforced?
 - Type checking: are all fields validated for type?
 

@@ -22,7 +22,7 @@ Read these files to understand the full system:
 
 Produce a structured summary covering:
 - Entry points (pages, API routes)
-- Data stores (S3, in-memory, any DB)
+- Data stores (DynamoDB tables, in-memory, static files)
 - External services (OpenAI, Vercel, Google Analytics)
 - Data flow for the three main user journeys: get a joke, rate a joke, generate AI joke
 
@@ -41,7 +41,7 @@ Generate **three diagrams**:
 from diagrams import Diagram, Cluster, Edge
 from diagrams.programming.framework import React
 from diagrams.onprem.client import User
-from diagrams.aws.storage import S3
+from diagrams.aws.database import Dynamodb
 from diagrams.saas.analytics import Analytics
 # Use generic nodes for OpenAI and Vercel
 ```
@@ -70,13 +70,13 @@ After generating diagrams, output a concise architecture briefing:
 ## joshkurz.net Architecture
 
 **Runtime:** Next.js 13 on Vercel (serverless)
-**Data:** AWS S3 for ratings persistence, fatherhood.gov JSON for jokes
+**Data:** AWS DynamoDB for ratings and stats persistence, fatherhood.gov JSON for jokes
 **AI:** OpenAI GPT-4.1 with streaming, TTS via gpt-4o-mini-tts
-**Analytics:** Google Analytics + custom S3-backed dashboard
+**Analytics:** Google Analytics + custom DynamoDB-backed dashboard
 
 ### Key Design Decisions
 1. [explain the most interesting architectural choice]
-2. [explain the S3-vs-DB tradeoff]
+2. [explain the DynamoDB single-table design and O(1) stats lookup]
 3. [explain the streaming approach for AI]
 
 ### Generated Diagrams
