@@ -105,3 +105,34 @@ Review `lib/dynamoClient.js` and `lib/ratingsStorageDynamo.js`:
 ```
 
 Be specific. Show the actual vulnerable code, explain how it could be exploited, and show the fix. No generic OWASP boilerplate.
+
+### Step 9 – Write the Review to a Dated File
+
+After delivering the report to the user, persist it to disk.
+
+Get the commit metadata:
+```bash
+git log -1 --format="%H %ci %s"
+```
+
+This returns `<full-hash> <date> <message>`. Use the first 7 chars of the hash and the date (YYYY-MM-DD) to name the file.
+
+Write the full report to:
+```
+security-reviews/YYYY-MM-DD-<short-hash>.md
+```
+
+The file must open with a metadata header:
+```md
+# Security Review: joshkurz.net
+
+| Field | Value |
+|-------|-------|
+| Reviewed | YYYY-MM-DD |
+| Commit | `<full-hash>` |
+| Commit date | <commit datetime> |
+| Commit message | <message> |
+| Reviewer | Claude (well-architected-security skill) |
+```
+
+Followed by the full report content exactly as delivered to the user. Create the `security-reviews/` directory if it doesn't exist.
