@@ -1,0 +1,8 @@
+# Python dependencies for generate_diagrams.py
+# Install with: pip3 install -r .claude/skills/architecture-diagram/requirements.txt
+#
+# Also requires Graphviz system binary (the renderer):
+#   macOS:  brew install graphviz
+#   Ubuntu: sudo apt-get install graphviz
+#   Windows: https://graphviz.org/download/
+diagrams==0.25.1

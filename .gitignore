@@ -38,8 +38,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# architecture diagram generated output (committed copies live in diagrams/)
+.claude/skills/architecture-diagram/output/
+
 # terraform
 terraform/.terraform/
 terraform/.terraform.lock.hcl
 terraform/*.tfstate
 terraform/*.tfstate.backup
+talk/diagrams/output/

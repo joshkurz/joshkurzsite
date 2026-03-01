@@ -18,6 +18,24 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+## Architecture
+
+Three diagrams are auto-generated from the codebase on every build and committed to `diagrams/`. They are always in sync with the actual code.
+
+| Diagram | Description |
+|---|---|
+| ![System Architecture](diagrams/system_architecture.png) | High-level: Browser → Vercel → AWS DynamoDB + OpenAI |
+| ![API Route Map](diagrams/api_routes.png) | Each API endpoint, its lib modules, and data stores |
+| ![AI Joke Flow](diagrams/ai_joke_flow.png) | AI joke generation: prompt engineering → OpenAI → persist |
+
+Regenerate at any time:
+
+```bash
+npm run build:diagrams
+```
+
+The script lives in `.claude/skills/architecture-diagram/scripts/generate_diagrams.py` and is invoked automatically by `npm run build`.
+
 ## Groan ratings & free storage option
 
 The home page now lets visitors rate each joke on a five groan scale. Ratings are persisted through the `/api/ratings` route, which stores daily aggregates in Amazon S3. Each vote is appended to a JSON document located at `groan-ratings/<yyyy-mm-dd>/<joke-id>.json`, making it easy to review stats for a single joke or analyze everything that landed on a specific day.
