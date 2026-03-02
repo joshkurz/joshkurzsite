@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import ReactAudioPlayer from 'react-audio-player';
 import styles from '../styles/JokeSpeaker.module.css';
 
@@ -14,6 +14,7 @@ export default function JokeSpeaker({
   const [isLoading, setIsLoading] = useState(false);
   const [hasRequestedAudio, setHasRequestedAudio] = useState(false);
   const [error, setError] = useState('');
+  const blobUrlRef = useRef('');
 
   const sanitizedText = useMemo(() => (text || '').trim(), [text]);
   const sanitizedVoice = useMemo(() => (voice || DEFAULT_VOICE).trim() || DEFAULT_VOICE, [voice]);
@@ -25,14 +26,36 @@ export default function JokeSpeaker({
     setError('');
   }, [sanitizedText, sanitizedVoice]);
 
-  const handleSpeak = () => {
-    if (!sanitizedText) {
-      return;
-    }
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
+
+  const handleSpeak = async () => {
+    if (!sanitizedText) return;
     setError('');
     setIsLoading(true);
     setHasRequestedAudio(true);
-    setSource(`/api/speak?text=${encodeURIComponent(sanitizedText)}&voice=${encodeURIComponent(sanitizedVoice)}`);
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = '';
+    }
+    try {
+      const response = await fetch('/api/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: sanitizedText, voice: sanitizedVoice }),
+      });
+      if (!response.ok) throw new Error('Speech generation failed');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      setSource(url);
+    } catch {
+      setIsLoading(false);
+      setError('Unable to play audio right now. Please try again.');
+    }
   };
 
   const handleCanPlay = () => {

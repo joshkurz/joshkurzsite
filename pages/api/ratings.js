@@ -62,6 +62,14 @@ export default async function handler(req, res) {
       res.status(422).json({ error: 'Rating must be an integer between 1 and 5' })
       return
     }
+    if (joke && (typeof joke !== 'string' || joke.length > 1000)) {
+      res.status(400).json({ error: 'Joke text must be 1000 characters or fewer' })
+      return
+    }
+    if (author && (typeof author !== 'string' || author.length > 200)) {
+      res.status(400).json({ error: 'Author must be 200 characters or fewer' })
+      return
+    }
     const mode = getMode(requestedMode)
     const dateKey = resolveDateKey(requestedDate)
 
