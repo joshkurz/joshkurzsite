@@ -15,7 +15,7 @@ function getIp(request) {
   return (
     request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
     request.headers.get('x-real-ip') ||
-    'unknown'
+    null
   )
 }
 
@@ -38,6 +38,13 @@ function isRateLimited(ip, path) {
   timestamps.push(now)
   ipEntry[path] = timestamps
   log.set(ip, ipEntry)
+
+  // Evict the IP entry if all path buckets are now empty to bound Map growth
+  const hasAnyTimestamps = Object.values(ipEntry).some((ts) => ts.length > 0)
+  if (!hasAnyTimestamps) {
+    log.delete(ip)
+  }
+
   return false
 }
 
@@ -49,6 +56,9 @@ export function middleware(request) {
   }
 
   const ip = getIp(request)
+  if (!ip) {
+    return NextResponse.next()
+  }
 
   if (isRateLimited(ip, pathname)) {
     return new NextResponse(
