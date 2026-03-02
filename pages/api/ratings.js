@@ -23,8 +23,8 @@ function validateRating(value) {
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { jokeId, date: requestedDate, mode: requestedMode } = req.query
-    if (!jokeId || typeof jokeId !== 'string') {
-      res.status(400).json({ error: 'Missing jokeId' })
+    if (!jokeId || typeof jokeId !== 'string' || jokeId.length > 200) {
+      res.status(400).json({ error: 'Invalid jokeId' })
       return
     }
     const mode = getMode(Array.isArray(requestedMode) ? requestedMode[0] : requestedMode)
@@ -53,8 +53,8 @@ export default async function handler(req, res) {
       date: requestedDate,
       mode: requestedMode
     } = req.body || {}
-    if (!jokeId || typeof jokeId !== 'string') {
-      res.status(400).json({ error: 'Missing jokeId' })
+    if (!jokeId || typeof jokeId !== 'string' || jokeId.length > 200) {
+      res.status(400).json({ error: 'Invalid jokeId' })
       return
     }
     const parsedRating = validateRating(rating)
