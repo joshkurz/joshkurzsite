@@ -28,16 +28,29 @@ beforeEach(() => {
   createMock.mockClear();
 });
 
-describe('GET /api/speak', () => {
+describe('POST /api/speak', () => {
+  it('rejects GET requests with 405', async () => {
+    const { req, res } = createMocks({ method: 'GET', query: { text: 'hello' } });
+    await handler(req, res);
+    expect(res._getStatusCode()).toBe(405);
+  });
+
   it('requires text', async () => {
-    const { req, res } = createMocks({ method: 'GET', query: {} });
+    const { req, res } = createMocks({ method: 'POST', body: {} });
     await handler(req, res);
     expect(res._getStatusCode()).toBe(400);
     expect(res._getJSONData()).toEqual({ error: 'Missing text' });
   });
 
+  it('rejects text over 500 characters', async () => {
+    const { req, res } = createMocks({ method: 'POST', body: { text: 'a'.repeat(501) } });
+    await handler(req, res);
+    expect(res._getStatusCode()).toBe(400);
+    expect(res._getJSONData()).toEqual({ error: 'Text must be 500 characters or fewer' });
+  });
+
   it('returns audio when text is provided', async () => {
-    const { req, res } = createMocks({ method: 'GET', query: { text: 'hello' } });
+    const { req, res } = createMocks({ method: 'POST', body: { text: 'hello' } });
     await handler(req, res);
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(res._getStatusCode()).toBe(200);
@@ -45,10 +58,17 @@ describe('GET /api/speak', () => {
     expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ voice: 'coral' }));
   });
 
-  it('passes provided voice to OpenAI', async () => {
-    const { req, res } = createMocks({ method: 'GET', query: { text: 'hello', voice: 'nova' } });
+  it('passes a valid voice to OpenAI', async () => {
+    const { req, res } = createMocks({ method: 'POST', body: { text: 'hello', voice: 'nova' } });
     await handler(req, res);
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ voice: 'nova' }));
+  });
+
+  it('defaults to coral for an invalid voice', async () => {
+    const { req, res } = createMocks({ method: 'POST', body: { text: 'hello', voice: 'badvoice' } });
+    await handler(req, res);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ voice: 'coral' }));
   });
 });

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "pages/api/ai-joke.js": { "maxDuration": 30 },
+    "pages/api/speak.js": { "maxDuration": 30 },
+    "pages/api/custom-jokes.js": { "maxDuration": 30 }
+  }
+}
