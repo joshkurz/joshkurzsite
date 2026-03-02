@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import ReactAudioPlayer from 'react-audio-player';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import styles from '../styles/Speak.module.css'
@@ -12,6 +12,7 @@ export default function SpeechHelper() {
   const [isLoading, setIsLoadingValue] = useState(false);
   const [isLoaded, setIsLoadedValue] = useState(false);
   const [voice, setVoice] = useState('coral');
+  const blobUrlRef = useRef('');
 
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
@@ -39,7 +40,24 @@ export default function SpeechHelper() {
   const sendDataToBackend = async () => {
     setIsLoadingValue(true);
     setIsLoadedValue(true);
-    setSourceValue(`/api/speak?text=${encodeURIComponent(inputValue)}&voice=${encodeURIComponent(voice)}`);
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = '';
+    }
+    try {
+      const response = await fetch('/api/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: inputValue, voice }),
+      });
+      if (!response.ok) throw new Error('Speech generation failed');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      setSourceValue(url);
+    } catch {
+      setIsLoadingValue(false);
+    }
     // If not demo script, update URL
     if (!inputValue.startsWith('Hello there! This is a comprehensive test for the text-to-audio bot.')) {
       if (typeof window !== 'undefined') {
@@ -71,6 +89,12 @@ export default function SpeechHelper() {
     const combined = answer ? `${question}          ${answer}` : question;
     setInputValue(combined);
   };
+
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
