@@ -591,8 +591,8 @@
       </div>
       <div class="agenda-item">
         <span class="num">04</span>
-        <span class="label">Live code a new feature together</span>
-        <span class="badge purple">/live-code-feature</span>
+        <span class="label">Live QA flow across the entire site</span>
+        <span class="badge purple">/qa-flow</span>
       </div>
       <div class="agenda-item">
         <span class="num">05</span>
@@ -782,30 +782,46 @@
     </ul>
   </div>
 
-  <!-- ─── SLIDE 8: Demo 4 – Live Feature ─── -->
+  <!-- ─── SLIDE 8: Demo 4 – QA Flow ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--purple);">04</div>
       <div>
         <div class="demo-label">Live Demo</div>
-        <h2 style="margin:0; font-size: 32px;">Live Coding: New Feature</h2>
+        <h2 style="margin:0; font-size: 32px;">Live QA Flow</h2>
       </div>
     </div>
 
-    <p>We add a real feature, live, with Claude. From spec to working code to passing tests — in front of the audience.</p>
+    <p>After shipping a fix, we verify the whole site still works — in the terminal, without touching a mouse. Claude walks through 12 checks across every page and feature, then delivers a pass/fail report.</p>
 
     <div class="cmd-block">
-      <span class="prompt">&gt; </span><span class="skill">/live-code-feature</span><span style="color:var(--muted);"> "joke streaks"</span>
+      <span class="prompt">&gt; </span><span class="skill">/qa-flow</span><span style="color:var(--muted);"> https://joshkurz.net</span>
     </div>
 
-    <div class="grid2">
-      <div class="card">
-        <h3 style="color: var(--purple);">The Workflow</h3>
-        <p>1. Write the spec first<br/>2. Read before writing<br/>3. Implement with narration<br/>4. Write real tests<br/>5. Self-review</p>
+    <div style="display:flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
+      <div style="flex:1; min-width: 240px;">
+        <h3 style="color: var(--purple);">12 checks, every run</h3>
+        <ul style="margin:0;">
+          <li style="font-size:14px;"><span class="icon">🏠</span><div>Homepage loads · joke visible · nav present</div></li>
+          <li style="font-size:14px;"><span class="icon">🃏</span><div>Next joke · AI joke generation (streaming)</div></li>
+          <li style="font-size:14px;"><span class="icon">🔊</span><div>Speak button · audio player renders · no error</div></li>
+          <li style="font-size:14px;"><span class="icon">📋</span><div>Custom joke form visible</div></li>
+          <li style="font-size:14px;"><span class="icon">🎙️</span><div>Speak page · load random joke · voice dropdown · play</div></li>
+          <li style="font-size:14px;"><span class="icon">📊</span><div>Dashboard · nav links · console clean</div></li>
+        </ul>
       </div>
-      <div class="card">
-        <h3 style="color: var(--purple);">The Rules</h3>
-        <p>No new dependencies · Follow existing patterns · Tests must actually test behavior · No fluff</p>
+      <div style="flex:1; min-width: 240px;">
+        <h3 style="color: var(--purple);">The output</h3>
+        <div class="cmd-block" style="font-size: 12px; line-height: 1.8;">
+          <span style="color: var(--green);">✅</span> Homepage loads<br/>
+          <span style="color: var(--green);">✅</span> Next joke navigation<br/>
+          <span style="color: var(--green);">✅</span> AI joke generation<br/>
+          <span style="color: var(--green);">✅</span> Speak button (homepage)<br/>
+          <span style="color: var(--green);">✅</span> Play audio (speak page)<br/>
+          <span style="color: var(--green);">✅</span> Dashboard loads<br/>
+          <span style="color: var(--green);">✅</span> Console errors<br/>
+          <span style="color: var(--muted);">⏭  ratings submit — skipped</span>
+        </div>
       </div>
     </div>
   </div>
@@ -921,7 +937,7 @@
       </div>
       <div class="agenda-item">
         <span class="num">3</span>
-        <span class="label"><span class="hl-purple">Build</span> – spec → implement → test, all in one session</span>
+        <span class="label"><span class="hl-purple">Verify</span> – run a full QA pass across every page before shipping</span>
       </div>
       <div class="agenda-item">
         <span class="num">4</span>
@@ -948,7 +964,7 @@
       <span class="badge blue">/architecture-diagram</span>
       <span class="badge green">/well-architected-performance</span>
       <span class="badge red">/well-architected-security</span>
-      <span class="badge purple">/live-code-feature</span>
+      <span class="badge purple">/qa-flow</span>
       <span class="badge yellow">/pre-commit-scan</span>
       <span class="badge orange">/pre-commit-tests</span>
       <span class="badge blue">/cmux-browser</span>
