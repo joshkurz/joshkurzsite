@@ -101,6 +101,6 @@ Write a short summary:
 
 If diagrams or the script were updated, remind the user to commit:
 ```bash
-git add diagrams/ .claude/skills/architecture-diagram/scripts/generate_diagrams.py
+git add diagrams/ talk/diagrams/ .claude/skills/architecture-diagram/scripts/generate_diagrams.py
 git commit -m "chore: regenerate architecture diagrams"
 ```

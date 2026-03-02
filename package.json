@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:diagrams": "pip3 install -q -r .claude/skills/architecture-diagram/requirements.txt && python3 .claude/skills/architecture-diagram/scripts/generate_diagrams.py && cp .claude/skills/architecture-diagram/output/*.png diagrams/",
+    "build:diagrams": "pip3 install -q -r .claude/skills/architecture-diagram/requirements.txt && python3 .claude/skills/architecture-diagram/scripts/generate_diagrams.py && cp .claude/skills/architecture-diagram/output/*.png diagrams/ && cp .claude/skills/architecture-diagram/output/*.png talk/diagrams/",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
