@@ -572,45 +572,58 @@
   <!-- ─── SLIDE 3: Agenda ─── -->
   <div class="slide section">
     <div class="eyebrow">Today's Talk</div>
-    <h2>What We'll Demo</h2>
+    <h2 style="margin-bottom:16px;">What We'll Demo</h2>
+
+    <!-- Arc -->
+    <div style="display:flex; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap; padding:12px 28px; background:var(--bg); border:1px solid var(--border); border-radius:8px; margin-bottom:20px; width:fit-content; margin-left:auto; margin-right:auto;">
+      <span style="font-size:16px; font-weight:600; color:var(--accent);">Understand</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--green);">Review</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--purple);">Build</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--yellow);">Gate</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--accent);">Verify</span>
+    </div>
+
     <div class="agenda">
       <div class="agenda-item">
-        <span class="num">01</span>
+        <span class="num" style="color:var(--accent);">01</span>
         <span class="label">Generate architecture diagrams with Python</span>
         <span class="badge blue">/architecture-diagram</span>
       </div>
       <div class="agenda-item">
-        <span class="num">02</span>
+        <span class="num" style="color:var(--green);">02</span>
         <span class="label">Well-Architected review: Performance</span>
         <span class="badge green">/well-architected-performance</span>
       </div>
       <div class="agenda-item">
-        <span class="num">03</span>
+        <span class="num" style="color:var(--green);">03</span>
         <span class="label">Well-Architected review: Security</span>
         <span class="badge red">/well-architected-security</span>
       </div>
       <div class="agenda-item">
-        <span class="num">04</span>
+        <span class="num" style="color:var(--purple);">04</span>
         <span class="label">Live code a new feature together</span>
         <span class="badge purple">/live-code-feature</span>
       </div>
       <div class="agenda-item">
-        <span class="num">05</span>
+        <span class="num" style="color:var(--yellow);">05</span>
         <span class="label">Scan changes for vulnerabilities</span>
         <span class="badge yellow">/pre-commit-scan</span>
       </div>
       <div class="agenda-item">
-        <span class="num">06</span>
+        <span class="num" style="color:var(--yellow);">06</span>
         <span class="label">Run real tests before committing</span>
         <span class="badge orange">/pre-commit-tests</span>
       </div>
       <div class="agenda-item">
-        <span class="num">07</span>
+        <span class="num" style="color:var(--accent);">07</span>
         <span class="label">Smoke test the site after every deploy</span>
         <span class="badge blue">/smoke-test</span>
       </div>
     </div>
-    <div class="section-num">→</div>
   </div>
 
   <!-- ─── SLIDE 4: Building Skills ─── -->
