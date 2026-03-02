@@ -1,6 +1,6 @@
 ---
-name: qa-flow
-description: Run a full manual QA pass on joshkurz.net (or a preview URL) using the cmux browser. Walks through every page and feature — joke display, AI joke generation, speech, speak page, dashboard, navigation, custom joke form. Use when you want to verify the site is working after a deploy or PR.
+name: smoke-test
+description: Run a full smoke test on joshkurz.net (or a preview URL) using the cmux browser. Walks through every page and feature — joke display, AI joke generation, speech, speak page, dashboard, navigation, custom joke form. Use when you want to verify the site is working after a deploy or PR.
 ---
 
 # QA Flow — joshkurz.net
