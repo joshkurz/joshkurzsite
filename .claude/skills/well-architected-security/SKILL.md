@@ -71,6 +71,8 @@ npm audit 2>&1 | head -60
 
 Report all HIGH and CRITICAL vulnerabilities with CVE numbers.
 
+Then invoke the `/dependency-watch` skill to check the status of all tracked CVEs and append its findings to the security review file. This covers the `fast-xml-parser` CVE in `@aws-sdk/xml-builder` that requires upstream AWS SDK action.
+
 ### Step 6 – Check for XSS
 
 Review how user-submitted joke content is rendered in `pages/index.js`. Is React's JSX escaping being bypassed anywhere? Look for `dangerouslySetInnerHTML`.

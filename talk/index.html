@@ -526,7 +526,7 @@
   <div class="slide title active">
     <div class="eyebrow">IDE-Based Coding Agents · 2026</div>
     <h1>Unlocking Engineering<br/>Productivity with<br/>Coding Agents</h1>
-    <p class="subtitle">A live demo of the full agentic workflow lifecycle — from understanding a codebase to shipping features and gating commits — running in Claude Code, a new-generation terminal-native IDE. Split-screen: site on the left, agent on the right.</p>
+    <p class="subtitle">A live demo of the full agentic workflow lifecycle — from understanding a codebase to shipping features and gating commits — running in Claude Code, a new-generation terminal-native IDE. Split-screen: Claude on the left, browser on the right.</p>
     <div class="badge-row">
       <span class="badge yellow">Claude Code</span>
       <span class="badge blue">Next.js</span>
@@ -548,7 +548,7 @@
     <div class="stack">
       <div class="stack-layer">
         <span class="layer-name">Frontend</span>
-        <span class="layer-val">Next.js 13 · React 18 · CSS Modules</span>
+        <span class="layer-val">Next.js 15 · React 18 · CSS Modules</span>
       </div>
       <div class="stack-layer">
         <span class="layer-name">API</span>
@@ -572,45 +572,58 @@
   <!-- ─── SLIDE 3: Agenda ─── -->
   <div class="slide section">
     <div class="eyebrow">Today's Talk</div>
-    <h2>What We'll Demo</h2>
+    <h2 style="margin-bottom:16px;">What We'll Demo</h2>
+
+    <!-- Arc -->
+    <div style="display:flex; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap; padding:12px 28px; background:var(--bg); border:1px solid var(--border); border-radius:8px; margin-bottom:20px; width:fit-content; margin-left:auto; margin-right:auto;">
+      <span style="font-size:16px; font-weight:600; color:var(--accent);">Understand</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--green);">Review</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--purple);">Build</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--yellow);">Gate</span>
+      <span style="color:var(--muted); font-family:var(--font-mono);">→</span>
+      <span style="font-size:16px; font-weight:600; color:var(--accent);">Verify</span>
+    </div>
+
     <div class="agenda">
       <div class="agenda-item">
-        <span class="num">01</span>
+        <span class="num" style="color:var(--accent);">01</span>
         <span class="label">Generate architecture diagrams with Python</span>
         <span class="badge blue">/architecture-diagram</span>
       </div>
       <div class="agenda-item">
-        <span class="num">02</span>
+        <span class="num" style="color:var(--green);">02</span>
         <span class="label">Well-Architected review: Performance</span>
         <span class="badge green">/well-architected-performance</span>
       </div>
       <div class="agenda-item">
-        <span class="num">03</span>
+        <span class="num" style="color:var(--green);">03</span>
         <span class="label">Well-Architected review: Security</span>
         <span class="badge red">/well-architected-security</span>
       </div>
       <div class="agenda-item">
-        <span class="num">04</span>
+        <span class="num" style="color:var(--purple);">04</span>
         <span class="label">Live code a new feature together</span>
         <span class="badge purple">/live-code-feature</span>
       </div>
       <div class="agenda-item">
-        <span class="num">05</span>
+        <span class="num" style="color:var(--yellow);">05</span>
         <span class="label">Scan changes for vulnerabilities</span>
         <span class="badge yellow">/pre-commit-scan</span>
       </div>
       <div class="agenda-item">
-        <span class="num">06</span>
+        <span class="num" style="color:var(--yellow);">06</span>
         <span class="label">Run real tests before committing</span>
         <span class="badge orange">/pre-commit-tests</span>
       </div>
       <div class="agenda-item">
-        <span class="num">07</span>
-        <span class="label">Browse the web from Claude Code — live in cmux</span>
-        <span class="badge blue">/cmux-browser</span>
+        <span class="num" style="color:var(--accent);">07</span>
+        <span class="label">Smoke test the site after every deploy</span>
+        <span class="badge blue">/smoke-test</span>
       </div>
     </div>
-    <div class="section-num">→</div>
   </div>
 
   <!-- ─── SLIDE 4: Building Skills ─── -->
@@ -848,61 +861,47 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 10: Demo 7 – cmux Browser ─── -->
+  <!-- ─── SLIDE 10: Demo 7 – Smoke Test ─── -->
   <div class="slide demo">
     <div class="demo-header">
       <div class="demo-number" style="background: var(--accent);">07</div>
       <div>
-        <div class="demo-label">Live Demo · Built Live in This Session</div>
-        <h2 style="margin:0; font-size: 32px;">Browse the Web from Claude Code</h2>
+        <div class="demo-label">Live Demo</div>
+        <h2 style="margin:0; font-size: 32px;">Smoke Test After Every Deploy</h2>
       </div>
     </div>
 
-    <p>cmux ships a scriptable in-app browser. We wrote a skill that lets Claude snapshot the accessibility tree, click, fill, scroll, and aggregate content — directly from the terminal, no switching apps.</p>
+    <p>We just shipped a fix. Before merging, we run a full smoke test — in the terminal, without touching a mouse. Claude drives the cmux browser through 12 checks across every page and feature, then delivers a pass/fail report.</p>
 
-    <div style="display: flex; gap: 32px; align-items: flex-start; margin-top: 4px;">
+    <div class="cmd-block">
+      <span class="prompt">&gt; </span><span class="skill">/smoke-test</span><span style="color:var(--muted);"> https://preview.vercel.app</span>
+    </div>
 
-      <div style="flex: 1; min-width: 0;">
-        <div class="cmd-block" style="font-size: 13px; margin-bottom: 16px;">
-          <span class="comment"># Claude sees this loop every time</span><br/>
-          <span class="comment"># 1. identify the browser surface</span><br/>
-          <span class="prompt">&gt; </span>cmux identify --json<br/><br/>
-          <span class="comment"># 2. snapshot the accessibility tree</span><br/>
-          <span class="prompt">&gt; </span>cmux browser surface:13 snapshot --interactive<br/><br/>
-          <span class="comment"># 3. act on what it sees</span><br/>
-          <span class="prompt">&gt; </span>cmux browser surface:13 click e2<br/>
-          <span class="prompt">&gt; </span>cmux browser surface:13 fill e5 "hello"<br/><br/>
-          <span class="comment"># 4. wait · re-snapshot · report</span>
-        </div>
-      </div>
-
-      <div style="width: 300px; flex-shrink: 0;">
-        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">What We demoed live</div>
-        <ul style="margin: 0;">
-          <li style="font-size: 14px; padding: 10px 0;">
-            <span class="icon">🃏</span>
-            <div>
-              <strong>joshkurz.net</strong>
-              <span class="desc">Navigated jokes, clicked rating buttons, triggered AI generation, explored the dashboard</span>
-            </div>
-          </li>
-          <li style="font-size: 14px; padding: 10px 0;">
-            <span class="icon">🗞️</span>
-            <div>
-              <strong>Hacker News</strong>
-              <span class="desc">Read the front page, opened story #18, got a full breakdown of an MCP context-saving tool</span>
-            </div>
-          </li>
-          <li style="font-size: 14px; padding: 10px 0;">
-            <span class="icon">🔍</span>
-            <div>
-              <strong>Google Search</strong>
-              <span class="desc">Searched "cmux navigating websites with Claude Code" — confirmed this is a novel workflow</span>
-            </div>
-          </li>
+    <div style="display:flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
+      <div style="flex:1; min-width: 240px;">
+        <h3 style="color: var(--accent);">12 checks, every run</h3>
+        <ul style="margin:0;">
+          <li style="font-size:14px;"><span class="icon">🏠</span><div>Homepage loads · joke visible · nav present</div></li>
+          <li style="font-size:14px;"><span class="icon">🃏</span><div>Next joke · AI joke generation (streaming)</div></li>
+          <li style="font-size:14px;"><span class="icon">🔊</span><div>Speak button · audio player renders · no error</div></li>
+          <li style="font-size:14px;"><span class="icon">📋</span><div>Custom joke form visible</div></li>
+          <li style="font-size:14px;"><span class="icon">🎙️</span><div>Speak page · load random joke · voice dropdown · play</div></li>
+          <li style="font-size:14px;"><span class="icon">📊</span><div>Dashboard · nav links · console clean</div></li>
         </ul>
       </div>
-
+      <div style="flex:1; min-width: 240px;">
+        <h3 style="color: var(--accent);">The output</h3>
+        <div class="cmd-block" style="font-size: 12px; line-height: 1.8;">
+          <span style="color: var(--green);">✅</span> Homepage loads<br/>
+          <span style="color: var(--green);">✅</span> Next joke navigation<br/>
+          <span style="color: var(--green);">✅</span> AI joke generation<br/>
+          <span style="color: var(--green);">✅</span> Speak button (homepage)<br/>
+          <span style="color: var(--green);">✅</span> Play audio (speak page)<br/>
+          <span style="color: var(--green);">✅</span> Dashboard loads<br/>
+          <span style="color: var(--green);">✅</span> Console errors<br/>
+          <span style="color: var(--muted);">⏭  ratings submit — skipped</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -929,7 +928,7 @@
       </div>
       <div class="agenda-item">
         <span class="num">5</span>
-        <span class="label"><span class="hl">Browse</span> – navigate, click, and aggregate the web from the terminal</span>
+        <span class="label"><span class="hl">Verify</span> – smoke test every deploy from the terminal</span>
       </div>
     </div>
     <p style="margin-top:24px; font-size:16px;">These aren't one-off prompts — they're <span class="hl">repeatable skills</span> that run on any project.</p>
@@ -951,7 +950,7 @@
       <span class="badge purple">/live-code-feature</span>
       <span class="badge yellow">/pre-commit-scan</span>
       <span class="badge orange">/pre-commit-tests</span>
-      <span class="badge blue">/cmux-browser</span>
+      <span class="badge blue">/smoke-test</span>
     </div>
   </div>
 
