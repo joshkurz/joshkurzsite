@@ -522,6 +522,21 @@
   animation: fadeIn 0.5s ease-in forwards;
 }
 
+.streakBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #000;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+  animation: fadeIn 0.4s ease-in forwards;
+}
+
 .ratingSection {
   margin-top: 1.5rem;
   padding: 1rem;

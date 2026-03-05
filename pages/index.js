@@ -70,12 +70,22 @@ class OpenAIData extends React.Component {
       submitAuthor: '',
       isSubmittingJoke: false,
       submitError: null,
-      submitMessage: ''
+      submitMessage: '',
+      streakCount: 0
     };
   }
 
   componentDidMount() {
     this.fetchJoke();
+    try {
+      const stored = sessionStorage.getItem('jokeStreak');
+      if (stored) {
+        const { count } = JSON.parse(stored);
+        this.setState({ streakCount: count || 0 });
+      }
+    } catch {
+      // sessionStorage unavailable or invalid JSON — ignore
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -189,10 +199,27 @@ class OpenAIData extends React.Component {
         hasSubmittedRating: true,
         ratingError: null
       });
+      this.incrementStreak(currentJokeId);
     } catch (error) {
       this.setState({ ratingError: error });
     } finally {
       this.setState({ isSubmittingRating: false });
+    }
+  }
+
+  incrementStreak = (jokeId) => {
+    try {
+      const stored = sessionStorage.getItem('jokeStreak');
+      const streak = stored ? JSON.parse(stored) : { count: 0, ratedIds: [] };
+      if (streak.ratedIds.includes(jokeId)) {
+        return;
+      }
+      streak.ratedIds.push(jokeId);
+      streak.count = streak.ratedIds.length;
+      sessionStorage.setItem('jokeStreak', JSON.stringify(streak));
+      this.setState({ streakCount: streak.count });
+    } catch {
+      // sessionStorage unavailable — ignore
     }
   }
 
@@ -379,7 +406,8 @@ class OpenAIData extends React.Component {
       submitAuthor,
       isSubmittingJoke,
       submitError,
-      submitMessage
+      submitMessage,
+      streakCount
     } = this.state;
 
     const displayQuestionTokens =
@@ -422,6 +450,11 @@ class OpenAIData extends React.Component {
           <p className={styles.authorTag}>
             <span className={styles.authorLabel}>Author:</span> {currentJokeDisplayAuthor}
           </p>
+        )}
+        {streakCount >= 3 && (
+          <div className={styles.streakBadge} role="status" aria-live="polite">
+            You&apos;re on a streak! 🔥 {streakCount} jokes rated
+          </div>
         )}
         {isComplete && (
           <>
