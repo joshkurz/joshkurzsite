@@ -22,6 +22,7 @@ Focus on **exploitable vulnerabilities** and **data exposure risks**:
 ### Step 1 – Read Everything First
 
 Read all of these before writing anything:
+- `middleware.js` – Next.js Edge middleware (rate limiting, auth checks)
 - `pages/api/*.js` – every API handler
 - `lib/ratingsStorageDynamo.js` – DynamoDB data storage logic
 - `lib/dynamoClient.js` – AWS credential and client setup
@@ -58,8 +59,9 @@ Specifically check `pages/api/custom-jokes.js` and `pages/api/ratings.js` for:
 
 ### Step 4 – Check API Authorization
 
+- Read `middleware.js` if you haven't already — this is where rate limiting and auth guards live in Next.js
 - Which endpoints are public? Which require auth?
-- Is there rate limiting on any endpoint? (If not, this is a real issue)
+- Is there rate limiting on any endpoint? Check middleware.js before concluding there is none
 - Can users access or overwrite other users' ratings?
 - Is the `/api/custom-jokes` endpoint protected against spam?
 
