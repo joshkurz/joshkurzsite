@@ -1,4 +1,4 @@
-import { writeRating } from '../../lib/ratingsStorageDynamo'
+import { writeRating, readStats } from '../../lib/ratingsStorageDynamo'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
