@@ -2,7 +2,7 @@
 name: architecture-diagram
 description: Generate up-to-date architecture diagrams from the codebase. Checks what has changed since diagrams were last generated, updates the diagram script if needed, then runs it. Use when asked to visualize or document the system architecture.
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(npm *), Bash(python3 *), Bash(pip3 *), Bash(brew *), Bash(dot *), Bash(git *)
+allowed-tools: Read, Glob, Grep, Bash(npm *), Bash(python3 *), Bash(pip3 *), Bash(brew *), Bash(dot *), Bash(git *), Bash(sh *)
 ---
 
 # Architecture Diagram Generator
