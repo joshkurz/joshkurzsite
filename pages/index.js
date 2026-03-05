@@ -10,6 +10,7 @@ import {
   parseAiAuthorSignature,
   resolveNicknameFromMetadata
 } from '../lib/aiJokeNicknames'
+import { readStreak, incrementStreak } from '../lib/jokeStreak'
 
 const defaultRatingStats = {
   counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -70,12 +71,14 @@ class OpenAIData extends React.Component {
       submitAuthor: '',
       isSubmittingJoke: false,
       submitError: null,
-      submitMessage: ''
+      submitMessage: '',
+      jokeStreak: 0
     };
   }
 
   componentDidMount() {
     this.fetchJoke();
+    this.setState({ jokeStreak: readStreak() });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -187,7 +190,8 @@ class OpenAIData extends React.Component {
       this.setState({
         ratingStats: normalizeStats(data),
         hasSubmittedRating: true,
-        ratingError: null
+        ratingError: null,
+        jokeStreak: incrementStreak()
       });
     } catch (error) {
       this.setState({ ratingError: error });
@@ -379,7 +383,8 @@ class OpenAIData extends React.Component {
       submitAuthor,
       isSubmittingJoke,
       submitError,
-      submitMessage
+      submitMessage,
+      jokeStreak
     } = this.state;
 
     const displayQuestionTokens =
@@ -404,6 +409,11 @@ class OpenAIData extends React.Component {
     return (
       <div className={styles.jokeContainer}>
         <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+        {jokeStreak >= 3 && (
+          <div className={styles.streakBadge} role="status" aria-label={`${jokeStreak}-joke streak`}>
+            <span aria-hidden="true">🔥</span> {jokeStreak}-joke streak!
+          </div>
+        )}
         {displayQuestionTokens.length > 0 && (
           <p className={styles.question}>
             {displayQuestionTokens.map((t, i) => (

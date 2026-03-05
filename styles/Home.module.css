@@ -516,6 +516,21 @@
   color: #f7dc6f;
 }
 
+.streakBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff6b35, #f39c12);
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+  animation: fadeIn 0.4s ease-in forwards;
+}
+
 /* Simple fade-in utility for question and answer text */
 .fadeIn {
   opacity: 0;
