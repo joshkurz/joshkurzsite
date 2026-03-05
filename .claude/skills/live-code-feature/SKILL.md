@@ -13,7 +13,7 @@ $ARGUMENTS
 
 ## The Feature
 
-If no feature is specified in $ARGUMENTS, build **"Joke Streaks"**: track when a user rates 3+ jokes in a session and show a "You're on a streak! 🔥" badge. Use localStorage for session tracking (no backend needed).
+If no feature is specified in $ARGUMENTS, build **"Joke Streaks"**: track when a user rates 3+ jokes in a session and show a "You're on a streak! 🔥" badge. Use sessionStorage for session tracking (resets on tab/browser close — no backend needed).
 
 Otherwise build whatever feature is specified in $ARGUMENTS.
 
@@ -21,7 +21,7 @@ Otherwise build whatever feature is specified in $ARGUMENTS.
 
 ### Step 1 – Spec It (2 minutes)
 
-Before writing any code, output a concise spec:
+Before writing any code, write the spec to `Specs/[feature-name].md` and output it:
 ```
 Feature: [Name]
 User story: As a [user], I want to [action] so that [benefit]

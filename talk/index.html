@@ -601,7 +601,7 @@
       <div class="agenda-item">
         <span class="num" style="color:var(--green);">03</span>
         <span class="label">Well-Architected review: Security</span>
-        <span class="badge red">/well-architected-security</span>
+        <span class="badge green">/well-architected-security</span>
       </div>
       <div class="agenda-item">
         <span class="num" style="color:var(--purple);">04</span>
@@ -616,7 +616,7 @@
       <div class="agenda-item">
         <span class="num" style="color:var(--yellow);">06</span>
         <span class="label">Run real tests before committing</span>
-        <span class="badge orange">/pre-commit-tests</span>
+        <span class="badge yellow">/pre-commit-tests</span>
       </div>
       <div class="agenda-item">
         <span class="num" style="color:var(--accent);">07</span>
@@ -774,7 +774,7 @@
   <!-- ─── SLIDE 7: Demo 3 – Security ─── -->
   <div class="slide demo">
     <div class="demo-header">
-      <div class="demo-number" style="background: var(--red);">03</div>
+      <div class="demo-number" style="background: var(--green);">03</div>
       <div>
         <div class="demo-label">Live Demo</div>
         <h2 style="margin:0; font-size: 32px;">Well-Architected: Security</h2>
@@ -848,7 +848,7 @@
         </ul>
       </div>
       <div style="flex:1; min-width: 280px;">
-        <h3 style="color: var(--orange);">Test Runner</h3>
+        <h3 style="color: var(--yellow);">Test Runner</h3>
         <div class="cmd-block" style="margin:0 0 12px 0;">
           <span class="prompt">&gt; </span><span class="skill">/pre-commit-tests</span>
         </div>
@@ -857,6 +857,18 @@
           <li style="font-size:15px;"><span class="icon">🧐</span> Audits test quality — catches fluff tests</li>
           <li style="font-size:15px;"><span class="icon">🚩</span> Flags changed files with no test coverage</li>
         </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; border-top: 1px solid var(--border); padding-top:16px;">
+      <h3 style="margin:0 0 10px 0; font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;">Try it live — hook blocks the commit</h3>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="cmd-block" style="margin:0; flex:1; min-width:220px;">
+          <span class="prompt">&gt; </span><span class="skill">/hook-test</span><span style="color:var(--yellow);"> security</span>
+        </div>
+        <div class="cmd-block" style="margin:0; flex:1; min-width:220px;">
+          <span class="prompt">&gt; </span><span class="skill">/hook-test</span><span style="color:var(--yellow);"> test</span>
+        </div>
       </div>
     </div>
   </div>
@@ -946,10 +958,10 @@
     <div class="badge-row" style="margin-top:16px;">
       <span class="badge blue">/architecture-diagram</span>
       <span class="badge green">/well-architected-performance</span>
-      <span class="badge red">/well-architected-security</span>
+      <span class="badge green">/well-architected-security</span>
       <span class="badge purple">/live-code-feature</span>
       <span class="badge yellow">/pre-commit-scan</span>
-      <span class="badge orange">/pre-commit-tests</span>
+      <span class="badge yellow">/pre-commit-tests</span>
       <span class="badge blue">/smoke-test</span>
     </div>
   </div>
