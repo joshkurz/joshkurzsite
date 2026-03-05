@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server'
 const WINDOW_MS = 60_000
 
 const LIMITS = {
-  '/api/ai-joke': 10,
-  '/api/speak': 10,
-  '/api/custom-jokes': 5,
+  '/api/ai-joke': 1000,
+  '/api/speak': 1000,
+  '/api/custom-jokes': 1000,
 }
 
 // ip -> { path -> timestamp[] }
@@ -71,5 +71,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: [],
+  matcher: ['/api/ai-joke', '/api/speak', '/api/custom-jokes'],
 }
