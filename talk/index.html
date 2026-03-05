@@ -539,37 +539,122 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 2: The Project ─── -->
+  <!-- ─── SLIDE 2: About Me ─── -->
+  <div class="slide" style="background: radial-gradient(ellipse at 75% 50%, #1a2744 0%, var(--bg) 65%);">
+    <div style="display: flex; gap: 64px; align-items: center; height: 100%;">
+
+      <!-- Photo column -->
+      <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+        <img src="me.jpg" alt="Josh Kurz" style="width: 210px; height: 250px; object-fit: cover; object-position: top; border-radius: 8px; border: 2px solid var(--border); box-shadow: 0 12px 40px rgba(0,0,0,0.6);" />
+        <div style="text-align: center;">
+          <div style="font-size: 20px; font-weight: 700; color: var(--text);">Josh Kurz</div>
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 4px;">github.com/joshkurz</div>
+        </div>
+        <span class="badge blue" style="font-size: 11px; letter-spacing: 0.08em;">Determined Executive™</span>
+        <p style="font-size: 11px; color: var(--muted); text-align: center; max-width: 180px; line-height: 1.5; margin: 0;">(Yes, everyone else is in a t-shirt.<br/>The suit is load-bearing.)</p>
+      </div>
+
+      <!-- Story column -->
+      <div style="flex: 1; min-width: 0;">
+        <div class="eyebrow">Why is this man in a suit at DevNexus</div>
+        <h2 style="font-size: 30px; margin-bottom: 20px;">A GitHub Origin Story</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--accent); width: 52px; flex-shrink: 0;">2012</span>
+            <span style="font-size: 15px; color: var(--text);">AngularJS — my first real open source deep dive. Contributing, connecting, <span style="color: var(--muted);">becoming part of a community of developers.</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--accent); width: 52px; flex-shrink: 0;">2014</span>
+            <span style="font-size: 15px; color: var(--text);">📖 <em>Mastering AngularJS Directives.</em> <span style="color: var(--muted);">An ancient text. Not even AI will read it.</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--accent); width: 52px; flex-shrink: 0;">2015</span>
+            <span style="font-size: 15px; color: var(--text);">Discovered Docker and Kubernetes. My second open source love. <span style="color: var(--muted);">Went full backend. Frontend Josh: gone. 🪦</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--yellow); width: 52px; flex-shrink: 0;">2015</span>
+            <span style="font-size: 15px; color: var(--text);">👶 Kid #1. Commits: still shipping. <span style="color: var(--muted);">Sleep: deprecated.</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--yellow); width: 52px; flex-shrink: 0;">2018</span>
+            <span style="font-size: 15px; color: var(--text);">👶 Kid #2. Git blame now points <span style="color: var(--muted);">exclusively at exhaustion.</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--red); width: 52px; flex-shrink: 0;">2024</span>
+            <span style="font-size: 15px; color: var(--text);">👶 Kid #3. Tried AI coding assistants. They were terrible. <span style="color: var(--muted);">The only thing I shipped was a website full of crappy dad jokes. 🥁</span></span>
+          </div>
+          <div style="display: flex; gap: 16px; align-items: baseline; padding: 9px 0;">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--green); width: 52px; flex-shrink: 0;">2026</span>
+            <span style="font-size: 15px; color: var(--text);">✅ Can code again. First time at DevNexus. <span style="color: var(--green);">Time for the Suit!</span></span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <span style="font-family: var(--font-mono); font-size: 15px; color: var(--orange); letter-spacing: 0.1em; text-transform: uppercase;">When your comeback project is a website full of dad jokes,<br/>you dress like it was the plan all along.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 3: The Project ─── -->
   <div class="slide demo">
     <div class="eyebrow">The Project</div>
     <h2>joshkurz.net</h2>
     <p>A full-stack web app for sharing, rating, and AI-generating dad jokes. Built with real tools, real storage, real AI — deployed to production on Vercel.</p>
 
-    <div class="stack">
-      <div class="stack-layer">
-        <span class="layer-name">Frontend</span>
-        <span class="layer-val">Next.js 15 · React 18 · CSS Modules</span>
+    <div style="display: flex; gap: 48px; align-items: flex-start;">
+
+      <div class="stack">
+        <div class="stack-layer">
+          <span class="layer-name">Frontend</span>
+          <span class="layer-val">Next.js 15 · React 18 · CSS Modules</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name">API</span>
+          <span class="layer-val">Next.js serverless functions</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name">AI</span>
+          <span class="layer-val">OpenAI GPT-4.1 + TTS (streaming)</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name">Storage</span>
+          <span class="layer-val">AWS DynamoDB · fatherhood.gov dataset</span>
+        </div>
+        <div class="stack-layer">
+          <span class="layer-name">Deploy</span>
+          <span class="layer-val">Vercel · GitHub Actions</span>
+        </div>
       </div>
-      <div class="stack-layer">
-        <span class="layer-name">API</span>
-        <span class="layer-val">Next.js serverless functions</span>
+
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding-top: 4px;">
+        <div style="display: flex; align-items: baseline; gap: 12px;">
+          <span style="font-size: 36px; font-weight: 700; color: var(--green); font-family: var(--font-mono);">&lt; $5</span>
+          <span style="font-size: 16px; color: var(--muted);">/ month to host a dynamic site with full persistence.</span>
+        </div>
+
+        <ul style="margin: 0;">
+          <li style="font-size: 15px; padding: 8px 0;">
+            <span class="icon">⚡</span>
+            <div>Built with scale in mind<span class="desc">DynamoDB O(1) reads, pre-computed stats, streaming AI — it'd handle traffic. Not that anyone's sending traffic.</span></div>
+          </li>
+          <li style="font-size: 15px; padding: 8px 0;">
+            <span class="icon">⚠️</span>
+            <div>The one real risk: Vercel's free tier<span class="desc">Serverless function limits could bite if this thing blows up. It's a dad joke website. I'm not losing sleep.</span></div>
+          </li>
+          <li style="font-size: 15px; padding: 8px 0;">
+            <span class="icon">👨‍👧‍👦</span>
+            <div>Why does it exist?<span class="desc">It's a fun project. My kids like it. That's the whole pitch.</span></div>
+          </li>
+        </ul>
       </div>
-      <div class="stack-layer">
-        <span class="layer-name">AI</span>
-        <span class="layer-val">OpenAI GPT-4.1 + TTS (streaming)</span>
-      </div>
-      <div class="stack-layer">
-        <span class="layer-name">Storage</span>
-        <span class="layer-val">AWS DynamoDB · fatherhood.gov dataset</span>
-      </div>
-      <div class="stack-layer">
-        <span class="layer-name">Deploy</span>
-        <span class="layer-val">Vercel · GitHub Actions</span>
-      </div>
+
     </div>
   </div>
 
-  <!-- ─── SLIDE 3: Agenda ─── -->
+  <!-- ─── SLIDE 4: Agenda ─── -->
   <div class="slide section">
     <div class="eyebrow">Today's Talk</div>
     <h2 style="margin-bottom:16px;">What We'll Demo</h2>
@@ -628,7 +713,13 @@
 
   <!-- ─── SLIDE 4: Building Skills ─── -->
   <div class="slide demo">
-    <div class="eyebrow">The Method</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div class="eyebrow" style="margin: 0;">The Method</div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #1a2a1a; border: 1px solid var(--green); border-radius: 6px; padding: 6px 14px;">
+        <span style="color: var(--green); font-size: 14px;">●</span>
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--green); letter-spacing: 0.08em; text-transform: uppercase;">Not a joke — this is the real talk</span>
+      </div>
+    </div>
     <h2 style="font-size: 32px; margin-bottom: 8px;">Building Reusable Skills</h2>
     <p style="margin-bottom: 16px;">Start by solving the problem with the agent. Once it's working, tell Claude you want a reusable skill — it auto-fetches the skill-docs spec. Spec it out, iterate. The goal: an intelligent interface on top of deterministic scripts.</p>
 
