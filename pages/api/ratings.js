@@ -1,7 +1,4 @@
-import {
-  readStats,
-  writeRating
-} from '../../lib/ratingsStorageDynamo'
+import { writeRating, readStats } from '../../lib/ratingsStorageDynamo'
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
@@ -74,8 +71,7 @@ export default async function handler(req, res) {
     const dateKey = resolveDateKey(requestedDate)
 
     try {
-      await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey })
-      const refreshedStats = await readStats({ jokeId })
+      const refreshedStats = await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey })
       res.status(200).json(refreshedStats)
     } catch (error) {
       console.error('[ratings] Failed to save rating', {

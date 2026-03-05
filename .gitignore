@@ -49,3 +49,6 @@ terraform/.terraform.lock.hcl
 terraform/*.tfstate
 terraform/*.tfstate.backup
 talk/diagrams/output/
+
+# screen recordings
+/recordings/

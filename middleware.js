@@ -71,5 +71,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/api/ai-joke', '/api/speak', '/api/custom-jokes'],
+  matcher: [],
 }
