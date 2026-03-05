@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server'
 const WINDOW_MS = 60_000
 
 const LIMITS = {
-  '/api/ai-joke': 1000,
-  '/api/speak': 1000,
-  '/api/custom-jokes': 1000,
+  '/api/ai-joke': 10,
+  '/api/speak': 10,
+  '/api/custom-jokes': 10,
 }
 
 // ip -> { path -> timestamp[] }
