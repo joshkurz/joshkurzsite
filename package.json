@@ -8,9 +8,7 @@
     "build:diagrams": "pip3 install -q -r .claude/skills/architecture-diagram/requirements.txt && python3 .claude/skills/architecture-diagram/scripts/generate_diagrams.py && cp .claude/skills/architecture-diagram/output/*.png diagrams/ && cp .claude/skills/architecture-diagram/output/*.png talk/diagrams/",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
-    "update-dashboard-summary": "node scripts/update-dashboard-summary.mjs",
-    "watch-dashboard-summary": "node scripts/update-dashboard-summary.mjs --watch"
+    "test": "jest"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.978.0",
