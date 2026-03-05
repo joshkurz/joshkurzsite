@@ -9,9 +9,33 @@ Walk through the site end-to-end and verify all key functionality. Skip destruct
 
 ## Before you start
 
-Determine the base URL to test:
-- If the user provided a URL (preview URL, localhost:3000, etc.), use that.
-- Otherwise default to `https://joshkurz.net`.
+### Step 1 — Resolve the base URL
+
+**If the user explicitly provided a URL** (e.g. a preview URL or `localhost:3000`), use that directly.
+
+**If the user asked to test a PR** (e.g. "test the latest PR", "smoke test the PR", "test PR #42"):
+
+1. List recent open PRs to find the right one:
+```bash
+gh pr list --limit 5 --json number,title,headRefName,url
+```
+
+2. If the user said "latest" or didn't specify a number, pick the most recently updated PR from the list. Otherwise use the PR number they specified.
+
+3. Get the Vercel preview URL from the PR's deployment checks:
+```bash
+gh pr checks <pr-number> --json name,state,targetUrl
+```
+Look for a check whose `name` contains "vercel" or "deployment" and whose `targetUrl` starts with `https://`. That is the preview URL. If multiple Vercel checks exist, prefer the one whose name contains "Preview" over "Inspect".
+
+4. Confirm the resolved URL and PR with the user before proceeding, e.g.:
+> Testing PR #42 "fix: ratings double read" at https://joshkurzsite-git-fix-ratings-joshkurz.vercel.app
+
+**If no URL and no PR specified:** default to `https://joshkurz.net`.
+
+---
+
+### Step 2 — Identify the browser surface
 
 Identify the browser surface:
 
@@ -222,7 +246,7 @@ Verify:
 Deliver a summary table:
 
 ```
-## QA Flow Results — <date> — <base-url>
+## QA Flow Results — <date> — <base-url> [PR #<number> "<title>" if applicable]
 
 | # | Check | Result | Notes |
 |---|-------|--------|-------|
