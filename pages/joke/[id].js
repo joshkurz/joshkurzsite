@@ -3,6 +3,7 @@ import Link from 'next/link'
 import PropTypes from 'prop-types'
 import Header from '../../components/Header'
 import ShareButtons from '../../components/ShareButtons'
+import JokeRater from '../../components/JokeRater'
 import styles from '../../styles/JokePage.module.css'
 import { getAllJokesAsync } from '../../lib/jokesData'
 
@@ -44,10 +45,12 @@ export default function JokePage({ joke, shareUrl }) {
           {joke.author && <p className={styles.author}>— {joke.author}</p>}
         </div>
 
+        <JokeRater jokeId={joke.id} jokeText={joke.text} jokeAuthor={joke.author} />
+
         <ShareButtons jokeId={joke.id} jokeText={joke.text} shareUrl={shareUrl} />
 
         <div className={styles.cta}>
-          <Link href="/" className={styles.ctaButton}>Rate This Joke</Link>
+          <Link href="/" className={styles.ctaButton}>Get Another Joke</Link>
         </div>
       </main>
     </div>
