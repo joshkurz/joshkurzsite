@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import React from 'react'
 import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
@@ -742,10 +743,81 @@ export default function Home() {
       </Head>
       <Header navLinks={navLinks} />
 
+      {/* Static hero — always in initial HTML, fully indexed by Google */}
+      <section className={styles.homeHero}>
+        <h1 className={styles.homeHeroTitle}>Vote on Dad Jokes</h1>
+        <p className={styles.homeHeroSubtitle}>
+          900+ dad jokes from four sources. Rate each one on a groan scale,
+          submit your own, or let AI generate a fresh one on the spot.
+        </p>
+        <div className={styles.sourcePills}>
+          <span className={styles.sourcePill}>fatherhood.gov</span>
+          <span className={styles.sourcePill}>icanhazdadjoke.com</span>
+          <span className={styles.sourcePill}>r/dadjokes</span>
+          <span className={styles.sourcePill}>Community</span>
+        </div>
+      </section>
+
       <main className={styles.main}>
-        {/* Render the joke UI outside of an h1 for better semantics */}
         <OpenAIData />
       </main>
+
+      {/* Static content below the fold — indexed by Google */}
+      <section className={styles.howItWorks}>
+        <h2 className={styles.sectionTitle}>How It Works</h2>
+        <div className={styles.steps}>
+          <div className={styles.step}>
+            <div className={styles.stepIcon}>🎲</div>
+            <h3>Get a Random Joke</h3>
+            <p>A dad joke is served from our collection of 900+ jokes — sourced from government archives, community APIs, and Reddit&apos;s top all-time posts.</p>
+          </div>
+          <div className={styles.step}>
+            <div className={styles.stepIcon}>🤦‍♂️</div>
+            <h3>Rate the Groan Factor</h3>
+            <p>Give it 1–5 groans. One reluctant chuckle or a full eye-roll? Your vote is saved and contributes to the community leaderboard on the <Link href="/top" className={styles.inlineLink}>Top Jokes</Link> page.</p>
+          </div>
+          <div className={styles.step}>
+            <div className={styles.stepIcon}>🤖</div>
+            <h3>Generate with AI</h3>
+            <p>Hit &ldquo;Feeling Groany?&rdquo; and an AI model generates a brand-new dad joke in real time — inspired by the highest-rated jokes in our collection.</p>
+          </div>
+          <div className={styles.step}>
+            <div className={styles.stepIcon}>✍️</div>
+            <h3>Submit Your Own</h3>
+            <p>Think you&apos;ve got a groaner worthy of the hall of fame? Submit it. Approved jokes enter the main rotation and get voted on by the community.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.faqSection}>
+        <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+        <dl className={styles.faqList}>
+          <div className={styles.faqItem}>
+            <dt>What is this dad jokes website?</dt>
+            <dd>JoshKurz.net is an interactive dad jokes platform where you can vote and rate over 900 dad jokes on a groan-worthy scale, submit your own jokes, listen to them via text-to-speech, and generate new ones using AI.</dd>
+          </div>
+          <div className={styles.faqItem}>
+            <dt>How do I vote on dad jokes?</dt>
+            <dd>Each joke shows a rating scale from 1 to 5 groans. Click your rating after reading the joke — 1 being barely a groan and 5 being a legendary dad joke. Your vote is saved and contributes to the community rankings.</dd>
+          </div>
+          <div className={styles.faqItem}>
+            <dt>Can I submit my own dad joke?</dt>
+            <dd>Yes! Click &ldquo;Submit Your Joke&rdquo; below any joke to add yours. Community votes determine which jokes rise to the top of the <Link href="/top" className={styles.inlineLink}>leaderboard</Link>.</dd>
+          </div>
+          <div className={styles.faqItem}>
+            <dt>How does the AI dad joke generator work?</dt>
+            <dd>Click the &ldquo;Feeling Groany?&rdquo; button and our AI model generates a brand-new, original dad joke in real time. The AI is inspired by the highest-rated jokes in our community collection.</dd>
+          </div>
+          <div className={styles.faqItem}>
+            <dt>Can I listen to dad jokes out loud?</dt>
+            <dd>Yes — every joke has a text-to-speech button so you can hear it read aloud. Perfect for sharing at the dinner table without looking at your phone. You can also use the dedicated <Link href="/speak" className={styles.inlineLink}>Listen page</Link>.</dd>
+          </div>
+          <div className={styles.faqItem}>
+            <dt>Where do the jokes come from?</dt>
+            <dd>Jokes are sourced from fatherhood.gov, icanhazdadjoke.com, the top all-time posts on Reddit&apos;s r/dadjokes community, and jokes submitted by visitors to this site. All sources are rotated fairly.</dd>
+          </div>
+        </dl>
+      </section>
 
     </div>
   )
