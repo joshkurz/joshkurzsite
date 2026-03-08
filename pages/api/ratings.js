@@ -79,6 +79,12 @@ export default async function handler(req, res) {
     const dateKey = resolveDateKey(requestedDate)
 
     const ip = getIp(req)
+    console.log('[ratings] ip resolution:', {
+      ip,
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'x-real-ip': req.headers['x-real-ip'],
+      remoteAddress: req.socket?.remoteAddress
+    })
     try {
       const refreshedStats = await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey, ip })
       res.status(200).json(refreshedStats)
