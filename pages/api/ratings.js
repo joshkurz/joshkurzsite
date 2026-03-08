@@ -1,4 +1,12 @@
-import { writeRating, readStats } from '../../lib/ratingsStorageDynamo'
+import { writeRating, readStats, AlreadyVotedError } from '../../lib/ratingsStorageDynamo'
+
+function getIp(req) {
+  return (
+    req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+    req.socket?.remoteAddress ||
+    null
+  );
+}
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
@@ -70,10 +78,15 @@ export default async function handler(req, res) {
     const mode = getMode(requestedMode)
     const dateKey = resolveDateKey(requestedDate)
 
+    const ip = getIp(req)
     try {
-      const refreshedStats = await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey })
+      const refreshedStats = await writeRating({ jokeId, rating: parsedRating, joke, author, mode, dateKey, ip })
       res.status(200).json(refreshedStats)
     } catch (error) {
+      if (error instanceof AlreadyVotedError) {
+        res.status(409).json({ error: error.message, alreadyVoted: true })
+        return
+      }
       console.error('[ratings] Failed to save rating', {
         jokeId,
         mode,

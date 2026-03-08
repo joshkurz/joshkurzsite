@@ -71,7 +71,9 @@ class OpenAIData extends React.Component {
       isSubmittingJoke: false,
       submitError: null,
       submitMessage: '',
-      streakCount: 0
+      streakCount: 0,
+      jokesExhausted: false,
+      exhaustedMessage: null
     };
   }
 
@@ -323,7 +325,9 @@ class OpenAIData extends React.Component {
       currentJokeAuthor: '',
       currentJokeDisplayAuthor: '',
       currentJokeMetadata: null,
-      loadedJokeId: null
+      loadedJokeId: null,
+      jokesExhausted: false,
+      exhaustedMessage: null
     });
 
     try {
@@ -339,6 +343,15 @@ class OpenAIData extends React.Component {
         throw new Error(payload.error || 'Unable to load a dad joke');
       }
       const data = await res.json();
+      if (data.exhausted) {
+        this.setState({
+          isLoaded: true,
+          isComplete: true,
+          jokesExhausted: true,
+          exhaustedMessage: data.message || "You've rated every joke in our collection! Thanks for your contribution!"
+        });
+        return;
+      }
       const initialState = {
         question: '',
         answer: '',
@@ -407,7 +420,9 @@ class OpenAIData extends React.Component {
       isSubmittingJoke,
       submitError,
       submitMessage,
-      streakCount
+      streakCount,
+      jokesExhausted,
+      exhaustedMessage
     } = this.state;
 
     const displayQuestionTokens =
@@ -428,6 +443,26 @@ class OpenAIData extends React.Component {
     }
     if (!isLoaded) {
       return <Spinner />;
+    }
+    if (jokesExhausted) {
+      return (
+        <div className={styles.jokeContainer}>
+          <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+          <p className={styles.question}>{exhaustedMessage}</p>
+          <div className={styles.jokeActions}>
+            <button className={styles.newJokeButton} type="button" onClick={this.fetchJoke}>
+              New Joke
+            </button>
+            <button
+              className={`${styles.newJokeButton} ${styles.aiJokeButton}`}
+              type="button"
+              onClick={this.fetchAiJoke}
+            >
+              Feeling Groany?
+            </button>
+          </div>
+        </div>
+      );
     }
     return (
       <div className={styles.jokeContainer}>
