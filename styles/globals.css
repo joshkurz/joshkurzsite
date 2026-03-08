@@ -1,18 +1,23 @@
 
-/* Define global color and gradient variables for easy theming */
+/* Design system — dark background, orange/amber accent */
 :root {
   --color-primary: #f39c12;
-  --color-background: #0f172a;
-  --color-text: #e2e8f0;
-  --color-text-dark: #0f172a;
-  --color-surface: rgba(30, 41, 59, 0.6);
-  --color-border: rgba(148, 163, 184, 0.15);
-  --color-border-dark: rgba(139, 92, 246, 0.25);
-  --color-surface-dark: rgba(30, 41, 59, 0.6);
-  --gradient-background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
-  --color-violet: #8b5cf6;
-  --color-violet-light: #a78bfa;
-  --color-amber: #f39c12;
+  --color-primary-hover: #f7dc6f;
+  --color-primary-dark: #e67e22;
+  --color-background: #0a0a0a;
+  --color-text: #f0f0f0;
+  --color-text-muted: rgba(240, 240, 240, 0.55);
+  --color-text-dark: #0a0a0a;
+  --color-surface: rgba(22, 22, 22, 0.85);
+  --color-surface-raised: rgba(28, 28, 28, 0.9);
+  --color-border: rgba(243, 156, 18, 0.18);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-dark: rgba(243, 156, 18, 0.18);
+  --color-surface-dark: rgba(22, 22, 22, 0.85);
+  --gradient-background: linear-gradient(180deg, #0a0a0a 0%, #111111 100%);
+  --gradient-primary: linear-gradient(135deg, #f39c12, #e67e22);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(243, 156, 18, 0.15);
 }
 
 html,
@@ -46,7 +51,6 @@ a {
   box-sizing: border-box;
 }
 
-/* Override variables when the user prefers dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;

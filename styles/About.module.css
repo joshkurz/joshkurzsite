@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
   background: var(--gradient-background);
-  color: var(--color-text, #e2e8f0);
+  color: var(--color-text);
 }
 
 .main {
@@ -21,7 +21,7 @@
 
 .heroLabel {
   display: inline-block;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -80,8 +80,8 @@
 }
 
 .featureCard {
-  background: rgba(30, 27, 75, 0.5);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(243, 156, 18, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
@@ -91,7 +91,7 @@
 }
 
 .featureCard:hover {
-  border-color: rgba(139, 92, 246, 0.45);
+  border-color: rgba(243, 156, 18, 0.45);
 }
 
 .featureIcon {
@@ -122,7 +122,7 @@
 }
 
 .sourceCard {
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 12px;
   padding: 1.25rem;
@@ -132,7 +132,7 @@
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #a78bfa;
+  color: #f7dc6f;
 }
 
 .sourceCard p {
@@ -144,21 +144,21 @@
 
 /* Links */
 .link {
-  color: #a78bfa;
+  color: #f7dc6f;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .link:hover {
-  color: #c4b5fd;
+  color: #f7dc6f;
   text-decoration: underline;
 }
 
 /* CTA */
 .cta {
   text-align: center;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.1));
+  border: 1px solid rgba(243, 156, 18, 0.3);
   border-radius: 20px;
   padding: 3rem 2rem;
   display: flex;
@@ -183,7 +183,7 @@
 .ctaButton {
   display: inline-block;
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   font-size: 1rem;
   font-weight: 700;

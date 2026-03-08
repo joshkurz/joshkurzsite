@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
   background: var(--gradient-background);
-  color: var(--color-text, #e2e8f0);
+  color: var(--color-text);
 }
 
 .main {
@@ -18,14 +18,14 @@
 }
 
 .backLink a {
-  color: #a78bfa;
+  color: #f7dc6f;
   text-decoration: none;
   font-size: 0.95rem;
   transition: color 0.2s;
 }
 
 .backLink a:hover {
-  color: #c4b5fd;
+  color: #f7dc6f;
   text-decoration: underline;
 }
 
@@ -37,7 +37,7 @@
 
 .heroLabel {
   display: inline-block;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -76,8 +76,8 @@
 
 /* Stats Section */
 .statsSection {
-  background: rgba(30, 27, 75, 0.4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(22, 22, 22, 0.4);
+  border: 1px solid rgba(243, 156, 18, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -89,8 +89,8 @@
 }
 
 .statBox {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.1));
+  border: 1px solid rgba(243, 156, 18, 0.25);
   border-radius: 12px;
   padding: 1.25rem 1rem;
   text-align: center;
@@ -118,8 +118,8 @@
 
 /* Jokes Section */
 .jokesSection {
-  background: rgba(30, 27, 75, 0.4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(22, 22, 22, 0.4);
+  border: 1px solid rgba(243, 156, 18, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -141,7 +141,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 1.25rem;
@@ -150,7 +150,7 @@
 
 .jokeCard:hover {
   transform: translateX(4px);
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(243, 156, 18, 0.4);
 }
 
 .jokeCard.gold {
@@ -232,7 +232,7 @@
   margin: 0;
   padding: 2rem;
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.4);
+  background: rgba(22, 22, 22, 0.4);
   color: rgba(226, 232, 240, 0.6);
   text-align: center;
 }
@@ -245,8 +245,8 @@
 }
 
 .unratedCard {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
-  border-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.05));
+  border-color: rgba(243, 156, 18, 0.3);
 }
 
 /* Rating UI */
@@ -264,7 +264,7 @@
 }
 
 .groanButton {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(22, 22, 22, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
   padding: 0.4rem 0.5rem;
@@ -273,8 +273,8 @@
 }
 
 .groanButton:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(243, 156, 18, 0.2);
+  border-color: rgba(243, 156, 18, 0.5);
   transform: scale(1.1);
 }
 
