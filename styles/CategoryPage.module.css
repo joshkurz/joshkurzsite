@@ -1,0 +1,206 @@
+.container {
+  min-height: 100vh;
+  background: var(--gradient-background);
+  color: var(--color-text);
+}
+
+.main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+}
+
+.heroEmoji {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.hero h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(226, 232, 240, 0.65);
+  line-height: 1.6;
+}
+
+.jokeCount {
+  display: inline-block;
+  margin-top: 0.75rem;
+  background: rgba(243, 156, 18, 0.12);
+  border: 1px solid rgba(243, 156, 18, 0.3);
+  color: rgba(243, 156, 18, 0.9);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+}
+
+/* Joke List */
+.jokeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jokeCard {
+  background: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.jokeCard:hover {
+  border-color: rgba(243, 156, 18, 0.3);
+  transform: translateX(3px);
+}
+
+.jokeOpener {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.55;
+}
+
+.jokeResponse {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(243, 156, 18, 0.9);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.jokeMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.authorPill {
+  background: rgba(243, 156, 18, 0.12);
+  border: 1px solid rgba(243, 156, 18, 0.25);
+  color: #f7dc6f;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.shareLink {
+  font-size: 0.82rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: auto;
+  transition: color 0.15s;
+}
+
+.shareLink:hover {
+  color: #f7dc6f;
+  text-decoration: underline;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: rgba(22, 22, 22, 0.4);
+  border-radius: 14px;
+  color: rgba(226, 232, 240, 0.55);
+}
+
+/* CTA */
+.cta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.06));
+  border: 1px solid rgba(243, 156, 18, 0.22);
+  border-radius: 20px;
+}
+
+.cta p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.65);
+  font-size: 1rem;
+}
+
+.ctaButton {
+  display: inline-block;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ctaButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Category links */
+.categoriesNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.categoryPill {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.categoryPill:hover,
+.categoryPillActive {
+  border-color: rgba(243, 156, 18, 0.5);
+  color: rgba(243, 156, 18, 0.9);
+  background: rgba(243, 156, 18, 0.08);
+}
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.9rem; }
+  .jokeCard { padding: 1.15rem; }
+  .main { padding: 1.5rem 1rem 4rem; }
+}

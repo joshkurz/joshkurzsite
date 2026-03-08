@@ -414,6 +414,7 @@ class OpenAIData extends React.Component {
       currentJokeAuthor,
       currentJokeDisplayAuthor,
       currentJokeSpeechText,
+      loadedJokeId,
       isSubmitFormOpen,
       submitSetup,
       submitPunchline,
@@ -592,6 +593,11 @@ class OpenAIData extends React.Component {
             >
               Feeling Groany?
             </button>
+            {loadedJokeId && (
+              <Link href={`/joke/${loadedJokeId}`} className={styles.shareButton}>
+                🔗 Share This Joke
+              </Link>
+            )}
           </div>
         )}
         <div className={styles.submitSection}>
@@ -786,6 +792,27 @@ export default function Home() {
             <h3>Submit Your Own</h3>
             <p>Think you&apos;ve got a groaner worthy of the hall of fame? Submit it. Approved jokes enter the main rotation and get voted on by the community.</p>
           </div>
+        </div>
+      </section>
+
+      <section className={styles.categorySection}>
+        <h2 className={styles.sectionTitle}>Browse Jokes by Category</h2>
+        <div className={styles.categoryGrid}>
+          {[
+            { slug: 'animals',    emoji: '🐾', label: 'Animal Jokes' },
+            { slug: 'food',       emoji: '🍕', label: 'Food Jokes' },
+            { slug: 'science',    emoji: '🔬', label: 'Science Jokes' },
+            { slug: 'technology', emoji: '💻', label: 'Tech Jokes' },
+            { slug: 'sports',     emoji: '⚽', label: 'Sports Jokes' },
+            { slug: 'work',       emoji: '💼', label: 'Work Jokes' },
+            { slug: 'school',     emoji: '📚', label: 'School Jokes' },
+            { slug: 'weather',    emoji: '⛅', label: 'Weather Jokes' },
+          ].map(({ slug, emoji, label }) => (
+            <Link key={slug} href={`/jokes/${slug}`} className={styles.categoryCard}>
+              <span className={styles.categoryEmoji}>{emoji}</span>
+              <span className={styles.categoryLabel}>{label}</span>
+            </Link>
+          ))}
         </div>
       </section>
 

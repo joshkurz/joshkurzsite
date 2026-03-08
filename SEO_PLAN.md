@@ -147,9 +147,9 @@ Why it matters: developer communities link to APIs. icanhazdadjoke gets signific
 | FAQ schema (homepage) | ✅ Done |
 | WebSite schema (homepage) | ✅ Done |
 | ItemList schema (/top) | ✅ Done |
-| Per-joke OG tags (noindex share pages) | ⬜ With /joke/[id] |
-| Social share buttons (X, Facebook, copy) | ⬜ With /joke/[id] |
-| Share tracking (per platform) | ⬜ With /api/share |
+| Per-joke OG tags (noindex share pages) | ✅ Done — /joke/[id] |
+| Social share buttons (X, Facebook, copy) | ✅ Done — ShareButtons component |
+| Share tracking (per platform) | ✅ Done — /api/share |
 | Submit sitemap to Search Console | ✅ Done |
 | Verify site in Search Console | ✅ Done |
 | Core Web Vitals baseline | ⬜ Check in Search Console after deploy |
@@ -193,12 +193,12 @@ Monitor these in Google Search Console → Performance:
 1. ✅ **Submit sitemap** to Google Search Console: `https://joshkurz.net/sitemap.xml`
 2. ✅ **Request indexing** on homepage, /top, /about via Search Console URL Inspect
 3. ✅ **Validate schemas** at https://search.google.com/test/rich-results
-4. ⬜ **Build `/joke/[id]`** — SSR, noindex, per-joke OG tags, share buttons, rating UI
-5. ⬜ **Add `/api/share`** — share event tracking (x, facebook, copy) stored in STATS_TABLE
-6. ⬜ **Add "Share" button** to homepage joke card linking to `/joke/[id]`
-7. ⬜ **Tag jokes by category** (script that keyword-matches joke text)
-8. ⬜ **Build category pages** (`/jokes/[category]`) — each joke links to `/joke/[id]`
-9. ⬜ **Update sitemap** to include category pages
-10. ⬜ **Add /weekly page** for fresh content signal
-11. ⬜ **Add /submit as standalone page**
-12. ⬜ **Write the "What Makes a Great Dad Joke?" guide**
+4. ✅ **Build `/joke/[id]`** — SSR, noindex, per-joke OG tags, share buttons, rating UI
+5. ✅ **Add `/api/share`** — share event tracking (x, facebook, copy) stored in STATS_TABLE
+6. ✅ **Add "Share" button** to homepage joke card linking to `/joke/[id]`
+7. ✅ **Tag jokes by category** — script tags 564/906 jokes across both JSON files
+8. ✅ **Build category pages** (`/jokes/[category]`) — 8 categories, ISR, ItemList schema
+9. ✅ **Update sitemap** to include category pages, /weekly, /submit, /guide
+10. ✅ **Add /weekly page** for fresh content signal — ISR hourly, queries RATINGS_TABLE GSI1
+11. ✅ **Add /submit as standalone page** — with tips + form
+12. ✅ **Write the "What Makes a Great Dad Joke?" guide** — /guide, Article schema
