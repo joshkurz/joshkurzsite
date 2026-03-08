@@ -310,6 +310,7 @@ resource "aws_iam_policy" "app_dynamodb_access" {
         Action = [
           "dynamodb:PutItem",
           "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
           "dynamodb:Query"
         ]
         Resource = [

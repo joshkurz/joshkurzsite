@@ -1,0 +1,201 @@
+.container {
+  min-height: 100vh;
+  background: var(--gradient-background);
+  color: var(--color-text);
+}
+
+.main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 3rem;
+}
+
+.hero h1 {
+  margin: 0 0 1rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: rgba(226, 232, 240, 0.65);
+  line-height: 1.65;
+}
+
+/* Article body */
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.section p {
+  margin: 0 0 1rem;
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Formula box */
+.formulaBox {
+  background: rgba(243, 156, 18, 0.07);
+  border: 1px solid rgba(243, 156, 18, 0.28);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin: 1rem 0;
+}
+
+.formulaBox p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.formulaBox strong {
+  color: var(--color-primary);
+}
+
+/* Tips list */
+.tipsList {
+  margin: 0.5rem 0 0;
+  padding: 0 0 0 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tipsList li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+/* Example jokes */
+.exampleGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.exampleCard {
+  background: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.exampleSetup {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.examplePunchline {
+  margin: 0;
+  color: rgba(243, 156, 18, 0.9);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.exampleCard .annotation {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.4);
+  font-style: italic;
+}
+
+/* CTA */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(243, 156, 18, 0.06));
+  border: 1px solid rgba(243, 156, 18, 0.22);
+  border-radius: 20px;
+}
+
+.cta p {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(226, 232, 240, 0.7);
+  line-height: 1.6;
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ctaButtonPrimary {
+  display: inline-block;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ctaButtonPrimary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.ctaButtonSecondary {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid rgba(243, 156, 18, 0.4);
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ctaButtonSecondary:hover {
+  background: rgba(243, 156, 18, 0.08);
+  border-color: rgba(243, 156, 18, 0.7);
+}
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.9rem; }
+  .section h2 { font-size: 1.25rem; }
+  .formulaBox { padding: 1.15rem 1.25rem; }
+  .main { padding: 1.5rem 1rem 4rem; }
+}

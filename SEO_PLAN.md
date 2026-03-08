@@ -23,6 +23,35 @@
 
 ## Phase 2 — Content Expansion (Next)
 
+### 0. Individual Joke Share Pages (`/joke/[id]`)
+**Priority: HIGH** — enables social sharing with proper preview cards. Not indexed by Google (noindex), so no thin-page penalty.
+
+**Approach:** Single file in git (`/pages/joke/[id].js`), server-side rendered on demand via `getServerSideProps`. No static paths, no checked-in pages — Next.js generates each joke's HTML at request time.
+
+Each joke gets a shareable URL: `/joke/abc123`
+- `noindex` meta tag — Google ignores it, social crawlers read it
+- Per-joke OG tags (title = joke setup, description = punchline) for proper Twitter/Facebook preview cards
+- Share buttons: X (Twitter), Facebook, copy link
+- Rating UI + "hear it" button
+
+**Share tracking:**
+- Add `shares` counter to STATS_TABLE per joke (`PK: STATS#<jokeId>`, `SK: AGGREGATE`)
+- New API endpoint `POST /api/share` — increments share count by platform (x, facebook, copy)
+- Dashboard updated to show most-shared jokes alongside most-rated
+
+**Category page integration:**
+- Share URL from category pages: `/joke/abc123` (standalone)
+- Or deep-link into category: `/jokes/food?id=abc123` — category page scrolls to / highlights that joke
+
+**Implementation plan:**
+1. Create `/pages/joke/[id].js` — `getServerSideProps` looks up joke by ID from JSON data
+2. Add `noindex` + per-joke OG/Twitter meta tags
+3. Create `/api/share.js` — POST endpoint records share events in STATS_TABLE
+4. Add `ShareButtons` component (`components/ShareButtons.js`) — X, Facebook, copy link
+5. Add "Share" button to homepage joke card linking to `/joke/[id]`
+
+---
+
 ### 1. Category Pages (`/jokes/[category]`)
 **Priority: HIGH** — biggest SEO surface area, each page targets a unique long-tail keyword cluster.
 
@@ -39,10 +68,11 @@ Target categories and their keywords:
 | Weather | `/jokes/weather` | weather jokes, rain jokes, winter jokes |
 
 **Implementation plan:**
-1. Tag each joke in the dataset with 1-2 categories (do this in the fetch scripts or a separate tagging script)
+1. Tag each joke in the dataset with 1-2 categories (script that keyword-matches joke text)
 2. Add `category` field to `fatherhood_jokes.json` and `external_jokes.json`
 3. Create `/pages/jokes/[category].js` — static pages via `getStaticPaths` + `getStaticProps` with ISR
-4. Add category filter to the homepage random joke button (optional)
+4. Each joke on category page links to its individual joke page (`/jokes/[id]`)
+5. Add category filter to the homepage random joke button (optional)
 
 ---
 
@@ -99,11 +129,7 @@ Why it matters: developer communities link to APIs. icanhazdadjoke gets signific
 ---
 
 ### 6. "Dad Jokes Hall of Fame" Social Sharing
-**Priority: LOW** — viral potential, backlinks
-
-- Generate shareable image cards for top-rated jokes (OG image per joke)
-- Add Twitter/X share button on the joke UI
-- Dynamic OG image per joke via `/api/og?joke=...` (using `@vercel/og`)
+**Priority: LOW** — covered by individual joke pages (Phase 2, item 0) which handle per-joke OG images and share buttons natively.
 
 ---
 
@@ -121,8 +147,11 @@ Why it matters: developer communities link to APIs. icanhazdadjoke gets signific
 | FAQ schema (homepage) | ✅ Done |
 | WebSite schema (homepage) | ✅ Done |
 | ItemList schema (/top) | ✅ Done |
-| Submit sitemap to Search Console | ⬜ Do this |
-| Verify site in Search Console | ⬜ Do this |
+| Per-joke OG tags (noindex share pages) | ✅ Done — /joke/[id] |
+| Social share buttons (X, Facebook, copy) | ✅ Done — ShareButtons component |
+| Share tracking (per platform) | ✅ Done — /api/share |
+| Submit sitemap to Search Console | ✅ Done |
+| Verify site in Search Console | ✅ Done |
 | Core Web Vitals baseline | ⬜ Check in Search Console after deploy |
 | Image alt text audit | ⬜ Low priority (minimal images) |
 | Internal linking audit | ⬜ Category pages will help significantly |
@@ -161,11 +190,15 @@ Monitor these in Google Search Console → Performance:
 
 ## Recommended Next Actions (in order)
 
-1. ⬜ **Submit sitemap** to Google Search Console: `https://joshkurz.net/sitemap.xml`
-2. ⬜ **Request indexing** on homepage, /top, /about via Search Console URL Inspect
-3. ⬜ **Validate schemas** at https://search.google.com/test/rich-results
-4. ⬜ **Tag jokes by category** (can start with a script that keyword-matches joke text)
-5. ⬜ **Build category pages** (`/jokes/[category]`)
-6. ⬜ **Add /weekly page** for fresh content signal
-7. ⬜ **Add /submit as standalone page**
-8. ⬜ **Write the "What Makes a Great Dad Joke?" guide**
+1. ✅ **Submit sitemap** to Google Search Console: `https://joshkurz.net/sitemap.xml`
+2. ✅ **Request indexing** on homepage, /top, /about via Search Console URL Inspect
+3. ✅ **Validate schemas** at https://search.google.com/test/rich-results
+4. ✅ **Build `/joke/[id]`** — SSR, noindex, per-joke OG tags, share buttons, rating UI
+5. ✅ **Add `/api/share`** — share event tracking (x, facebook, copy) stored in STATS_TABLE
+6. ✅ **Add "Share" button** to homepage joke card linking to `/joke/[id]`
+7. ✅ **Tag jokes by category** — script tags 564/906 jokes across both JSON files
+8. ✅ **Build category pages** (`/jokes/[category]`) — 8 categories, ISR, ItemList schema
+9. ✅ **Update sitemap** to include category pages, /weekly, /submit, /guide
+10. ✅ **Add /weekly page** for fresh content signal — ISR hourly, queries RATINGS_TABLE GSI1
+11. ✅ **Add /submit as standalone page** — with tips + form
+12. ✅ **Write the "What Makes a Great Dad Joke?" guide** — /guide, Article schema
