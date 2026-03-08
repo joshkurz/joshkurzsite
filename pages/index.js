@@ -487,9 +487,9 @@ class OpenAIData extends React.Component {
             <span className={styles.authorLabel}>Author:</span> {currentJokeDisplayAuthor}
           </p>
         )}
-        {streakCount >= 3 && (
+        {streakCount > 0 && streakCount % 3 === 0 && (
           <div className={styles.streakBadge} role="status" aria-live="polite">
-            You&apos;re on a streak! 🔥 {streakCount} jokes rated
+            🔥 {streakCount} jokes rated in a row!
           </div>
         )}
         {isComplete && (

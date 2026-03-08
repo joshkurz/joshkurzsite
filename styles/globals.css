@@ -1,15 +1,18 @@
 
 /* Define global color and gradient variables for easy theming */
 :root {
-  --color-primary: #0070f3;
-  --color-background: #000000;
-  --color-text: #ffffff;
-  --color-text-dark: #000000;
-  --color-surface: #f9f9f9;
-  --color-border: #eaeaea;
-  --color-border-dark: #222222;
-  --color-surface-dark: #111111;
-  --gradient-background: linear-gradient(180deg, #000000 0%, #111111 100%);
+  --color-primary: #f39c12;
+  --color-background: #0f172a;
+  --color-text: #e2e8f0;
+  --color-text-dark: #0f172a;
+  --color-surface: rgba(30, 41, 59, 0.6);
+  --color-border: rgba(148, 163, 184, 0.15);
+  --color-border-dark: rgba(139, 92, 246, 0.25);
+  --color-surface-dark: rgba(30, 41, 59, 0.6);
+  --gradient-background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+  --color-violet: #8b5cf6;
+  --color-violet-light: #a78bfa;
+  --color-amber: #f39c12;
 }
 
 html,
