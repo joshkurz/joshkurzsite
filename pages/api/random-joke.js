@@ -4,18 +4,23 @@ import { getVotedJokeIds } from '../../lib/ratingsStorageDynamo'
 const EXHAUSTED_MESSAGE =
   "You've rated every joke in our collection! I'd tell you another one, but I'm afraid I'm all out of material... get it? Because you've gone through all our material? Anyway, thanks for your tremendous contribution to dad joke science!"
 
-// Group jokes by author, pick a random author, then a random joke from that author.
-// This gives each author equal representation regardless of catalog size.
+// Group jokes by source, pick a random source, then a random joke from that source.
+// Custom jokes (many individual authors) are treated as one "community" bucket so
+// prolific submitters don't crowd out the curated sources.
+function getSourceKey(joke) {
+  return joke.id?.startsWith('custom-') ? 'community' : (joke.author || 'unknown')
+}
+
 function pickFairJoke(jokes) {
-  const byAuthor = {}
+  const bySource = {}
   for (const joke of jokes) {
-    const key = joke.author || 'unknown'
-    if (!byAuthor[key]) byAuthor[key] = []
-    byAuthor[key].push(joke)
+    const key = getSourceKey(joke)
+    if (!bySource[key]) bySource[key] = []
+    bySource[key].push(joke)
   }
-  const authors = Object.keys(byAuthor)
-  const author = authors[Math.floor(Math.random() * authors.length)]
-  const pool = byAuthor[author]
+  const sources = Object.keys(bySource)
+  const source = sources[Math.floor(Math.random() * sources.length)]
+  const pool = bySource[source]
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
