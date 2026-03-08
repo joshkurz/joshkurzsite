@@ -7,8 +7,9 @@ import { getDashboardStats } from '../lib/ratingsStorageDynamo'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/speak', label: 'Speak' },
-  { href: '/dashboard', label: 'Dashboard' }
+  { href: '/top', label: 'Top Jokes' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/about', label: 'About' },
 ]
 
 function formatNumber(value) {
@@ -167,7 +168,14 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
   return (
     <div className={styles.container}>
       <Head>
-        <title>Dad Jokes Analytics | What Makes People Groan?</title>
+        <title>Highest Rated Dad Jokes - Community Rankings</title>
+        <meta name="description" content="See which dad jokes made people groan the most. Browse community-voted rankings, top performers, and joke stats updated in real time." />
+        <link rel="canonical" href="https://joshkurz.net/dashboard" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://joshkurz.net/dashboard" />
+        <meta property="og:title" content="Highest Rated Dad Jokes - Community Rankings" />
+        <meta property="og:description" content="See which dad jokes made people groan the most. Community-voted rankings updated in real time." />
+        <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
       </Head>
       <Header navLinks={navLinks} />
       <main className={styles.main}>

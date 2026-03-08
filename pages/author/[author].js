@@ -8,8 +8,9 @@ import styles from '../../styles/Author.module.css'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/speak', label: 'Speak' },
-  { href: '/dashboard', label: 'Dashboard' }
+  { href: '/top', label: 'Top Jokes' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/about', label: 'About' },
 ]
 
 function formatNumber(value) {

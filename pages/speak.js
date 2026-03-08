@@ -16,8 +16,9 @@ export default function SpeechHelper() {
 
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
-    { href: '/speak', label: 'Speak' },
-    { href: '/dashboard', label: 'Dashboard' }
+    { href: '/top', label: 'Top Jokes' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/about', label: 'About' },
   ];
 
   const handleInputChange = (event) => {
@@ -113,9 +114,15 @@ export default function SpeechHelper() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Josh Kurz | Speech Helper</title>
-        <meta name="description" content="Help do text to speech" />
+        <title>Listen to Dad Jokes Aloud - Text-to-Speech</title>
+        <meta name="description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table without reading off your phone." />
+        <link rel="canonical" href="https://joshkurz.net/speak" />
         <link rel="icon" href="/favicon.ico" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://joshkurz.net/speak" />
+        <meta property="og:title" content="Listen to Dad Jokes Aloud - Text-to-Speech" />
+        <meta property="og:description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table." />
+        <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
       </Head>
       <Header navLinks={navLinks} />
       <main className={styles.main}>
