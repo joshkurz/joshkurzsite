@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
-  color: var(--color-text, #e2e8f0);
+  background: var(--gradient-background);
+  color: var(--color-text);
 }
 
 .main {
@@ -21,7 +21,7 @@
 
 .heroLabel {
   display: inline-block;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -62,8 +62,8 @@
 
 /* Story Sections */
 .storySection {
-  background: rgba(30, 27, 75, 0.4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(22, 22, 22, 0.4);
+  border: 1px solid rgba(243, 156, 18, 0.2);
   border-radius: 20px;
   padding: 2rem;
 }
@@ -89,8 +89,8 @@
 }
 
 .statBox {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.1));
+  border: 1px solid rgba(243, 156, 18, 0.25);
   border-radius: 16px;
   padding: 1.5rem 1rem;
   text-align: center;
@@ -141,7 +141,7 @@
 .spotlightBadge {
   display: inline-block;
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #1e1b4b;
+  color: #111111;
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -224,7 +224,7 @@
 .ratingBarTrack {
   flex: 1;
   height: 24px;
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(22, 22, 22, 0.6);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -287,7 +287,7 @@
   margin: 0 0 0.75rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: #f7dc6f;
 }
 
 /* Leaderboard */
@@ -301,7 +301,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 1.25rem;
@@ -310,7 +310,7 @@
 
 .leaderboardItem:hover {
   transform: translateX(4px);
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(243, 156, 18, 0.4);
 }
 
 .leaderboardItem.gold {
@@ -371,7 +371,7 @@
 }
 
 .leaderboardAuthor {
-  color: #a78bfa;
+  color: #f7dc6f;
   font-style: italic;
 }
 
@@ -389,20 +389,20 @@
 }
 
 .authorCardLink:hover .authorCard {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(243, 156, 18, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.15);
 }
 
 .authorCardLink:hover .authorInfo h4 {
-  color: #a78bfa;
+  color: #f7dc6f;
 }
 
 .authorCard {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 1rem 1.25rem;
@@ -413,7 +413,7 @@
 .authorRank {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #6366f1;
+  color: #f39c12;
 }
 
 .authorInfo h4 {
@@ -442,7 +442,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  background: rgba(30, 41, 59, 0.4);
+  background: rgba(22, 22, 22, 0.4);
   border-radius: 10px;
   padding: 1rem;
 }
@@ -504,7 +504,7 @@
   margin: 0;
   padding: 2rem;
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.4);
+  background: rgba(22, 22, 22, 0.4);
   color: rgba(226, 232, 240, 0.6);
   text-align: center;
 }
@@ -513,7 +513,7 @@
 .debugStats {
   margin-top: 2rem;
   padding: 1rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(10, 10, 10, 0.6);
   border: 1px solid rgba(71, 85, 105, 0.3);
   border-radius: 8px;
 }

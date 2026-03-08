@@ -37,6 +37,77 @@ function toQA(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Quality filtering
+// ---------------------------------------------------------------------------
+
+/**
+ * Patterns that identify Reddit meta-posts, warnings, or non-jokes in the opener.
+ * These are posts about the subreddit, content warnings, or story preambles —
+ * not actual jokes.
+ */
+const META_OPENER_PATTERNS = [
+  /^\[nsfw\]/i,           // [NSFW] content warnings
+  /^\(nsfw\)/i,
+  /^nsfw:/i,
+  /^\[warning/i,          // [warning 18+] etc
+  /^\(warning/i,
+  /^warning:/i,
+  /^not a joke/i,         // explicitly not a joke
+  /^is this sub/i,        // meta question about the subreddit
+  /^an open letter/i,     // letters to mods/community
+  /^the \w+ unwritten/i,  // "The two unwritten rules of..."
+  /r\/dadjokes/i,         // references to the subreddit itself
+  /^psa:/i,               // public service announcements
+  /^true story:/i,        // narrative posts
+  /^this just happened/i,
+  /^breaking:/i,          // news-style posts
+  /^unpopular opinion/i,
+  /^does anyone else/i,
+  /^who else/i,
+  /^genuine question/i,
+  /^when you thought/i,   // "When you thought you've seen all the jokes..."
+]
+
+/**
+ * Strip Reddit edit notes appended to responses (e.g. "\n\nEdit: thanks for gold!")
+ * and trim the result.
+ */
+function stripEditNotes(text) {
+  return text
+    .replace(/\n\n?edit\b.*/is, '')  // remove Edit: ... to end of string
+    .replace(/\n\n?update\b.*/is, '') // same for Update:
+    .trim()
+}
+
+/**
+ * Returns true if the response looks like a real punchline.
+ * Filters out broken parses (lone quote marks), numbers-only, and very short garbage.
+ */
+function isValidResponse(response) {
+  const r = response.trim()
+  if (r.length < 2) return false
+  if (/^["'`]+$/.test(r)) return false   // just punctuation (broken parse artifact)
+  if (/^\d+$/.test(r)) return false       // just a number ("1", "19", etc.)
+  if (/^\d+\s*[=:]\s*\d+$/.test(r)) return false  // "19 = 37" arithmetic non-jokes
+  return true
+}
+
+/**
+ * Full quality check for a candidate joke. Returns { ok, reason } so we can
+ * count why jokes are filtered.
+ */
+function qualityCheck(opener, response) {
+  if (META_OPENER_PATTERNS.some(p => p.test(opener))) {
+    return { ok: false, reason: 'meta/non-joke opener' }
+  }
+  const cleaned = stripEditNotes(response)
+  if (!isValidResponse(cleaned)) {
+    return { ok: false, reason: 'invalid response' }
+  }
+  return { ok: true, response: cleaned }
+}
+
+// ---------------------------------------------------------------------------
 // Shared fetch helper
 // ---------------------------------------------------------------------------
 
@@ -60,7 +131,7 @@ async function fetchIcanhazdadjoke() {
   console.log('Fetching from icanhazdadjoke.com...')
   const jokes = []
   const seen = new Set()
-  let filtered = 0
+  const filterReasons = {}
   let page = 1
   const limit = 30
 
@@ -75,14 +146,23 @@ async function fetchIcanhazdadjoke() {
       seen.add(item.id)
 
       const qa = toQA(item.joke.trim())
-      if (!qa) { filtered++; continue }
+      if (!qa) {
+        filterReasons['no Q&A structure'] = (filterReasons['no Q&A structure'] || 0) + 1
+        continue
+      }
+
+      const quality = qualityCheck(qa.opener, qa.response)
+      if (!quality.ok) {
+        filterReasons[quality.reason] = (filterReasons[quality.reason] || 0) + 1
+        continue
+      }
 
       jokes.push({
         id: `icanhaz-${item.id}`,
         sourceId: item.id,
         opener: qa.opener,
-        response: qa.response,
-        text: qa.text,
+        response: quality.response,
+        text: `Question: ${qa.opener}\nAnswer: ${quality.response}`,
         author: 'icanhazdadjoke.com',
       })
     }
@@ -91,7 +171,9 @@ async function fetchIcanhazdadjoke() {
     page++
   }
 
-  console.log(`  icanhazdadjoke.com: kept ${jokes.length}, filtered ${filtered} (no Q&A structure)`)
+  const totalFiltered = Object.values(filterReasons).reduce((a, b) => a + b, 0)
+  console.log(`  icanhazdadjoke.com: kept ${jokes.length}, filtered ${totalFiltered}`)
+  Object.entries(filterReasons).forEach(([r, n]) => console.log(`    - ${n} filtered: ${r}`))
   return jokes
 }
 
@@ -103,7 +185,7 @@ async function fetchReddit() {
   console.log('Fetching from reddit.com/r/dadjokes (max 1000, Reddit API limit)...')
   const jokes = []
   const seen = new Set()
-  let filtered = 0
+  const filterReasons = {}
   let after = null
 
   while (true) {
@@ -119,26 +201,33 @@ async function fetchReddit() {
       const rawBody = (post.selftext || '').trim()
       const body = rawBody && rawBody !== '[removed]' && rawBody !== '[deleted]' ? rawBody : null
 
-      let opener, response, text
+      let opener, response
 
       if (body) {
-        // Post has title + selftext — already Q&A
         opener = title
         response = body
-        text = `Question: ${opener}\nAnswer: ${response}`
       } else {
-        // Title only — try to split on ?
         const qa = toQA(title)
-        if (!qa) { filtered++; continue }
-        ;({ opener, response, text } = qa)
+        if (!qa) {
+          filterReasons['no Q&A structure'] = (filterReasons['no Q&A structure'] || 0) + 1
+          continue
+        }
+        opener = qa.opener
+        response = qa.response
+      }
+
+      const quality = qualityCheck(opener, response)
+      if (!quality.ok) {
+        filterReasons[quality.reason] = (filterReasons[quality.reason] || 0) + 1
+        continue
       }
 
       jokes.push({
         id: `reddit-dadjokes-${post.id}`,
         sourceId: post.id,
         opener,
-        response,
-        text,
+        response: quality.response,
+        text: `Question: ${opener}\nAnswer: ${quality.response}`,
         author: 'reddit.com/r/dadjokes',
       })
     }
@@ -147,7 +236,9 @@ async function fetchReddit() {
     if (!after || posts.length === 0) break
   }
 
-  console.log(`  reddit.com/r/dadjokes: kept ${jokes.length}, filtered ${filtered} (no Q&A structure)`)
+  const totalFiltered = Object.values(filterReasons).reduce((a, b) => a + b, 0)
+  console.log(`  reddit.com/r/dadjokes: kept ${jokes.length}, filtered ${totalFiltered}`)
+  Object.entries(filterReasons).forEach(([r, n]) => console.log(`    - ${n} filtered: ${r}`))
   return jokes
 }
 
