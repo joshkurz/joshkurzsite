@@ -15,14 +15,12 @@ terraform {
     }
   }
 
-  # Uncomment and configure for remote state storage
-  # backend "s3" {
-  #   bucket         = "your-terraform-state-bucket"
-  #   key            = "dad-jokes/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket  = "joshkurz-terraform-state"
+    key     = "dad-jokes/terraform.tfstate"
+    region  = "us-east-1"
+    encrypt = true
+  }
 }
 
 provider "aws" {
