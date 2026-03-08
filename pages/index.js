@@ -660,9 +660,84 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Josh Kurz | Dad Jokes</title>
-        <meta name="description" content="Random Dad Jokes From GPT Models" />
+        <title>Dad Jokes - Vote, Rate & Hear Funny Dad Jokes</title>
+        <meta name="description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
+        <link rel="canonical" href="https://joshkurz.net/" />
         <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://joshkurz.net/" />
+        <meta property="og:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
+        <meta property="og:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
+        <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
+        <meta name="twitter:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech." />
+
+        {/* WebSite schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Dad Jokes - JoshKurz.net",
+          "url": "https://joshkurz.net",
+          "description": "Interactive dad jokes platform — vote, rate, submit, and listen to dad jokes with AI generation and community rankings.",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://joshkurz.net/dashboard",
+            "query-input": "required"
+          }
+        })}} />
+
+        {/* FAQ schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is this dad jokes website?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "JoshKurz.net is an interactive dad jokes platform where you can vote and rate over 900 dad jokes on a groan-worthy scale, submit your own jokes, listen to them via text-to-speech, and even generate new ones using AI."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I vote on dad jokes?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Each joke shows a rating scale from 1 to 5. Just click your rating after reading the joke — 1 being barely a groan and 5 being a legendary dad joke. Your vote is saved and contributes to the community rankings."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I submit my own dad joke?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Click the submit button on the homepage to add your joke. Community votes determine which jokes rise to the top of the rankings."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does the AI dad joke generator work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Click the AI Joke button and our AI model generates a brand-new, original dad joke in real time. The AI is inspired by the highest-rated jokes in our community collection."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I listen to dad jokes out loud?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes — every joke has a text-to-speech button so you can hear it read aloud. Perfect for sharing at the dinner table without looking at your phone."
+              }
+            }
+          ]
+        })}} />
       </Head>
       <Header navLinks={navLinks} />
 
