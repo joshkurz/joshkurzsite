@@ -6,6 +6,7 @@ const LIMITS = {
   '/api/ai-joke': 10,
   '/api/speak': 10,
   '/api/custom-jokes': 10,
+  '/api/ratings': 20,
 }
 
 // ip -> { path -> timestamp[] }
@@ -71,5 +72,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/api/ai-joke', '/api/speak', '/api/custom-jokes'],
+  matcher: ['/api/ai-joke', '/api/speak', '/api/custom-jokes', '/api/ratings'],
 }
