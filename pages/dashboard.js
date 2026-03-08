@@ -7,8 +7,9 @@ import { getDashboardStats } from '../lib/ratingsStorageDynamo'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/speak', label: 'Speak' },
-  { href: '/dashboard', label: 'Dashboard' }
+  { href: '/top', label: 'Top Jokes' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/about', label: 'About' },
 ]
 
 function formatNumber(value) {
