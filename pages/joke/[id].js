@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import Header from '../../components/Header'
 import ShareButtons from '../../components/ShareButtons'
 import styles from '../../styles/JokePage.module.css'
-import { getJokeById } from '../../lib/jokesData'
+import { getAllJokesAsync } from '../../lib/jokesData'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -66,7 +66,8 @@ JokePage.propTypes = {
 }
 
 export async function getServerSideProps({ params, req }) {
-  const joke = getJokeById(params.id)
+  const jokes = await getAllJokesAsync()
+  const joke = jokes.find(j => j.id === params.id) || null
 
   if (!joke) {
     return { notFound: true }
