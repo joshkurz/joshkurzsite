@@ -12,6 +12,7 @@
     "fetch-external-jokes": "node scripts/fetch-external-jokes.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-dynamodb": "^3.978.0",
     "@aws-sdk/lib-dynamodb": "^3.978.0",
     "@vercel/analytics": "^0.1.6",

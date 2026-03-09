@@ -1,14 +1,8 @@
 import { buildAiJokePrompt, AI_JOKE_PROMPT_VERSION } from '../../lib/aiJokePrompt'
-import {
-  createResponseWithFallback,
-  getOpenAIClient,
-  getRandomLocalJoke,
-  getResponseModels
-} from '../../lib/openaiClient'
+import { generateWithAnthropic, getAnthropicModel } from '../../lib/anthropicClient'
+import { getRandomLocalJoke } from '../../lib/openaiClient'
 import { recordAcceptedJoke } from '../../lib/customJokes'
 import { getAiJokeNickname } from '../../lib/aiJokeNicknames'
-
-const openai = getOpenAIClient()
 
 function sanitizeLine(value) {
   return typeof value === 'string' ? value.trim() : ''
@@ -75,17 +69,6 @@ function buildFallbackJoke() {
   }
 }
 
-function resolveModelName(responseModel) {
-  if (responseModel) {
-    return responseModel
-  }
-  const models = getResponseModels({ stream: false })
-  if (models.length > 0) {
-    return models[0]
-  }
-  return 'unknown-model'
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -96,32 +79,24 @@ export default async function handler(req, res) {
   let jokePayload
   let responseModel = null
 
-  try {
-    if (openai.__mock) {
-      jokePayload = buildMockAiJoke()
-      responseModel = 'mock-openai'
-    } else {
+  if (process.env.MOCK_OPENAI === 'true') {
+    jokePayload = buildMockAiJoke()
+    responseModel = 'mock'
+  } else {
+    try {
       const prompt = await buildAiJokePrompt()
-      const result = await createResponseWithFallback(
-        openai,
-        {
-          input: prompt,
-          temperature: 1.0,
-          max_output_tokens: 300
-        },
-        { stream: false }
-      )
+      const result = await generateWithAnthropic(prompt)
       const output = sanitizeLine(result?.output_text)
       jokePayload = parseAiJokePayload(output)
-      responseModel = result?.model || null
+      responseModel = result?.model || getAnthropicModel()
+    } catch (error) {
+      console.error('[ai-joke] Failed to generate joke from Anthropic, using fallback', error)
+      jokePayload = buildFallbackJoke()
+      responseModel = 'local-fallback'
     }
-  } catch (error) {
-    console.error('[ai-joke] Failed to generate joke from OpenAI, using fallback', error)
-    jokePayload = buildFallbackJoke()
-    responseModel = 'local-fallback'
   }
 
-  const modelName = resolveModelName(responseModel)
+  const modelName = responseModel || getAnthropicModel()
   const author = `${modelName} · AI Joke Prompt v${AI_JOKE_PROMPT_VERSION}`
   const nickname = getAiJokeNickname(modelName, AI_JOKE_PROMPT_VERSION)
 
