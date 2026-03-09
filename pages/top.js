@@ -75,7 +75,11 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
             "itemListElement": jokes.slice(0, 10).map((j, i) => ({
               "@type": "ListItem",
               "position": i + 1,
-              "name": j.joke ? j.joke.slice(0, 80) : `Joke #${i + 1}`,
+              "item": {
+                "@type": "CreativeWork",
+                "name": j.joke ? j.joke.slice(0, 80) : `Joke #${i + 1}`,
+                "description": j.joke || '',
+              }
             }))
           })}} />
         )}
