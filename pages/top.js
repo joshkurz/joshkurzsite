@@ -79,13 +79,6 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
                 "@type": "CreativeWork",
                 "name": j.joke ? j.joke.slice(0, 80) : `Joke #${i + 1}`,
                 "description": j.joke || '',
-                "aggregateRating": {
-                  "@type": "AggregateRating",
-                  "ratingValue": j.average,
-                  "ratingCount": j.totalRatings,
-                  "bestRating": 5,
-                  "worstRating": 1
-                }
               }
             }))
           })}} />
