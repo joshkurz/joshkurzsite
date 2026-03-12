@@ -14,7 +14,8 @@ function parseAiJokePayload(raw) {
   }
   let parsed
   try {
-    parsed = JSON.parse(raw)
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+    parsed = JSON.parse(cleaned)
   } catch (error) {
     throw new Error('Unable to parse AI response JSON')
   }
@@ -85,6 +86,7 @@ export default async function handler(req, res) {
   } else {
     try {
       const prompt = await buildAiJokePrompt()
+      console.log('[ai-joke] prompt:', prompt)
       const result = await generateWithAnthropic(prompt)
       const output = sanitizeLine(result?.output_text)
       jokePayload = parseAiJokePayload(output)
