@@ -1,6 +1,6 @@
 import { CATEGORIES } from '../lib/categories'
 
-const SITE_URL = 'https://joshkurz.net'
+const SITE_URL = 'https://www.joshkurz.net'
 
 const STATIC_PAGES = [
   { url: '/',        changefreq: 'daily',   priority: '1.0' },

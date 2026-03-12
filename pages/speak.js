@@ -116,10 +116,10 @@ export default function SpeechHelper() {
       <Head>
         <title>Listen to Dad Jokes Aloud - Text-to-Speech</title>
         <meta name="description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table without reading off your phone." />
-        <link rel="canonical" href="https://joshkurz.net/speak" />
+        <link rel="canonical" href="https://www.joshkurz.net/speak" />
         <link rel="icon" href="/favicon.ico" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://joshkurz.net/speak" />
+        <meta property="og:url" content="https://www.joshkurz.net/speak" />
         <meta property="og:title" content="Listen to Dad Jokes Aloud - Text-to-Speech" />
         <meta property="og:description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />

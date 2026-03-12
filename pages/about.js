@@ -56,9 +56,9 @@ export default function About() {
       <Head>
         <title>About - Dad Jokes Website | JoshKurz.net</title>
         <meta name="description" content="Learn about JoshKurz.net's interactive dad joke platform — 900+ jokes from 4 sources, community voting, AI generation, and text-to-speech. Built for dad joke science." />
-        <link rel="canonical" href="https://joshkurz.net/about" />
+        <link rel="canonical" href="https://www.joshkurz.net/about" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://joshkurz.net/about" />
+        <meta property="og:url" content="https://www.joshkurz.net/about" />
         <meta property="og:title" content="About - Dad Jokes Website | JoshKurz.net" />
         <meta property="og:description" content="900+ dad jokes, community voting, AI generation, and text-to-speech. Learn how the platform works." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
