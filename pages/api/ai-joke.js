@@ -1,14 +1,8 @@
 import { buildAiJokePrompt, AI_JOKE_PROMPT_VERSION } from '../../lib/aiJokePrompt'
-import {
-  createResponseWithFallback,
-  getOpenAIClient,
-  getRandomLocalJoke,
-  getResponseModels
-} from '../../lib/openaiClient'
+import { generateWithAnthropic, getAnthropicModel } from '../../lib/anthropicClient'
+import { getRandomLocalJoke } from '../../lib/openaiClient'
 import { recordAcceptedJoke } from '../../lib/customJokes'
 import { getAiJokeNickname } from '../../lib/aiJokeNicknames'
-
-const openai = getOpenAIClient()
 
 function sanitizeLine(value) {
   return typeof value === 'string' ? value.trim() : ''
@@ -29,21 +23,11 @@ function parseAiJokePayload(raw) {
   if (!setup || !punchline) {
     throw new Error('AI response missing setup or punchline')
   }
-  const template = sanitizeLine(parsed.template)
   const tags = Array.isArray(parsed.tags) ? parsed.tags.map((tag) => sanitizeLine(tag)) : []
-  const chosenWords =
-    parsed.chosen_words && typeof parsed.chosen_words === 'object' ? parsed.chosen_words : {}
-  const ratingNumber = Number(parsed.rating)
-  const rating = Number.isFinite(ratingNumber) ? ratingNumber : null
-  const why = sanitizeLine(parsed.why_this_is_funny)
   return {
     setup,
     punchline,
-    template,
     tags,
-    chosenWords,
-    rating,
-    why,
     source: 'ai',
     persist: true
   }
@@ -52,31 +36,19 @@ function parseAiJokePayload(raw) {
 function buildMockAiJoke() {
   const examples = [
     {
-      setup: 'Why did the scarecrow start a podcast?',
-      punchline: 'Because he heard it was great for growing an audience.',
-      template: 'why_question',
-      tags: ['mock', 'farm'],
-      chosenWords: { noun: 'scarecrow', verb: 'start', literal_reason: 'it was outstanding in its field' },
-      rating: 3,
-      why: 'Literal twist on “outstanding in its field.”'
+      setup: 'I used to hate facial hair, but then it grew on me.',
+      punchline: '',
+      tags: ['mock', 'wordplay', 'one-liner'],
     },
     {
-      setup: 'What do you call a sleepy computer?',
-      punchline: 'A power nap-top.',
-      template: 'what_do_you_call',
-      tags: ['mock', 'tech', 'pun'],
-      chosenWords: { adjective: 'sleepy', noun: 'computer', pun_noun: 'nap-top' },
-      rating: 4,
-      why: 'Wordplay on laptop taking a power nap.'
+      setup: 'What do you call a sleeping dinosaur?',
+      punchline: 'A dino-snore.',
+      tags: ['mock', 'animals', 'pun'],
     },
     {
-      setup: 'Did you hear about the moon restaurant?',
-      punchline: 'Great food — no atmosphere.',
-      template: 'did_hear_question',
-      tags: ['mock', 'space'],
-      chosenWords: { noun: 'restaurant', punch_noun: 'great food', reason: 'it had no atmosphere' },
-      rating: 2,
-      why: 'Classic “no atmosphere” pun.'
+      setup: "I'm reading a thriller about a broken pencil.",
+      punchline: "It's pointless.",
+      tags: ['mock', 'wordplay', 'one-liner'],
     }
   ]
   const selected = examples[Math.floor(Math.random() * examples.length)]
@@ -91,25 +63,10 @@ function buildFallbackJoke() {
   return {
     setup: setup || 'Why did the joke generator take a break?',
     punchline: punchline || 'Because it ran out of punchlines to process.',
-    template: 'fallback_local',
     tags: ['fallback'],
-    chosenWords: {},
-    rating: null,
-    why: 'Fallback to stored joke because AI generation was unavailable.',
     source: 'fallback',
     persist: false
   }
-}
-
-function resolveModelName(responseModel) {
-  if (responseModel) {
-    return responseModel
-  }
-  const models = getResponseModels({ stream: false })
-  if (models.length > 0) {
-    return models[0]
-  }
-  return 'unknown-model'
 }
 
 export default async function handler(req, res) {
@@ -122,32 +79,24 @@ export default async function handler(req, res) {
   let jokePayload
   let responseModel = null
 
-  try {
-    if (openai.__mock) {
-      jokePayload = buildMockAiJoke()
-      responseModel = 'mock-openai'
-    } else {
+  if (process.env.MOCK_OPENAI === 'true') {
+    jokePayload = buildMockAiJoke()
+    responseModel = 'mock'
+  } else {
+    try {
       const prompt = await buildAiJokePrompt()
-      const result = await createResponseWithFallback(
-        openai,
-        {
-          input: prompt,
-          temperature: 0.8,
-          max_output_tokens: 600
-        },
-        { stream: false }
-      )
+      const result = await generateWithAnthropic(prompt)
       const output = sanitizeLine(result?.output_text)
       jokePayload = parseAiJokePayload(output)
-      responseModel = result?.model || null
+      responseModel = result?.model || getAnthropicModel()
+    } catch (error) {
+      console.error('[ai-joke] Failed to generate joke from Anthropic, using fallback', error)
+      jokePayload = buildFallbackJoke()
+      responseModel = 'local-fallback'
     }
-  } catch (error) {
-    console.error('[ai-joke] Failed to generate joke from OpenAI, using fallback', error)
-    jokePayload = buildFallbackJoke()
-    responseModel = 'local-fallback'
   }
 
-  const modelName = resolveModelName(responseModel)
+  const modelName = responseModel || getAnthropicModel()
   const author = `${modelName} · AI Joke Prompt v${AI_JOKE_PROMPT_VERSION}`
   const nickname = getAiJokeNickname(modelName, AI_JOKE_PROMPT_VERSION)
 
@@ -170,11 +119,7 @@ export default async function handler(req, res) {
         }
 
     const metadata = {
-      template: jokePayload.template,
       tags: jokePayload.tags,
-      rating: jokePayload.rating,
-      chosenWords: jokePayload.chosenWords,
-      whyThisIsFunny: jokePayload.why,
       promptVersion: AI_JOKE_PROMPT_VERSION,
       model: modelName,
       nickname,
