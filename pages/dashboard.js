@@ -170,9 +170,9 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
       <Head>
         <title>Highest Rated Dad Jokes - Community Rankings</title>
         <meta name="description" content="See which dad jokes made people groan the most. Browse community-voted rankings, top performers, and joke stats updated in real time." />
-        <link rel="canonical" href="https://joshkurz.net/dashboard" />
+        <link rel="canonical" href="https://www.joshkurz.net/dashboard" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://joshkurz.net/dashboard" />
+        <meta property="og:url" content="https://www.joshkurz.net/dashboard" />
         <meta property="og:title" content="Highest Rated Dad Jokes - Community Rankings" />
         <meta property="og:description" content="See which dad jokes made people groan the most. Community-voted rankings updated in real time." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />

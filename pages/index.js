@@ -670,12 +670,12 @@ export default function Home() {
       <Head>
         <title>Dad Jokes - Vote, Rate & Hear Funny Dad Jokes</title>
         <meta name="description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
-        <link rel="canonical" href="https://joshkurz.net/" />
+        <link rel="canonical" href="https://www.joshkurz.net/" />
         <link rel="icon" href="/favicon.ico" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://joshkurz.net/" />
+        <meta property="og:url" content="https://www.joshkurz.net/" />
         <meta property="og:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
         <meta property="og:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
@@ -690,11 +690,11 @@ export default function Home() {
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "Dad Jokes - JoshKurz.net",
-          "url": "https://joshkurz.net",
+          "url": "https://www.joshkurz.net",
           "description": "Interactive dad jokes platform — vote, rate, submit, and listen to dad jokes with AI generation and community rankings.",
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://joshkurz.net/dashboard",
+            "target": "https://www.joshkurz.net/dashboard",
             "query-input": "required"
           }
         })}} />

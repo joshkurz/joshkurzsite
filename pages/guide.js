@@ -42,9 +42,9 @@ export default function GuidePage() {
       <Head>
         <title>{title} | JoshKurz.net</title>
         <meta name="description" content={description} />
-        <link rel="canonical" href="https://joshkurz.net/guide" />
+        <link rel="canonical" href="https://www.joshkurz.net/guide" />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://joshkurz.net/guide" />
+        <meta property="og:url" content="https://www.joshkurz.net/guide" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
@@ -56,11 +56,11 @@ export default function GuidePage() {
           '@type': 'Article',
           headline: title,
           description,
-          url: 'https://joshkurz.net/guide',
+          url: 'https://www.joshkurz.net/guide',
           publisher: {
             '@type': 'Organization',
             name: 'JoshKurz.net',
-            url: 'https://joshkurz.net',
+            url: 'https://www.joshkurz.net',
           },
         })}} />
       </Head>

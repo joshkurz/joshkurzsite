@@ -25,7 +25,7 @@ export default function CategoryPage({ category, jokes }) {
   const meta = CATEGORY_META[category] || { emoji: '😄', label: `${category} Jokes`, keywords: `${category} dad jokes` }
   const title = `${meta.label} - Dad Jokes`
   const description = `Laugh at the best ${meta.label.toLowerCase()} — ${jokes.length} hand-picked dad jokes about ${category}. Rate your favorites and share the groan-worthy ones.`
-  const canonicalUrl = `https://joshkurz.net/jokes/${category}`
+  const canonicalUrl = `https://www.joshkurz.net/jokes/${category}`
 
   return (
     <div className={styles.container}>
