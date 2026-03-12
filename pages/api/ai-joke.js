@@ -46,8 +46,8 @@ function buildMockAiJoke() {
       tags: ['mock', 'animals', 'pun'],
     },
     {
-      setup: “I'm reading a thriller about a broken pencil.”,
-      punchline: “It's pointless.”,
+      setup: "I'm reading a thriller about a broken pencil.",
+      punchline: "It's pointless.",
       tags: ['mock', 'wordplay', 'one-liner'],
     }
   ]
