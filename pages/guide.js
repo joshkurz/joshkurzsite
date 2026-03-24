@@ -42,13 +42,17 @@ export default function GuidePage() {
       <Head>
         <title>{title} | JoshKurz.net</title>
         <meta name="description" content={description} />
-        <link rel="canonical" href="https://www.joshkurz.net/guide" />
+        <link rel="canonical" href="https://joshkurz.net/guide" />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://www.joshkurz.net/guide" />
+        <meta property="og:url" content="https://joshkurz.net/guide" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
@@ -56,11 +60,11 @@ export default function GuidePage() {
           '@type': 'Article',
           headline: title,
           description,
-          url: 'https://www.joshkurz.net/guide',
+          url: 'https://joshkurz.net/guide',
           publisher: {
             '@type': 'Organization',
             name: 'JoshKurz.net',
-            url: 'https://www.joshkurz.net',
+            url: 'https://joshkurz.net',
           },
         })}} />
       </Head>

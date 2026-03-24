@@ -58,19 +58,26 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
       <Head>
         <title>Top Rated Dad Jokes - Community Hall of Fame</title>
         <meta name="description" content={`The highest-rated dad jokes ranked by community votes. ${jokes.length > 0 ? `${jokes.length} top performers` : 'Community'} voted best from 900+ jokes. Updated in real time.`} />
-        <link rel="canonical" href="https://www.joshkurz.net/top" />
+        <link rel="canonical" href="https://joshkurz.net/top" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.joshkurz.net/top" />
+        <meta property="og:url" content="https://joshkurz.net/top" />
         <meta property="og:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
         <meta property="og:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
+        <meta name="twitter:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
         {jokes.length > 0 && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "ItemList",
             "name": "Top Rated Dad Jokes",
             "description": "The highest-rated dad jokes ranked by community votes",
-            "url": "https://www.joshkurz.net/top",
+            "url": "https://joshkurz.net/top",
             "numberOfItems": jokes.length,
             "itemListElement": jokes.slice(0, 10).map((j, i) => ({
               "@type": "ListItem",

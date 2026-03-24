@@ -25,7 +25,7 @@ export default function CategoryPage({ category, jokes }) {
   const meta = CATEGORY_META[category] || { emoji: '😄', label: `${category} Jokes`, keywords: `${category} dad jokes` }
   const title = `${meta.label} - Dad Jokes`
   const description = `Laugh at the best ${meta.label.toLowerCase()} — ${jokes.length} hand-picked dad jokes about ${category}. Rate your favorites and share the groan-worthy ones.`
-  const canonicalUrl = `https://www.joshkurz.net/jokes/${category}`
+  const canonicalUrl = `https://joshkurz.net/jokes/${category}`
 
   return (
     <div className={styles.container}>
@@ -38,7 +38,11 @@ export default function CategoryPage({ category, jokes }) {
         <meta property="og:title" content={`${title} | JoshKurz.net`} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         {jokes.length > 0 && (
