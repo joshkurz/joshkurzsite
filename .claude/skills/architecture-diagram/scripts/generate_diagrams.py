@@ -42,7 +42,7 @@ with Diagram(
     user = User("Browser")
 
     with Cluster("Vercel (Serverless)"):
-        nextjs = React("Next.js 13\nHomepage / Dashboard")
+        nextjs = React("Next.js 15\nHomepage / Dashboard")
         with Cluster("API Routes"):
             api_random  = NodeJS("/api/random-joke")
             api_ai      = NodeJS("/api/ai-joke")
@@ -122,7 +122,7 @@ with Diagram(
         r_handler >> r_write >> r_rt
         r_handler >> r_read >> r_st
 
-    with Cluster("GET /api/speak"):
+    with Cluster("POST /api/speak"):
         sp_handler = NodeJS("handler")
         sp_openai  = Rack("OpenAI\ngpt-4o-mini-tts")
         sp_mp3     = Storage("MP3 Stream\n→ browser")
