@@ -58,9 +58,9 @@ export default function SubmitPage() {
       <Head>
         <title>Submit a Dad Joke | JoshKurz.net</title>
         <meta name="description" content="Submit your own dad joke to JoshKurz.net. Approved jokes join the rotation and get rated by the community. Share your best groan-worthy humor." />
-        <link rel="canonical" href="https://www.joshkurz.net/submit" />
+        <link rel="canonical" href="https://joshkurz.net/submit" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.joshkurz.net/submit" />
+        <meta property="og:url" content="https://joshkurz.net/submit" />
         <meta property="og:title" content="Submit a Dad Joke | JoshKurz.net" />
         <meta property="og:description" content="Submit your own dad joke. Approved jokes join the rotation and get rated by 900+ jokes worth of community." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />

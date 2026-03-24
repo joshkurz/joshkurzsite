@@ -31,9 +31,9 @@ export default function WeeklyPage({ jokes, updatedAt, error }) {
       <Head>
         <title>{title} | JoshKurz.net</title>
         <meta name="description" content={description} />
-        <link rel="canonical" href="https://www.joshkurz.net/weekly" />
+        <link rel="canonical" href="https://joshkurz.net/weekly" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.joshkurz.net/weekly" />
+        <meta property="og:url" content="https://joshkurz.net/weekly" />
         <meta property="og:title" content={`${title} | JoshKurz.net`} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
