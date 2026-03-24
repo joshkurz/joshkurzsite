@@ -62,6 +62,13 @@ export default function About() {
         <meta property="og:title" content="About - Dad Jokes Website | JoshKurz.net" />
         <meta property="og:description" content="900+ dad jokes, community voting, AI generation, and text-to-speech. Learn how the platform works." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:title" content="About - Dad Jokes Website | JoshKurz.net" />
+        <meta name="twitter:description" content="900+ dad jokes, community voting, AI generation, and text-to-speech. Learn how the platform works." />
       </Head>
 
       <Header navLinks={navLinks} />

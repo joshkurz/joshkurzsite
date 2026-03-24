@@ -171,8 +171,21 @@ export default function AuthorPage({ data, error }) {
   return (
     <div className={styles.container}>
       <Head>
-        <title>{authorName} - Dad Jokes | Josh Kurz</title>
-        <meta name="description" content={`All dad jokes by ${authorName} with ratings and rankings`} />
+        <title>{authorName} - Dad Jokes | JoshKurz.net</title>
+        <meta name="description" content={`Browse all dad jokes by ${authorName} — ratings, rankings, and community votes on JoshKurz.net.`} />
+        <link rel="canonical" href={`https://joshkurz.net/author/${encodeURIComponent(router.query.author || '')}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://joshkurz.net/author/${encodeURIComponent(router.query.author || '')}`} />
+        <meta property="og:title" content={`${authorName} - Dad Jokes | JoshKurz.net`} />
+        <meta property="og:description" content={`Browse all dad jokes by ${authorName} — ratings, rankings, and community votes.`} />
+        <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:title" content={`${authorName} - Dad Jokes | JoshKurz.net`} />
+        <meta name="twitter:description" content={`Browse all dad jokes by ${authorName} — ratings, rankings, and community votes.`} />
       </Head>
       <Header navLinks={navLinks} />
       <main className={styles.main}>

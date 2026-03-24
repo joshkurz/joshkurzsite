@@ -64,7 +64,11 @@ export default function SubmitPage() {
         <meta property="og:title" content="Submit a Dad Joke | JoshKurz.net" />
         <meta property="og:description" content="Submit your own dad joke. Approved jokes join the rotation and get rated by 900+ jokes worth of community." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
         <meta name="twitter:title" content="Submit a Dad Joke" />
         <meta name="twitter:description" content="Share your best dad joke with the community. Approved jokes get rated by the crowd." />
       </Head>

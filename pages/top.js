@@ -64,6 +64,13 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
         <meta property="og:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
         <meta property="og:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
+        <meta name="twitter:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
         {jokes.length > 0 && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",

@@ -679,9 +679,13 @@ export default function Home() {
         <meta property="og:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
         <meta property="og:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
+        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter Card */}
-        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
         <meta name="twitter:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
         <meta name="twitter:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech." />
 
