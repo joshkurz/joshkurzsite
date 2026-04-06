@@ -10,6 +10,7 @@ jest.mock('../../lib/dynamoClient.js', () => ({
 }))
 
 import { readGlobalStats, getRandomTopJoke } from '../../lib/ratingsStorageDynamo.js'
+import { QueryCommand } from '../../lib/dynamoClient.js'
 
 beforeEach(() => {
   mockSend.mockReset()
@@ -121,6 +122,16 @@ describe('getRandomTopJoke', () => {
     })
     const result = await getRandomTopJoke()
     expect(result.jokeId).toBe('custom-joke-999')
+  })
+
+  it('queries DynamoDB with GSI1SK >= 4.0 so low-rated jokes are excluded at the source', async () => {
+    mockSend.mockResolvedValue({ Items: [makeItem()], Count: 1 })
+    await getRandomTopJoke()
+    // The argument passed to mockSend is the result of `new QueryCommand(params)`,
+    // which our mock wraps as { type: 'Query', params }.
+    const sentArg = mockSend.mock.calls[0][0]
+    expect(sentArg.params.KeyConditionExpression).toContain('GSI1SK >= :minAvg')
+    expect(sentArg.params.ExpressionAttributeValues[':minAvg']).toBe(4.0)
   })
 
   it('returns one of the eligible candidates at random', async () => {
