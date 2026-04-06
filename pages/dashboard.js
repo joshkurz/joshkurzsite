@@ -243,6 +243,11 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                   {crowdFavorite.author && (
                     <span className={styles.spotlightAuthor}>by {formatAuthorName(crowdFavorite.author)}</span>
                   )}
+                  {crowdFavorite.jokeId && (
+                    <Link href={`/joke/${crowdFavorite.jokeId}`} className={styles.spotlightLink}>
+                      View &amp; rate →
+                    </Link>
+                  )}
                 </div>
               </section>
             )}
@@ -290,8 +295,9 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                 </p>
                 <div className={styles.leaderboard}>
                   {topPerformers.slice(0, 5).map((performer, index) => (
-                    <div
+                    <Link
                       key={`${performer.jokeId || index}`}
+                      href={`/joke/${performer.jokeId}`}
                       className={`${styles.leaderboardItem} ${index === 0 ? styles.gold : ''} ${index === 1 ? styles.silver : ''} ${index === 2 ? styles.bronze : ''}`}
                     >
                       <div className={styles.leaderboardRank}>#{index + 1}</div>
@@ -308,7 +314,7 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                           )}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </section>
@@ -368,6 +374,11 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                         <div className={styles.activityMeta}>
                           <span>{formatDate(item.submittedAt || item.date)}</span>
                           {item.author && <span>{formatAuthorName(item.author)}</span>}
+                          {item.jokeId && (
+                            <Link href={`/joke/${item.jokeId}`} className={styles.activityLink}>
+                              View →
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>

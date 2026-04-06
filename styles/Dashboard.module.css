@@ -191,6 +191,20 @@
   font-style: italic;
 }
 
+.spotlightLink {
+  color: #fbbf24;
+  text-decoration: none;
+  font-weight: 600;
+  font-style: normal;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.4);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.spotlightLink:hover {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.8);
+}
+
 /* Star Rating */
 .starRating {
   color: #fbbf24;
@@ -306,6 +320,8 @@
   border-radius: 12px;
   padding: 1.25rem;
   transition: transform 0.2s, border-color 0.2s;
+  text-decoration: none;
+  color: inherit;
 }
 
 .leaderboardItem:hover {
@@ -497,6 +513,19 @@
   gap: 1rem;
   font-size: 0.8rem;
   color: rgba(226, 232, 240, 0.5);
+  align-items: center;
+}
+
+.activityLink {
+  color: rgba(243, 156, 18, 0.8);
+  text-decoration: none;
+  margin-left: auto;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.activityLink:hover {
+  color: rgba(243, 156, 18, 1);
 }
 
 /* Empty State */
