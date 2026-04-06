@@ -450,7 +450,14 @@ class OpenAIData extends React.Component {
       return <div>Error Loading: {error.message}</div>;
     }
     if (!isLoaded) {
-      return <Spinner />;
+      return (
+        <div className={styles.jokeContainer}>
+          <div className={styles.jokeHeaderRow}>
+            <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+          </div>
+          <Spinner />
+        </div>
+      );
     }
     if (jokesExhausted) {
       return (
@@ -684,12 +691,16 @@ class OpenAIData extends React.Component {
 
 export default function Home() {
   const [featuredJoke, setFeaturedJoke] = React.useState(null);
+  const [featuredLoading, setFeaturedLoading] = React.useState(true);
 
   React.useEffect(() => {
     fetch('/api/featured-joke')
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data && data.opener) setFeaturedJoke(data); })
-      .catch(() => {});
+      .then(data => {
+        if (data && data.opener) setFeaturedJoke(data);
+        setFeaturedLoading(false);
+      })
+      .catch(() => { setFeaturedLoading(false); });
   }, []);
 
   const navLinks = [
@@ -801,28 +812,36 @@ export default function Home() {
         </div>
       </section>
 
-      {featuredJoke && (
+      {(featuredLoading || featuredJoke) && (
         <section className={styles.featuredJokeSection}>
-          <div className={styles.featuredJokeCard}>
-            <span className={styles.featuredBadge}>⭐ Top Community Groaner</span>
-            <p className={styles.featuredQuestion}>{featuredJoke.opener}</p>
-            {featuredJoke.punchline && (
-              <p className={styles.featuredAnswer}>{featuredJoke.punchline}</p>
-            )}
-            <div className={styles.featuredMeta}>
-              {featuredJoke.author && (
-                <span className={styles.featuredAuthor}>{featuredJoke.author}</span>
-              )}
-              <span className={styles.featuredStats}>
-                ⭐ {featuredJoke.average} avg · {featuredJoke.totalRatings} votes
-              </span>
-              {featuredJoke.jokeId && (
-                <Link href={`/joke/${featuredJoke.jokeId}`} className={styles.featuredLink}>
-                  Rate it →
-                </Link>
-              )}
+          {featuredLoading ? (
+            <div className={`${styles.featuredJokeCard} ${styles.featuredJokeSkeleton}`}>
+              <span className={styles.featuredBadge}>⭐ Top Community Groaner</span>
+              <div className={styles.skeletonLine} style={{ width: '80%', height: '1.2em', marginBottom: '0.5rem' }} />
+              <div className={styles.skeletonLine} style={{ width: '60%', height: '1em' }} />
             </div>
-          </div>
+          ) : (
+            <div className={styles.featuredJokeCard}>
+              <span className={styles.featuredBadge}>⭐ Top Community Groaner</span>
+              <p className={styles.featuredQuestion}>{featuredJoke.opener}</p>
+              {featuredJoke.punchline && (
+                <p className={styles.featuredAnswer}>{featuredJoke.punchline}</p>
+              )}
+              <div className={styles.featuredMeta}>
+                {featuredJoke.author && (
+                  <span className={styles.featuredAuthor}>{featuredJoke.author}</span>
+                )}
+                <span className={styles.featuredStats}>
+                  ⭐ {featuredJoke.average} avg · {featuredJoke.totalRatings} votes
+                </span>
+                {featuredJoke.jokeId && (
+                  <Link href={`/joke/${featuredJoke.jokeId}`} className={styles.featuredLink}>
+                    Rate it →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
