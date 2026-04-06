@@ -4,10 +4,11 @@ import PropTypes from 'prop-types'
 import Header from '../components/Header'
 import styles from '../styles/Dashboard.module.css'
 import { getDashboardStats } from '../lib/ratingsStorageDynamo'
+import { getAllJokesAsync } from '../lib/jokesData'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -151,7 +152,7 @@ RatingDistributionChart.propTypes = {
   counts: PropTypes.object
 }
 
-export default function Dashboard({ summary, error, requestTimeMs, generatedAt }) {
+export default function Dashboard({ summary, totalJokes, error, requestTimeMs, generatedAt }) {
   const authorStats = summary?.totals?.byAuthor || []
   const topAuthor = authorStats[0] || null
   const authorCount = authorStats.length
@@ -164,6 +165,10 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
   const oneStarCount = summary?.ratingDistribution?.overall?.[1] || 0
   const totalRatings = summary?.totals?.overallRatings || 0
   const positivePercentage = totalRatings > 0 ? Math.round((fiveStarCount / totalRatings) * 100) : 0
+
+  // Coverage metrics
+  const uniqueJokes = summary?.totals?.uniqueJokes || 0
+  const percentRated = totalJokes > 0 ? Math.round((uniqueJokes / totalJokes) * 100) : 0
 
   return (
     <div className={styles.container}>
@@ -225,6 +230,14 @@ export default function Dashboard({ summary, error, requestTimeMs, generatedAt }
                 <div className={styles.statBox}>
                   <div className={styles.statValue}>{positivePercentage}%</div>
                   <div className={styles.statLabel}>5-Star Ratings</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{formatNumber(totalJokes)}</div>
+                  <div className={styles.statLabel}>Total Jokes</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{percentRated}%</div>
+                  <div className={styles.statLabel}>Jokes Rated</div>
                 </div>
               </div>
             </section>
@@ -447,6 +460,7 @@ Dashboard.propTypes = {
       })
     )
   }),
+  totalJokes: PropTypes.number,
   error: PropTypes.bool,
   requestTimeMs: PropTypes.number,
   generatedAt: PropTypes.string
@@ -454,6 +468,7 @@ Dashboard.propTypes = {
 
 Dashboard.defaultProps = {
   summary: null,
+  totalJokes: 0,
   error: false,
   requestTimeMs: 0,
   generatedAt: ''
@@ -462,13 +477,17 @@ Dashboard.defaultProps = {
 export async function getServerSideProps() {
   const startTime = Date.now()
   try {
-    // Call getDashboardStats directly - no caching
-    const summary = await getDashboardStats()
+    const [summary, allJokes] = await Promise.all([
+      getDashboardStats(),
+      getAllJokesAsync()
+    ])
+    const totalJokes = allJokes.length
     const requestTimeMs = Date.now() - startTime
     const generatedAt = new Date().toISOString()
     return {
       props: {
         summary,
+        totalJokes,
         requestTimeMs,
         generatedAt
       }
@@ -479,6 +498,7 @@ export async function getServerSideProps() {
     return {
       props: {
         summary: null,
+        totalJokes: 0,
         error: true,
         requestTimeMs,
         generatedAt: new Date().toISOString()

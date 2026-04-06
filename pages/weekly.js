@@ -7,7 +7,7 @@ import { getWeeklyTopJokes } from '../lib/ratingsStorageDynamo'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -108,7 +108,7 @@ export default function WeeklyPage({ jokes, updatedAt, error }) {
         <div className={styles.cta}>
           <p>See all-time community favorites on the Hall of Fame, or go rate more jokes.</p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link href="/top" className={styles.ctaButton}>All-Time Top Jokes</Link>
+            <Link href="/best-dad-jokes" className={styles.ctaButton}>All-Time Top Jokes</Link>
             <Link href="/" className={styles.ctaButton} style={{ background: 'transparent', border: '1px solid rgba(243,156,18,0.5)', color: 'var(--color-primary)' }}>Rate Jokes</Link>
           </div>
         </div>

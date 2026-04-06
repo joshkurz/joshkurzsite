@@ -5,7 +5,7 @@ import styles from '../styles/About.module.css'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -135,6 +135,22 @@ export default function About() {
             To keep votes honest, each IP address can only rate a given joke once. Repeat votes are
             silently ignored — no error, no drama. Just good, clean, democratic groan-scoring.
           </p>
+        </section>
+
+        <section className={styles.section}>
+          <h2>FAQ</h2>
+          <div className={styles.faqList}>
+            <div className={styles.faqItem}>
+              <h3>What about inappropriate content?</h3>
+              <p>
+                We do our best to filter out NSFW content automatically, but some may occasionally
+                slip through. We&apos;re constantly working to keep this site clean and fun for everyone.
+                If you run across a joke that doesn&apos;t belong here, give it a 1-star rating — we
+                automatically filter out jokes that consistently receive low ratings, so your vote
+                helps keep the collection clean and groan-worthy for the whole family.
+              </p>
+            </div>
+          </div>
         </section>
 
         <section className={styles.cta}>

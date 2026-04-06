@@ -6,7 +6,7 @@ import styles from '../styles/SubmitPage.module.css'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -147,7 +147,7 @@ export default function SubmitPage() {
             <Link href="/guide" className={styles.link}>What Makes a Great Dad Joke?</Link>
           </p>
           <p>
-            Or browse the <Link href="/top" className={styles.link}>community hall of fame</Link> for inspiration.
+            Or browse the <Link href="/best-dad-jokes" className={styles.link}>community hall of fame</Link> for inspiration.
           </p>
         </div>
       </main>
