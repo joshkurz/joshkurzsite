@@ -7,7 +7,7 @@ import { getTopJokes, readGlobalStats } from '../lib/ratingsStorageDynamo'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -65,14 +65,14 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://joshkurz.net/" },
-          { "@type": "ListItem", "position": 2, "name": "Top Dad Jokes", "item": "https://joshkurz.net/top" }
+          { "@type": "ListItem", "position": 2, "name": "Top Dad Jokes", "item": "https://joshkurz.net/best-dad-jokes" }
         ]
       },
       {
         "@type": "ItemList",
         "name": `Top ${jokes.length} Dad Jokes Ranked by Community Votes`,
         "description": "The highest-rated dad jokes from 900+ in the collection, ranked by average star rating with a minimum of 3 votes.",
-        "url": "https://joshkurz.net/top",
+        "url": "https://joshkurz.net/best-dad-jokes",
         "numberOfItems": jokes.length,
         "itemListElement": jokes.map((j, i) => ({
           "@type": "ListItem",
@@ -99,9 +99,9 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
       <Head>
         <title>{`Top ${jokes.length} Dad Jokes Ranked by Community Votes | JoshKurz.net`}</title>
         <meta name="description" content={metaDescription} />
-        <link rel="canonical" href="https://joshkurz.net/top" />
+        <link rel="canonical" href="https://joshkurz.net/best-dad-jokes" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://joshkurz.net/top" />
+        <meta property="og:url" content="https://joshkurz.net/best-dad-jokes" />
         <meta property="og:title" content={`Top ${jokes.length} Dad Jokes Ranked by Community Votes`} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />

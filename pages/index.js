@@ -705,7 +705,7 @@ export default function Home() {
 
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
-    { href: '/top', label: 'Top Jokes' },
+    { href: '/best-dad-jokes', label: 'Top Jokes' },
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/about', label: 'About' },
   ];
@@ -861,7 +861,7 @@ export default function Home() {
           <div className={styles.step}>
             <div className={styles.stepIcon}>🤦‍♂️</div>
             <h3>Rate the Groan Factor</h3>
-            <p>Give it 1–5 groans. One reluctant chuckle or a full eye-roll? Your vote is saved and contributes to the community leaderboard on the <Link href="/top" className={styles.inlineLink}>Top Jokes</Link> page.</p>
+            <p>Give it 1–5 groans. One reluctant chuckle or a full eye-roll? Your vote is saved and contributes to the community leaderboard on the <Link href="/best-dad-jokes" className={styles.inlineLink}>Top Jokes</Link> page.</p>
           </div>
           <div className={styles.step}>
             <div className={styles.stepIcon}>🤖</div>
@@ -910,7 +910,7 @@ export default function Home() {
           </div>
           <div className={styles.faqItem}>
             <dt>Can I submit my own dad joke?</dt>
-            <dd>Yes! Click &ldquo;Submit Your Joke&rdquo; below any joke to add yours. Community votes determine which jokes rise to the top of the <Link href="/top" className={styles.inlineLink}>leaderboard</Link>.</dd>
+            <dd>Yes! Click &ldquo;Submit Your Joke&rdquo; below any joke to add yours. Community votes determine which jokes rise to the top of the <Link href="/best-dad-jokes" className={styles.inlineLink}>leaderboard</Link>.</dd>
           </div>
           <div className={styles.faqItem}>
             <dt>How does the AI dad joke generator work?</dt>

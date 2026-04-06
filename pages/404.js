@@ -6,7 +6,7 @@ import styles from '../styles/NotFound.module.css'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -78,7 +78,7 @@ export default function NotFound() {
 
         <div className={styles.actions}>
           <Link href="/" className={styles.primaryButton}>Take Me Home</Link>
-          <Link href="/top" className={styles.secondaryButton}>Top Jokes</Link>
+          <Link href="/best-dad-jokes" className={styles.secondaryButton}>Top Jokes</Link>
         </div>
       </main>
     </div>

@@ -5,7 +5,7 @@ import styles from '../styles/GuidePage.module.css'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
-  { href: '/top', label: 'Top Jokes' },
+  { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
 ]
@@ -190,7 +190,7 @@ export default function GuidePage() {
               icanhazdadjoke.com&apos;s community API, the all-time top posts from Reddit&apos;s
               r/dadjokes, and original submissions from visitors like you. The community rates every
               joke, and the top performers surface in the{' '}
-              <Link href="/top" className={styles.link || 'a'} style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
+              <Link href="/best-dad-jokes" className={styles.link || 'a'} style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
                 Hall of Fame
               </Link>.
             </p>
