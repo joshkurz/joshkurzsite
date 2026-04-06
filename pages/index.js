@@ -805,10 +805,10 @@ export default function Home() {
           submit your own, or let AI generate a fresh one on the spot.
         </p>
         <div className={styles.sourcePills}>
-          <span className={styles.sourcePill}>fatherhood.gov</span>
-          <span className={styles.sourcePill}>icanhazdadjoke.com</span>
-          <span className={styles.sourcePill}>r/dadjokes</span>
-          <span className={styles.sourcePill}>Community</span>
+          <Link href="/author/fatherhood.gov" className={styles.sourcePill}>fatherhood.gov</Link>
+          <Link href="/author/icanhazdadjoke.com" className={styles.sourcePill}>icanhazdadjoke.com</Link>
+          <Link href={`/author/${encodeURIComponent('reddit.com/r/dadjokes')}`} className={styles.sourcePill}>r/dadjokes</Link>
+          <Link href="/submit" className={styles.sourcePill}>Community</Link>
         </div>
       </section>
 

@@ -828,6 +828,14 @@
   font-weight: 600;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+a.sourcePill:hover {
+  background: rgba(243, 156, 18, 0.22);
+  border-color: rgba(243, 156, 18, 0.55);
+  color: rgba(243, 156, 18, 1);
 }
 
 /* Shared section styles */
