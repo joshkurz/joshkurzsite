@@ -3,7 +3,7 @@ import Link from 'next/link'
 import PropTypes from 'prop-types'
 import Header from '../components/Header'
 import styles from '../styles/Top.module.css'
-import { getDashboardStats } from '../lib/ratingsStorageDynamo'
+import { getTopJokes, readGlobalStats } from '../lib/ratingsStorageDynamo'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -53,42 +53,70 @@ function rankClass(index) {
 }
 
 export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
+  const topJoke = jokes[0] || null
+  const metaDescription = topJoke
+    ? `The ${jokes.length} best dad jokes ranked by real community votes. #1: "${topJoke.joke?.slice(0, 80)}..." — rated ${topJoke.average?.toFixed(2)} stars from ${formatNumber(totalRatings)} total ratings.`
+    : `The best dad jokes ranked by real community votes. ${formatNumber(totalRatings)} ratings cast across 900+ jokes. Updated live.`
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://joshkurz.net/" },
+          { "@type": "ListItem", "position": 2, "name": "Top Dad Jokes", "item": "https://joshkurz.net/top" }
+        ]
+      },
+      {
+        "@type": "ItemList",
+        "name": `Top ${jokes.length} Dad Jokes Ranked by Community Votes`,
+        "description": "The highest-rated dad jokes from 900+ in the collection, ranked by average star rating with a minimum of 3 votes.",
+        "url": "https://joshkurz.net/top",
+        "numberOfItems": jokes.length,
+        "itemListElement": jokes.map((j, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "item": {
+            "@type": "CreativeWork",
+            "name": j.joke ? j.joke.slice(0, 110) : `Dad Joke #${i + 1}`,
+            "description": j.joke || '',
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": j.average,
+              "ratingCount": j.totalRatings,
+              "bestRating": 5,
+              "worstRating": 1
+            }
+          }
+        }))
+      }
+    ]
+  }
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>Top Rated Dad Jokes - Community Hall of Fame</title>
-        <meta name="description" content={`The highest-rated dad jokes ranked by community votes. ${jokes.length > 0 ? `${jokes.length} top performers` : 'Community'} voted best from 900+ jokes. Updated in real time.`} />
+        <title>{`Top ${jokes.length} Dad Jokes Ranked by Community Votes | JoshKurz.net`}</title>
+        <meta name="description" content={metaDescription} />
         <link rel="canonical" href="https://joshkurz.net/top" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://joshkurz.net/top" />
-        <meta property="og:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
-        <meta property="og:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
+        <meta property="og:title" content={`Top ${jokes.length} Dad Jokes Ranked by Community Votes`} />
+        <meta property="og:description" content={metaDescription} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
         <meta property="og:image" content="https://joshkurz.net/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
-        <meta name="twitter:title" content="Top Rated Dad Jokes - Community Hall of Fame" />
-        <meta name="twitter:description" content="The highest-rated dad jokes ranked by community votes. See which jokes made people groan the most." />
+        <meta name="twitter:title" content={`Top ${jokes.length} Dad Jokes Ranked by Community Votes`} />
+        <meta name="twitter:description" content={metaDescription} />
         {jokes.length > 0 && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            "name": "Top Rated Dad Jokes",
-            "description": "The highest-rated dad jokes ranked by community votes",
-            "url": "https://joshkurz.net/top",
-            "numberOfItems": jokes.length,
-            "itemListElement": jokes.slice(0, 10).map((j, i) => ({
-              "@type": "ListItem",
-              "position": i + 1,
-              "item": {
-                "@type": "CreativeWork",
-                "name": j.joke ? j.joke.slice(0, 80) : `Joke #${i + 1}`,
-                "description": j.joke || '',
-              }
-            }))
-          })}} />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
         )}
       </Head>
 
@@ -97,10 +125,10 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
       <main className={styles.main}>
         <section className={styles.hero}>
           <span className={styles.heroLabel}>Hall of Fame</span>
-          <h1>Top Rated Dad Jokes</h1>
+          <h1>Top {jokes.length} Dad Jokes</h1>
           <p className={styles.heroSubtitle}>
-            The community has spoken. These are the jokes that earned the most groans —
-            ranked by average rating from {formatNumber(totalRatings)} total votes.
+            Community-ranked from {formatNumber(totalRatings)} real votes across 900+ jokes.
+            Only jokes with at least 3 ratings qualify — no flukes, just proven groan-worthy gold.
           </p>
         </section>
 
@@ -177,25 +205,23 @@ TopJokes.defaultProps = {
   error: false,
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   try {
-    const summary = await getDashboardStats()
-    const jokes = (summary?.topPerformers || []).filter(
-      (j) => j.mode !== 'daily' && j.joke
-    )
+    const [jokes, globalStats] = await Promise.all([
+      getTopJokes(25),
+      readGlobalStats(),
+    ])
     return {
       props: {
         jokes,
-        totalRatings: summary?.totals?.overallRatings || 0,
+        totalRatings: globalStats.totalRatings || 0,
         updatedAt: new Date().toISOString(),
         error: false,
       },
-      revalidate: 3600, // ISR: rebuild at most once per hour
     }
   } catch {
     return {
       props: { jokes: [], totalRatings: 0, updatedAt: null, error: true },
-      revalidate: 60,
     }
   }
 }
