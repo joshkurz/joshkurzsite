@@ -1,5 +1,6 @@
 import { getAllJokesAsync } from '../../lib/jokesData'
-import { getVotedJokeIds } from '../../lib/ratingsStorageDynamo'
+import { getVotedJokeIds, getFlaggedJokeIds, flagJokeAsNsfw } from '../../lib/ratingsStorageDynamo'
+import { isNsfw } from '../../lib/nsfwFilter'
 
 const EXHAUSTED_MESSAGE =
   "You've rated every joke in our collection! I'd tell you another one, but I'm afraid I'm all out of material... get it? Because you've gone through all our material? Anyway, thanks for your tremendous contribution to dad joke science!"
@@ -35,20 +36,39 @@ function getIp(req) {
 export default async function handler(req, res) {
   try {
     const ip = getIp(req)
-    const [allJokes, votedIds] = await Promise.all([
+    const [allJokes, votedIds, flaggedIds] = await Promise.all([
       getAllJokesAsync(),
-      getVotedJokeIds(ip)
+      getVotedJokeIds(ip),
+      getFlaggedJokeIds()
     ])
 
-    const available = votedIds.size > 0
-      ? allJokes.filter((j) => !votedIds.has(j.id))
-      : allJokes
+    const excluded = new Set([...votedIds, ...flaggedIds])
+    let candidates = excluded.size > 0
+      ? allJokes.filter((j) => !excluded.has(j.id))
+      : allJokes.slice()
 
-    if (available.length === 0) {
+    if (candidates.length === 0) {
       return res.status(200).json({ exhausted: true, message: EXHAUSTED_MESSAGE })
     }
 
-    const joke = pickFairJoke(available)
+    // Pick a joke, silently skipping any that contain NSFW content.
+    // Newly detected NSFW jokes are flagged in the DB for admin review.
+    let joke = null
+    while (candidates.length > 0) {
+      const pick = pickFairJoke(candidates)
+      if (isNsfw(pick.text)) {
+        flagJokeAsNsfw(pick.id, pick.text, pick.author).catch(() => {})
+        candidates = candidates.filter((c) => c.id !== pick.id)
+        continue
+      }
+      joke = pick
+      break
+    }
+
+    if (!joke) {
+      return res.status(200).json({ exhausted: true, message: EXHAUSTED_MESSAGE })
+    }
+
     res.status(200).json({
       id: joke.id,
       opener: joke.opener,

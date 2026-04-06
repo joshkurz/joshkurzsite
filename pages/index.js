@@ -26,6 +26,14 @@ function normalizeStats(stats = {}) {
   }
 }
 
+function nextStreakMilestone(count) {
+  const milestones = [5, 10, 25, 50, 100];
+  for (const m of milestones) {
+    if (count < m) return { milestone: m, remaining: m - count };
+  }
+  return null;
+}
+
 function resolveDisplayAuthor(author, metadata) {
   const normalizedAuthor = typeof author === 'string' ? author.trim() : ''
   const nickname = resolveNicknameFromMetadata(metadata)
@@ -74,12 +82,14 @@ class OpenAIData extends React.Component {
       submitMessage: '',
       streakCount: 0,
       jokesExhausted: false,
-      exhaustedMessage: null
+      exhaustedMessage: null,
+      globalVotes: null
     };
   }
 
   componentDidMount() {
     this.fetchJoke();
+    this.fetchGlobalStats();
     try {
       const stored = sessionStorage.getItem('jokeStreak');
       if (stored) {
@@ -88,6 +98,19 @@ class OpenAIData extends React.Component {
       }
     } catch {
       // sessionStorage unavailable or invalid JSON — ignore
+    }
+  }
+
+  fetchGlobalStats = async () => {
+    try {
+      const response = await fetch('/api/global-stats');
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.totalRatings > 0) {
+        this.setState({ globalVotes: data.totalRatings });
+      }
+    } catch {
+      // Non-critical — ignore
     }
   }
 
@@ -121,23 +144,18 @@ class OpenAIData extends React.Component {
     if (jokeId === currentJokeId) {
       return;
     }
-    this.setState(
-      {
-        currentJokeId: jokeId,
-        currentJokeText: jokeText,
-        currentJokeSpeechText: speechText || jokeText,
-        ratingStats: { ...defaultRatingStats },
-        userRating: null,
-        hoveredRating: null,
-        isSubmittingRating: false,
-        ratingError: null,
-        hasSubmittedRating: false,
-        loadedJokeId: loadedJokeId || null
-      },
-      () => {
-        this.fetchRatingStats(jokeId);
-      }
-    );
+    this.setState({
+      currentJokeId: jokeId,
+      currentJokeText: jokeText,
+      currentJokeSpeechText: speechText || jokeText,
+      ratingStats: { ...defaultRatingStats },
+      userRating: null,
+      hoveredRating: null,
+      isSubmittingRating: false,
+      ratingError: null,
+      hasSubmittedRating: false,
+      loadedJokeId: loadedJokeId || null
+    });
   }
   createJokeId = (text) => {
     let hash = 0;
@@ -146,20 +164,6 @@ class OpenAIData extends React.Component {
       hash |= 0;
     }
     return `joke-${Math.abs(hash)}`;
-  }
-
-  fetchRatingStats = async (jokeId) => {
-    try {
-      const params = new URLSearchParams({ jokeId })
-      const response = await fetch(`/api/ratings?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Unable to load ratings');
-      }
-      const data = await response.json();
-      this.setState({ ratingStats: normalizeStats(data), ratingError: null });
-    } catch (error) {
-      this.setState({ ratingError: error, ratingStats: { ...defaultRatingStats } });
-    }
   }
 
   handleGroanClick = async (value) => {
@@ -197,11 +201,12 @@ class OpenAIData extends React.Component {
         throw new Error(payload.error || 'Unable to save rating');
       }
       const data = await response.json();
-      this.setState({
+      this.setState(prev => ({
         ratingStats: normalizeStats(data),
         hasSubmittedRating: true,
-        ratingError: null
-      });
+        ratingError: null,
+        globalVotes: prev.globalVotes !== null ? prev.globalVotes + 1 : null
+      }));
       this.incrementStreak(currentJokeId);
     } catch (error) {
       this.setState({ ratingError: error });
@@ -424,7 +429,8 @@ class OpenAIData extends React.Component {
       submitMessage,
       streakCount,
       jokesExhausted,
-      exhaustedMessage
+      exhaustedMessage,
+      globalVotes
     } = this.state;
 
     const displayQuestionTokens =
@@ -468,7 +474,14 @@ class OpenAIData extends React.Component {
     }
     return (
       <div className={styles.jokeContainer}>
-        <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+        <div className={styles.jokeHeaderRow}>
+          <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+          {globalVotes !== null && (
+            <span className={styles.globalVotesStat} aria-live="polite">
+              🗳️ {globalVotes.toLocaleString()} groans cast
+            </span>
+          )}
+        </div>
         {displayQuestionTokens.length > 0 && (
           <p className={styles.question}>
             {displayQuestionTokens.map((t, i) => (
@@ -564,7 +577,18 @@ class OpenAIData extends React.Component {
                   <p>Cast your vote to reveal the crowd rating.</p>
                 )}
                 {hasSubmittedRating && (
-                  <p className={styles.ratingThanks}>Thanks for letting us know how much you groaned!</p>
+                  <>
+                    <p className={styles.ratingThanks}>Thanks for letting us know how much you groaned!</p>
+                    {(() => {
+                      const next = nextStreakMilestone(streakCount);
+                      if (!next) return null;
+                      return (
+                        <p className={styles.streakNudge}>
+                          ⚡ {next.remaining} more {next.remaining === 1 ? 'groan' : 'groans'} to hit your {next.milestone}-vote streak!
+                        </p>
+                      );
+                    })()}
+                  </>
                 )}
                 {ratingError && (
                   <p className={styles.ratingError}>We couldn&apos;t save your rating. Please try again.</p>
@@ -659,6 +683,15 @@ class OpenAIData extends React.Component {
 }
 
 export default function Home() {
+  const [featuredJoke, setFeaturedJoke] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch('/api/featured-joke')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data && data.opener) setFeaturedJoke(data); })
+      .catch(() => {});
+  }, []);
+
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
     { href: '/top', label: 'Top Jokes' },
@@ -767,6 +800,31 @@ export default function Home() {
           <span className={styles.sourcePill}>Community</span>
         </div>
       </section>
+
+      {featuredJoke && (
+        <section className={styles.featuredJokeSection}>
+          <div className={styles.featuredJokeCard}>
+            <span className={styles.featuredBadge}>⭐ Top Community Groaner</span>
+            <p className={styles.featuredQuestion}>{featuredJoke.opener}</p>
+            {featuredJoke.punchline && (
+              <p className={styles.featuredAnswer}>{featuredJoke.punchline}</p>
+            )}
+            <div className={styles.featuredMeta}>
+              {featuredJoke.author && (
+                <span className={styles.featuredAuthor}>{featuredJoke.author}</span>
+              )}
+              <span className={styles.featuredStats}>
+                ⭐ {featuredJoke.average} avg · {featuredJoke.totalRatings} votes
+              </span>
+              {featuredJoke.jokeId && (
+                <Link href={`/joke/${featuredJoke.jokeId}`} className={styles.featuredLink}>
+                  Rate it →
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <main className={styles.main}>
         <OpenAIData />

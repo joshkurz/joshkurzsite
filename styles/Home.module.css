@@ -185,17 +185,125 @@
   color: var(--color-text);
 }
 
+.jokeHeaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid rgba(243, 156, 18, 0.4);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
 .jokeHeader {
   font-size: 2rem;
-  margin-bottom: 1rem;
+  margin: 0;
   text-align: left;
   font-weight: 800;
   background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  border-bottom: 2px solid rgba(243, 156, 18, 0.4);
-  padding-bottom: 0.5rem;
+}
+
+.globalVotesStat {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.4);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  animation: fadeIn 0.4s ease-in forwards;
+}
+
+.streakNudge {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(243, 156, 18, 0.75);
+  font-weight: 500;
+}
+
+/* Featured top joke */
+.featuredJokeSection {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem 1rem;
+  animation: fadeIn 0.5s ease-in forwards;
+}
+
+.featuredJokeCard {
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.07) 0%, rgba(243, 156, 18, 0.02) 100%);
+  border: 1px solid rgba(243, 156, 18, 0.28);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 16px rgba(243, 156, 18, 0.07);
+}
+
+.featuredBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(243, 156, 18, 0.85);
+  background: rgba(243, 156, 18, 0.1);
+  border: 1px solid rgba(243, 156, 18, 0.22);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.featuredQuestion {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.featuredAnswer {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  color: rgba(226, 232, 240, 0.8);
+  line-height: 1.5;
+}
+
+.featuredMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.82rem;
+}
+
+.featuredAuthor {
+  color: rgba(226, 232, 240, 0.45);
+}
+
+.featuredStats {
+  color: rgba(243, 156, 18, 0.65);
+  font-weight: 600;
+}
+
+.featuredLink {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.featuredLink:hover {
+  text-decoration: underline;
+  color: #f7dc6f;
+}
+
+@media (max-width: 640px) {
+  .featuredJokeSection {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 /* Container used to center the loading message when no data has been loaded yet */
