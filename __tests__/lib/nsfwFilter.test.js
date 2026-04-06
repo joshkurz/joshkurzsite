@@ -69,6 +69,22 @@ describe('isNsfw', () => {
 
   // ── Sexual content ────────────────────────────────────────────────────────
 
+  it('flags "sex"', () => {
+    expect(isNsfw('the joke is about sex')).toBe(true)
+  })
+
+  it('flags "sexy"', () => {
+    expect(isNsfw('that is sexy')).toBe(true)
+  })
+
+  it('flags "sexual"', () => {
+    expect(isNsfw('sexual content')).toBe(true)
+  })
+
+  it('flags "bisexual"', () => {
+    expect(isNsfw('he is bisexual')).toBe(true)
+  })
+
   it('flags "cock" as a standalone word', () => {
     expect(isNsfw('He grabbed his cock')).toBe(true)
   })
