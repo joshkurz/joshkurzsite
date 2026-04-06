@@ -1,5 +1,5 @@
 import { getAllJokesAsync } from '../../lib/jokesData'
-import { getVotedJokeIds, getFlaggedJokeIds, flagJokeAsNsfw } from '../../lib/ratingsStorageDynamo'
+import { getVotedJokeIds, getFlaggedJokeIds, flagJokeAsNsfw, getLowRatedJokeIds } from '../../lib/ratingsStorageDynamo'
 import { isNsfw } from '../../lib/nsfwFilter'
 
 const EXHAUSTED_MESSAGE =
@@ -36,13 +36,14 @@ function getIp(req) {
 export default async function handler(req, res) {
   try {
     const ip = getIp(req)
-    const [allJokes, votedIds, flaggedIds] = await Promise.all([
+    const [allJokes, votedIds, flaggedIds, lowRatedIds] = await Promise.all([
       getAllJokesAsync(),
       getVotedJokeIds(ip),
-      getFlaggedJokeIds()
+      getFlaggedJokeIds(),
+      getLowRatedJokeIds(1.5, 3)
     ])
 
-    const excluded = new Set([...votedIds, ...flaggedIds])
+    const excluded = new Set([...votedIds, ...flaggedIds, ...lowRatedIds])
     let candidates = excluded.size > 0
       ? allJokes.filter((j) => !excluded.has(j.id))
       : allJokes.slice()

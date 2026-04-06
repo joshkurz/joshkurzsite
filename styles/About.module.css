@@ -142,6 +142,34 @@
   color: rgba(226, 232, 240, 0.6);
 }
 
+/* FAQ */
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faqItem {
+  background: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.faqItem h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f7dc6f;
+}
+
+.faqItem p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.75);
+}
+
 /* Links */
 .link {
   color: #f7dc6f;
