@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/best-dad-jokes', label: 'Top Jokes' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
+  { href: '/games', label: 'Games' },
 ]
 
 function formatNumber(value) {

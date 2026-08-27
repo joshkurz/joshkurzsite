@@ -1,0 +1,136 @@
+.container {
+  min-height: 100vh;
+  background: var(--gradient-background);
+  color: var(--color-text);
+}
+
+.main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+}
+
+.heroLabel {
+  display: inline-block;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  margin: 0 0 1rem;
+  font-size: 2.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 1.15rem;
+  color: rgba(226, 232, 240, 0.7);
+  line-height: 1.6;
+}
+
+.gameList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.gameCard {
+  display: block;
+  background: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(243, 156, 18, 0.2);
+  border-radius: 16px;
+  padding: 1.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.gameCard:hover {
+  border-color: rgba(243, 156, 18, 0.45);
+  transform: translateY(-1px);
+}
+
+.gameHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.gameIcon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.gameTitle {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.gameBadge {
+  display: inline-block;
+  background: rgba(243, 156, 18, 0.15);
+  color: #f7dc6f;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  margin-left: auto;
+}
+
+.gameDescription {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.gamePlay {
+  display: inline-block;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+}
+
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .main {
+    gap: 2rem;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .gameCard {
+    padding: 1.25rem;
+  }
+}

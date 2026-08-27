@@ -708,6 +708,7 @@ export default function Home() {
     { href: '/best-dad-jokes', label: 'Top Jokes' },
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/about', label: 'About' },
+    { href: '/games', label: 'Games' },
   ];
   return (
     <div className={styles.container}>

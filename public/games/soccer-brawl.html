@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Brawl Soccer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #0b0b0b;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  }
+  #gameCanvas {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100dvh;
+    touch-action: none;
+    display: block;
+    background: #0b0b0b;
+  }
+  #hud {
+    position: fixed; top: 0; left: 0; width: 100%;
+    display: flex; justify-content: center; gap: 24px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    pointer-events: none;
+    z-index: 5;
+  }
+  .hudBox {
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  #controls {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    display: flex;
+    gap: 14px;
+    z-index: 5;
+    touch-action: none;
+  }
+  .actionBtn {
+    position: relative;
+    width: 74px; height: 74px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.85);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  #kickBtn { background: #1e6fd9; }
+  #punchBtn { background: #d9291e; }
+  .cooldownOverlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 0%;
+    background: rgba(0,0,0,0.55);
+    pointer-events: none;
+  }
+  .btnLabel { position: relative; z-index: 1; pointer-events: none; }
+
+  .overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.72);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; text-align: center; z-index: 10;
+    padding: 20px; box-sizing: border-box;
+  }
+  .overlay h1 { font-size: 34px; margin: 0 0 12px; }
+  .overlay p { font-size: 15px; max-width: 420px; line-height: 1.5; color: #ddd; margin: 4px 0 20px; }
+  .bigBtn {
+    background: #2e9e3f; color: #fff; border: none; border-radius: 10px;
+    padding: 16px 36px; font-size: 20px; font-weight: 800; letter-spacing: 0.5px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+  }
+  #goalBanner {
+    position: fixed; top: 38%; left: 0; width: 100%;
+    display: flex; justify-content: center;
+    pointer-events: none; z-index: 8;
+  }
+  #goalBanner span {
+    background: rgba(0,0,0,0.6);
+    color: #ffe94d;
+    font-size: 46px;
+    font-weight: 900;
+    padding: 6px 30px;
+    border-radius: 10px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div class="hudBox" id="scoreBox">0 - 0</div>
+    <div class="hudBox" id="timeBox">2:30</div>
+  </div>
+
+  <div id="goalBanner" class="hidden"><span id="goalBannerText">GOAL!</span></div>
+
+  <div id="controls">
+    <button id="kickBtn" class="actionBtn"><div class="cooldownOverlay" id="kickCooldown"></div><span class="btnLabel">KICK</span></button>
+    <button id="punchBtn" class="actionBtn"><div class="cooldownOverlay" id="punchCooldown"></div><span class="btnLabel">PUNCH</span></button>
+  </div>
+
+  <div id="startScreen" class="overlay">
+    <h1>SOCCER BRAWL</h1>
+    <p>11 vs 11. No fouls. Tap the field to move your player &mdash; the yellow line shows which way you're facing (and where KICK/PUNCH will fire). Get close to an opponent with the ball, face them, and hit KICK or PUNCH to knock them down and steal it. When you have the ball, KICK shoots it that direction. Score more goals before time runs out.</p>
+    <button class="bigBtn" id="startBtn">TAP TO KICK OFF</button>
+  </div>
+
+  <div id="endScreen" class="overlay hidden">
+    <h1 id="endTitle">HOME WINS</h1>
+    <p id="endScore">3 - 1</p>
+    <button class="bigBtn" id="playAgainBtn">PLAY AGAIN</button>
+  </div>
+
+  <script>
+// ============================================================
+// BRAWL SOCCER - single-file canvas game
+// ============================================================
+
+// ===== CONFIG =====
+const CONFIG = {
+  FIELD_W: 1000,
+  FIELD_H: 600,
+  GOAL_H: 140,
+  BALL_R: 7,
+  PLAYER_R: 11,
+
+  MATCH_DURATION: 150, // seconds (2.5 min)
+  KICKOFF_PAUSE: 1.0,
+  GOAL_BANNER_TIME: 2.0,
+
+  SPEED_GK: 90,
+  SPEED_DEF: 150,
+  SPEED_MID: 165,
+  SPEED_FWD: 178,
+  SPEED_USER: 215,
+
+  AI_TICK_INTERVAL: 0.2,
+  COMBAT_AI_INTERVAL: 0.8,
+  COMBAT_AI_CHANCE: 0.22,
+  COMBAT_AI_CHANCE_VS_USER: 0.08,
+  GK_ENGAGE_RADIUS: 110,
+
+  AI_SHOOT_INTERVAL: 0.35,
+  AI_SHOOT_RANGE: 300,
+
+  FRICTION: 0.985,
+  BALL_STOP_SPEED: 3,
+  POSSESS_RADIUS: 20,
+  POSSESS_MAX_SPEED: 260,
+  BALL_LEAD_DIST: 16,
+
+  KICK_RANGE: 46,
+  KICK_ARC_DEG: 85,
+  KICK_DURATION: 0.32,
+  KICK_COOLDOWN: 0.9,
+  KICK_STUN: 0.8,
+  KICK_KNOCKBACK: 260,
+  KICK_BALL_POWER: 430,
+
+  PUNCH_RANGE: 32,
+  PUNCH_ARC_DEG: 80,
+  PUNCH_DURATION: 0.26,
+  PUNCH_COOLDOWN: 0.6,
+  PUNCH_STUN: 0.7,
+  PUNCH_KNOCKBACK: 220,
+
+  // The human-controlled player is deliberately stronger than every
+  // AI player on the field: bigger range/arc, faster cooldowns,
+  // harder hits, easier ball pickup.
+  USER_POSSESS_RADIUS: 36,
+
+  USER_KICK_RANGE: 62,
+  USER_KICK_ARC_DEG: 110,
+  USER_KICK_DURATION: 0.22,
+  USER_KICK_COOLDOWN: 0.5,
+  USER_KICK_STUN: 1.1,
+  USER_KICK_KNOCKBACK: 340,
+  USER_KICK_BALL_POWER: 520,
+
+  USER_PUNCH_RANGE: 42,
+  USER_PUNCH_ARC_DEG: 100,
+  USER_PUNCH_DURATION: 0.16,
+  USER_PUNCH_COOLDOWN: 0.35,
+  USER_PUNCH_STUN: 1.0,
+  USER_PUNCH_KNOCKBACK: 300,
+
+  STUN_FRICTION: 0.90,
+
+  CONTROLS_RESERVE_H: 110,
+  CONTROLS_RESERVE_W: 190
+};
+
+// ===== CANVAS / VIEWPORT =====
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let dpr = window.devicePixelRatio || 1;
+let scale = 1, offsetX = 0, offsetY = 0, cssW = 0, cssH = 0;
+
+function resizeCanvas() {
+  cssW = window.innerWidth;
+  cssH = window.innerHeight;
+  dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+
+  const marginPx = 16;
+  // In portrait, the KICK/PUNCH buttons need a reserved strip at the
+  // bottom (there's no spare space on the sides). In landscape there's
+  // already unused space on the sides once the field's aspect ratio is
+  // fit to a wide screen, so reserve a strip on the right for the
+  // buttons instead and let the field use nearly the full height -
+  // this is what makes landscape noticeably bigger than portrait.
+  const isLandscape = cssW > cssH;
+  const bottomReserve = isLandscape ? 0 : CONFIG.CONTROLS_RESERVE_H;
+  const sideReserve = isLandscape ? CONFIG.CONTROLS_RESERVE_W : 0;
+  const availW = cssW - marginPx * 2 - sideReserve;
+  const availH = cssH - marginPx * 2 - bottomReserve;
+  scale = Math.min(availW / CONFIG.FIELD_W, availH / CONFIG.FIELD_H);
+  offsetX = marginPx + (availW - CONFIG.FIELD_W * scale) / 2;
+  offsetY = marginPx + (availH - CONFIG.FIELD_H * scale) / 2;
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 50));
+resizeCanvas();
+
+function screenToField(clientX, clientY) {
+  return {
+    x: (clientX - offsetX) / scale,
+    y: (clientY - offsetY) / scale
+  };
+}
+
+// ===== UTIL =====
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function angleTo(a, b) { return Math.atan2(b.y - a.y, b.x - a.x); }
+function angleDiff(a, b) {
+  let d = a - b;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return Math.abs(d);
+}
+function withinArc(facing, angToTarget, arcDeg) {
+  return angleDiff(facing, angToTarget) <= (arcDeg * Math.PI / 180) / 2;
+}
+function inGoalYRange(y) {
+  const half = CONFIG.GOAL_H / 2;
+  const mid = CONFIG.FIELD_H / 2;
+  return y > mid - half && y < mid + half;
+}
+
+// ===== FORMATION =====
+// fractions of field width/height, home team attacks toward +x (right)
+const FORMATION = [
+  { role: 'GK', x: 0.06, y: 0.50 },
+  { role: 'DEF', x: 0.20, y: 0.15 },
+  { role: 'DEF', x: 0.20, y: 0.38 },
+  { role: 'DEF', x: 0.20, y: 0.62 },
+  { role: 'DEF', x: 0.20, y: 0.85 },
+  { role: 'MID', x: 0.42, y: 0.15 },
+  { role: 'MID', x: 0.42, y: 0.38 },
+  { role: 'MID', x: 0.42, y: 0.62 },
+  { role: 'MID', x: 0.42, y: 0.85 },
+  { role: 'FWD', x: 0.62, y: 0.35 },
+  { role: 'FWD', x: 0.62, y: 0.65 }
+];
+
+function roleSpeed(role) {
+  switch (role) {
+    case 'GK': return CONFIG.SPEED_GK;
+    case 'DEF': return CONFIG.SPEED_DEF;
+    case 'MID': return CONFIG.SPEED_MID;
+    default: return CONFIG.SPEED_FWD;
+  }
+}
+
+// ===== ENTITIES =====
+let players = [];
+let ball = null;
+let controlledPlayer = null;
+
+function createPlayer(id, team, role, isUser, homeX, homeY, color) {
+  return {
+    id, team, role, isUser,
+    x: homeX, y: homeY,
+    vx: 0, vy: 0,
+    homeX, homeY,
+    target: { x: homeX, y: homeY },
+    facing: team === 'home' ? 0 : Math.PI,
+    speed: isUser ? CONFIG.SPEED_USER : roleSpeed(role),
+    state: 'idle', // idle | moving | kicking | punching | stunned
+    stateTimer: 0,
+    actionDuration: 0,
+    actionCooldown: 0,
+    actionCooldownMax: 1,
+    impactDone: false,
+    hasBall: false,
+    color,
+    aiTarget: null,
+
+    possessRadius: isUser ? CONFIG.USER_POSSESS_RADIUS : CONFIG.POSSESS_RADIUS,
+    kickRange: isUser ? CONFIG.USER_KICK_RANGE : CONFIG.KICK_RANGE,
+    kickArc: isUser ? CONFIG.USER_KICK_ARC_DEG : CONFIG.KICK_ARC_DEG,
+    kickDuration: isUser ? CONFIG.USER_KICK_DURATION : CONFIG.KICK_DURATION,
+    kickCooldown: isUser ? CONFIG.USER_KICK_COOLDOWN : CONFIG.KICK_COOLDOWN,
+    kickStun: isUser ? CONFIG.USER_KICK_STUN : CONFIG.KICK_STUN,
+    kickKnockback: isUser ? CONFIG.USER_KICK_KNOCKBACK : CONFIG.KICK_KNOCKBACK,
+    kickBallPower: isUser ? CONFIG.USER_KICK_BALL_POWER : CONFIG.KICK_BALL_POWER,
+    punchRange: isUser ? CONFIG.USER_PUNCH_RANGE : CONFIG.PUNCH_RANGE,
+    punchArc: isUser ? CONFIG.USER_PUNCH_ARC_DEG : CONFIG.PUNCH_ARC_DEG,
+    punchDuration: isUser ? CONFIG.USER_PUNCH_DURATION : CONFIG.PUNCH_DURATION,
+    punchCooldown: isUser ? CONFIG.USER_PUNCH_COOLDOWN : CONFIG.PUNCH_COOLDOWN,
+    punchStun: isUser ? CONFIG.USER_PUNCH_STUN : CONFIG.PUNCH_STUN,
+    punchKnockback: isUser ? CONFIG.USER_PUNCH_KNOCKBACK : CONFIG.PUNCH_KNOCKBACK
+  };
+}
+
+function buildMatch() {
+  players = [];
+  let id = 0;
+  FORMATION.forEach((slot, i) => {
+    const hx = slot.x * CONFIG.FIELD_W;
+    const hy = slot.y * CONFIG.FIELD_H;
+    const isUser = i === 9; // first FWD slot is user-controlled
+    const p = createPlayer(id++, 'home', slot.role, isUser, hx, hy, '#2196f3');
+    players.push(p);
+    if (isUser) controlledPlayer = p;
+  });
+  FORMATION.forEach((slot) => {
+    const hx = (1 - slot.x) * CONFIG.FIELD_W;
+    const hy = slot.y * CONFIG.FIELD_H;
+    const p = createPlayer(id++, 'away', slot.role, false, hx, hy, '#e53935');
+    players.push(p);
+  });
+
+  ball = {
+    x: CONFIG.FIELD_W / 2, y: CONFIG.FIELD_H / 2,
+    vx: 0, vy: 0,
+    possessedBy: null,
+    lastKicker: null,
+    releaseGraceTimer: 0
+  };
+}
+
+function resetForKickoff() {
+  players.forEach(p => {
+    p.x = p.homeX; p.y = p.homeY;
+    p.vx = 0; p.vy = 0;
+    p.state = 'idle';
+    p.stateTimer = 0;
+    p.actionCooldown = 0;
+    p.hasBall = false;
+    p.facing = p.team === 'home' ? 0 : Math.PI;
+    p.target = { x: p.homeX, y: p.homeY };
+  });
+  ball.x = CONFIG.FIELD_W / 2;
+  ball.y = CONFIG.FIELD_H / 2;
+  ball.vx = 0; ball.vy = 0;
+  ball.possessedBy = null;
+  ball.lastKicker = null;
+  ball.releaseGraceTimer = 0;
+  userTargetMarker.timer = 0;
+}
+
+// ===== MATCH STATE =====
+let phase = 'MENU'; // MENU | KICKOFF | PLAYING | GOAL_SCORED | MATCH_END
+let matchClock = CONFIG.MATCH_DURATION;
+let kickoffTimer = 0;
+let goalBannerTimer = 0;
+let homeScore = 0, awayScore = 0;
+let aiTickAcc = 0, combatAiAcc = 0, aiShootAcc = 0;
+
+const scoreBox = document.getElementById('scoreBox');
+const timeBox = document.getElementById('timeBox');
+const goalBanner = document.getElementById('goalBanner');
+const goalBannerText = document.getElementById('goalBannerText');
+const startScreen = document.getElementById('startScreen');
+const endScreen = document.getElementById('endScreen');
+const endTitle = document.getElementById('endTitle');
+const endScoreEl = document.getElementById('endScore');
+
+function formatTime(t) {
+  t = Math.max(0, Math.ceil(t));
+  const m = Math.floor(t / 60);
+  const s = t % 60;
+  return m + ':' + (s < 10 ? '0' + s : s);
+}
+
+function updateHud() {
+  scoreBox.textContent = homeScore + ' - ' + awayScore;
+  timeBox.textContent = formatTime(matchClock);
+}
+
+function startMatch() {
+  buildMatch();
+  homeScore = 0; awayScore = 0;
+  matchClock = CONFIG.MATCH_DURATION;
+  resetForKickoff();
+  startScreen.classList.add('hidden');
+  endScreen.classList.add('hidden');
+  goalBanner.classList.add('hidden');
+  phase = 'KICKOFF';
+  kickoffTimer = CONFIG.KICKOFF_PAUSE;
+  updateHud();
+}
+
+function scoreGoal(team) {
+  if (team === 'home') homeScore++; else awayScore++;
+  goalBannerText.textContent = (team === 'home' ? 'HOME' : 'AWAY') + ' SCORES!';
+  goalBanner.classList.remove('hidden');
+  goalBannerTimer = CONFIG.GOAL_BANNER_TIME;
+  phase = 'GOAL_SCORED';
+  updateHud();
+}
+
+function endMatch() {
+  phase = 'MATCH_END';
+  let title;
+  if (homeScore > awayScore) title = 'HOME WINS!';
+  else if (awayScore > homeScore) title = 'AWAY WINS!';
+  else title = 'DRAW!';
+  endTitle.textContent = title;
+  endScoreEl.textContent = homeScore + ' - ' + awayScore;
+  endScreen.classList.remove('hidden');
+}
+
+// ===== INPUT =====
+let userTargetMarker = { x: 0, y: 0, timer: 0 };
+
+canvas.addEventListener('pointerdown', (e) => {
+  if (phase !== 'PLAYING' && phase !== 'KICKOFF') return;
+  e.preventDefault();
+  const f = screenToField(e.clientX, e.clientY);
+  f.x = clamp(f.x, 0, CONFIG.FIELD_W);
+  f.y = clamp(f.y, 0, CONFIG.FIELD_H);
+  controlledPlayer.target = f;
+  userTargetMarker = { x: f.x, y: f.y, timer: 0.9 };
+}, { passive: false });
+
+// Bind both pointerdown (fast, low-latency) and click (universally
+// supported fallback for browsers/contexts where pointer events on
+// <button> elements don't behave, e.g. some in-app/email previews).
+function bindTap(el, handler) {
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); handler(); }, { passive: false });
+  el.addEventListener('click', (e) => { e.preventDefault(); handler(); }, { passive: false });
+}
+
+function bindActionButton(el, type) {
+  bindTap(el, () => triggerAction(controlledPlayer, type, null));
+}
+bindActionButton(document.getElementById('kickBtn'), 'kicking');
+bindActionButton(document.getElementById('punchBtn'), 'punching');
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'z' || e.key === 'Z') triggerAction(controlledPlayer, 'punching', null);
+  if (e.key === 'x' || e.key === 'X') triggerAction(controlledPlayer, 'kicking', null);
+});
+
+bindTap(document.getElementById('startBtn'), startMatch);
+bindTap(document.getElementById('playAgainBtn'), startMatch);
+
+function triggerAction(p, type, facingOverride) {
+  if (!p || p.state === 'stunned' || p.state === 'kicking' || p.state === 'punching') return;
+  if (p.actionCooldown > 0) return;
+  if (facingOverride !== null && facingOverride !== undefined) p.facing = facingOverride;
+  p.state = type;
+  p.actionDuration = type === 'kicking' ? p.kickDuration : p.punchDuration;
+  p.stateTimer = p.actionDuration;
+  p.impactDone = false;
+  p.actionCooldownMax = type === 'kicking' ? p.kickCooldown : p.punchCooldown;
+  p.actionCooldown = p.actionCooldownMax;
+}
+
+// ===== AI =====
+function aiGlobalTick() {
+  ['home', 'away'].forEach(team => {
+    const teamPlayers = players.filter(p => p.team === team && !p.isUser && p.state !== 'stunned');
+    const nonGK = teamPlayers.filter(p => p.role !== 'GK');
+    let chaser = null, bestD = Infinity;
+    nonGK.forEach(p => {
+      const d = dist(p, ball);
+      if (d < bestD) { bestD = d; chaser = p; }
+    });
+    teamPlayers.forEach(p => {
+      // A player carrying the ball must drive toward the opponent's goal
+      // instead of "chasing the ball" (which is now attached to them and
+      // would otherwise make them target their own position and freeze).
+      if (p.hasBall) {
+        if (p.role !== 'GK') {
+          const goalX = p.team === 'home' ? CONFIG.FIELD_W - 20 : 20;
+          const goalY = CONFIG.FIELD_H / 2 + (p.homeY - CONFIG.FIELD_H / 2) * 0.3;
+          p.target = { x: goalX, y: goalY };
+        }
+        return;
+      }
+      if (p.role === 'GK') {
+        const half = CONFIG.GOAL_H / 2;
+        const mid = CONFIG.FIELD_H / 2;
+        const boxY = clamp(ball.y, mid - half, mid + half);
+        if (dist(p, ball) < CONFIG.GK_ENGAGE_RADIUS) {
+          p.target = { x: ball.x, y: ball.y };
+        } else {
+          p.target = { x: p.homeX, y: boxY };
+        }
+        return;
+      }
+      if (p === chaser) {
+        p.target = { x: ball.x + ball.vx * 0.25, y: ball.y + ball.vy * 0.25 };
+        return;
+      }
+      const shiftX = clamp((ball.x - CONFIG.FIELD_W / 2) * 0.12, -80, 80);
+      const shiftY = clamp((ball.y - CONFIG.FIELD_H / 2) * 0.12, -60, 60);
+      p.target = { x: p.homeX + shiftX, y: p.homeY + shiftY };
+    });
+  });
+}
+
+// AI players holding the ball periodically shoot/clear toward the
+// opponent's goal (goalkeepers do it immediately, as a clearance).
+function aiShootTick() {
+  players.forEach(p => {
+    if (p.isUser || !p.hasBall) return;
+    if (p.state === 'stunned' || p.state === 'kicking' || p.state === 'punching') return;
+    if (p.actionCooldown > 0) return;
+    const goalX = p.team === 'home' ? CONFIG.FIELD_W - 10 : 10;
+    const goalY = CONFIG.FIELD_H / 2 + (Math.random() - 0.5) * CONFIG.GOAL_H * 0.6;
+    const goalPoint = { x: goalX, y: goalY };
+    if (p.role === 'GK' || dist(p, goalPoint) < CONFIG.AI_SHOOT_RANGE) {
+      const ang = angleTo(p, goalPoint) + (Math.random() - 0.5) * 0.25;
+      triggerAction(p, 'kicking', ang);
+    }
+  });
+}
+
+function combatAiRoll() {
+  if (!ball.possessedBy) return;
+  const carrier = ball.possessedBy;
+  players.forEach(p => {
+    if (p.isUser || p.team === carrier.team) return;
+    if (p.state === 'stunned' || p.state === 'kicking' || p.state === 'punching') return;
+    if (p.actionCooldown > 0) return;
+    const d = dist(p, carrier);
+    if (d < p.kickRange + 15) {
+      const chance = carrier.isUser ? CONFIG.COMBAT_AI_CHANCE_VS_USER : CONFIG.COMBAT_AI_CHANCE;
+      if (Math.random() < chance) {
+        const type = Math.random() < 0.6 ? 'kicking' : 'punching';
+        triggerAction(p, type, angleTo(p, carrier));
+      }
+    }
+  });
+}
+
+// ===== COMBAT HIT DETECTION =====
+function performHit(p) {
+  if (p.state === 'kicking') {
+    if (!ball.possessedBy || ball.possessedBy === p) {
+      const d = dist(p, ball);
+      const ang = angleTo(p, ball);
+      if (d < p.kickRange && withinArc(p.facing, ang, p.kickArc)) {
+        ball.possessedBy = null;
+        ball.vx = Math.cos(p.facing) * p.kickBallPower;
+        ball.vy = Math.sin(p.facing) * p.kickBallPower;
+        ball.lastKicker = p;
+        ball.releaseGraceTimer = 0.35;
+        p.hasBall = false;
+      }
+    }
+  }
+
+  const range = p.state === 'kicking' ? p.kickRange : p.punchRange;
+  const arc = p.state === 'kicking' ? p.kickArc : p.punchArc;
+  let target = null, bestD = range;
+  players.forEach(o => {
+    if (o === p || o.team === p.team || o.state === 'stunned') return;
+    const d = dist(p, o);
+    const ang = angleTo(p, o);
+    if (d < bestD && withinArc(p.facing, ang, arc)) { bestD = d; target = o; }
+  });
+  if (target) {
+    const kb = p.state === 'kicking' ? p.kickKnockback : p.punchKnockback;
+    target.state = 'stunned';
+    target.stateTimer = p.state === 'kicking' ? p.kickStun : p.punchStun;
+    target.vx = Math.cos(p.facing) * kb;
+    target.vy = Math.sin(p.facing) * kb;
+    target.hasBall = false;
+    if (ball.possessedBy === target) {
+      ball.possessedBy = null;
+      ball.vx = Math.cos(p.facing) * 150;
+      ball.vy = Math.sin(p.facing) * 150;
+      ball.releaseGraceTimer = 0.3;
+    }
+  }
+}
+
+// ===== PHYSICS / MOVEMENT =====
+function clampToField(p) {
+  p.x = clamp(p.x, CONFIG.PLAYER_R, CONFIG.FIELD_W - CONFIG.PLAYER_R);
+  p.y = clamp(p.y, CONFIG.PLAYER_R, CONFIG.FIELD_H - CONFIG.PLAYER_R);
+}
+
+function updatePlayer(p, dt) {
+  if (p.actionCooldown > 0) p.actionCooldown = Math.max(0, p.actionCooldown - dt);
+
+  if (p.state === 'stunned') {
+    p.stateTimer -= dt;
+    p.vx *= CONFIG.STUN_FRICTION;
+    p.vy *= CONFIG.STUN_FRICTION;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    clampToField(p);
+    if (p.stateTimer <= 0) p.state = 'idle';
+    return;
+  }
+
+  if (p.state === 'kicking' || p.state === 'punching') {
+    p.stateTimer -= dt;
+    if (!p.impactDone && p.stateTimer <= p.actionDuration * 0.45) {
+      performHit(p);
+      p.impactDone = true;
+    }
+    if (p.stateTimer <= 0) p.state = 'idle';
+    return;
+  }
+
+  const t = p.target;
+  if (t) {
+    const dx = t.x - p.x, dy = t.y - p.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 4) {
+      const nx = dx / d, ny = dy / d;
+      p.vx = lerp(p.vx, nx * p.speed, 0.2);
+      p.vy = lerp(p.vy, ny * p.speed, 0.2);
+      p.facing = Math.atan2(ny, nx);
+      p.state = 'moving';
+    } else {
+      p.vx *= 0.8; p.vy *= 0.8;
+      p.state = 'idle';
+    }
+  }
+  p.x += p.vx * dt;
+  p.y += p.vy * dt;
+  clampToField(p);
+}
+
+function updateBall(dt) {
+  if (ball.releaseGraceTimer > 0) ball.releaseGraceTimer -= dt;
+
+  if (ball.possessedBy) {
+    const p = ball.possessedBy;
+    if (p.state === 'stunned') {
+      ball.possessedBy = null;
+      p.hasBall = false;
+    } else {
+      ball.x = p.x + Math.cos(p.facing) * CONFIG.BALL_LEAD_DIST;
+      ball.y = p.y + Math.sin(p.facing) * CONFIG.BALL_LEAD_DIST;
+      ball.vx = 0; ball.vy = 0;
+      p.hasBall = true;
+    }
+  }
+
+  if (!ball.possessedBy) {
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+    ball.vx *= CONFIG.FRICTION;
+    ball.vy *= CONFIG.FRICTION;
+    if (Math.hypot(ball.vx, ball.vy) < CONFIG.BALL_STOP_SPEED) { ball.vx = 0; ball.vy = 0; }
+
+    if (ball.y < CONFIG.BALL_R) { ball.y = CONFIG.BALL_R; ball.vy *= -0.5; }
+    if (ball.y > CONFIG.FIELD_H - CONFIG.BALL_R) { ball.y = CONFIG.FIELD_H - CONFIG.BALL_R; ball.vy *= -0.5; }
+    if (ball.x < CONFIG.BALL_R && !inGoalYRange(ball.y)) { ball.x = CONFIG.BALL_R; ball.vx *= -0.5; }
+    if (ball.x > CONFIG.FIELD_W - CONFIG.BALL_R && !inGoalYRange(ball.y)) { ball.x = CONFIG.FIELD_W - CONFIG.BALL_R; ball.vx *= -0.5; }
+
+    const speed = Math.hypot(ball.vx, ball.vy);
+    if (speed < CONFIG.POSSESS_MAX_SPEED) {
+      let best = null, bestD = Infinity;
+      players.forEach(p => {
+        if (p.state === 'stunned') return;
+        if (ball.releaseGraceTimer > 0 && p === ball.lastKicker) return;
+        const d = dist(p, ball);
+        if (d < p.possessRadius && d < bestD) { bestD = d; best = p; }
+      });
+      if (best) {
+        ball.possessedBy = best;
+        players.forEach(p => p.hasBall = false);
+        best.hasBall = true;
+      }
+    }
+  } else {
+    players.forEach(p => p.hasBall = (p === ball.possessedBy));
+  }
+}
+
+function checkGoal() {
+  if (ball.x <= CONFIG.BALL_R + 1 && inGoalYRange(ball.y)) { scoreGoal('away'); return; }
+  if (ball.x >= CONFIG.FIELD_W - CONFIG.BALL_R - 1 && inGoalYRange(ball.y)) { scoreGoal('home'); return; }
+}
+
+// ===== MAIN UPDATE =====
+function update(dt) {
+  if (userTargetMarker.timer > 0) userTargetMarker.timer -= dt;
+
+  if (phase === 'PLAYING') {
+    matchClock -= dt;
+
+    aiTickAcc += dt;
+    if (aiTickAcc >= CONFIG.AI_TICK_INTERVAL) { aiTickAcc = 0; aiGlobalTick(); }
+    combatAiAcc += dt;
+    if (combatAiAcc >= CONFIG.COMBAT_AI_INTERVAL) { combatAiAcc = 0; combatAiRoll(); }
+    aiShootAcc += dt;
+    if (aiShootAcc >= CONFIG.AI_SHOOT_INTERVAL) { aiShootAcc = 0; aiShootTick(); }
+
+    players.forEach(p => updatePlayer(p, dt));
+    updateBall(dt);
+    checkGoal();
+
+    updateHud();
+    if (phase === 'PLAYING' && matchClock <= 0) {
+      matchClock = 0;
+      updateHud();
+      endMatch();
+    }
+  } else if (phase === 'KICKOFF') {
+    kickoffTimer -= dt;
+    if (kickoffTimer <= 0) phase = 'PLAYING';
+  } else if (phase === 'GOAL_SCORED') {
+    goalBannerTimer -= dt;
+    if (goalBannerTimer <= 0) {
+      goalBanner.classList.add('hidden');
+      resetForKickoff();
+      if (matchClock <= 0) {
+        endMatch();
+      } else {
+        phase = 'KICKOFF';
+        kickoffTimer = CONFIG.KICKOFF_PAUSE;
+      }
+    }
+  }
+}
+
+// ===== RENDERING =====
+function drawField() {
+  ctx.fillStyle = '#1e7d32';
+  ctx.fillRect(0, 0, CONFIG.FIELD_W, CONFIG.FIELD_H);
+
+  // stripes
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  const stripeW = CONFIG.FIELD_W / 12;
+  for (let i = 0; i < 12; i += 2) {
+    ctx.fillRect(i * stripeW, 0, stripeW, CONFIG.FIELD_H);
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(4, 4, CONFIG.FIELD_W - 8, CONFIG.FIELD_H - 8);
+
+  ctx.beginPath();
+  ctx.moveTo(CONFIG.FIELD_W / 2, 4);
+  ctx.lineTo(CONFIG.FIELD_W / 2, CONFIG.FIELD_H - 4);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(CONFIG.FIELD_W / 2, CONFIG.FIELD_H / 2, 55, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const half = CONFIG.GOAL_H / 2, mid = CONFIG.FIELD_H / 2;
+  ctx.strokeRect(4, mid - half, 90, CONFIG.GOAL_H);
+  ctx.strokeRect(CONFIG.FIELD_W - 94, mid - half, 90, CONFIG.GOAL_H);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(-6, mid - half, 10, CONFIG.GOAL_H);
+  ctx.fillRect(CONFIG.FIELD_W - 4, mid - half, 10, CONFIG.GOAL_H);
+}
+
+function drawTargetMarker() {
+  if (userTargetMarker.timer <= 0) return;
+  const a = clamp(userTargetMarker.timer / 0.9, 0, 1);
+  ctx.strokeStyle = `rgba(255,255,0,${a})`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(userTargetMarker.x, userTargetMarker.y, 10, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawBall() {
+  ctx.beginPath();
+  ctx.ellipse(ball.x, ball.y + CONFIG.BALL_R * 0.6, CONFIG.BALL_R * 0.9, CONFIG.BALL_R * 0.35, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, CONFIG.BALL_R, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+}
+
+function drawPlayer(p) {
+  const progress = (p.state === 'kicking' || p.state === 'punching')
+    ? 1 - Math.abs((p.stateTimer / p.actionDuration) - 0.5) * 2
+    : 0;
+
+  ctx.save();
+  ctx.translate(p.x, p.y);
+
+  // shadow
+  ctx.beginPath();
+  ctx.ellipse(0, CONFIG.PLAYER_R + 6, 10, 4, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+
+  let bodyColor = p.color;
+  if (p.state === 'stunned') {
+    const flash = Math.floor(p.stateTimer * 10) % 2 === 0;
+    bodyColor = flash ? '#ffffff' : p.color;
+  }
+
+  const fx = Math.cos(p.facing), fy = Math.sin(p.facing);
+  const px = -fy, py = fx; // perpendicular
+
+  // legs
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 3;
+  const legSwing = p.state === 'kicking' ? progress * 14 : 4;
+  ctx.beginPath();
+  ctx.moveTo(0, 2);
+  ctx.lineTo(px * 5 - fx * legSwing * 0.3, 14 - fy * legSwing * 0.3);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, 2);
+  const kickLegX = p.state === 'kicking' ? fx * (10 + legSwing) : -px * 5;
+  const kickLegY = p.state === 'kicking' ? fy * (10 + legSwing) : 14;
+  ctx.lineTo(kickLegX, kickLegY);
+  ctx.stroke();
+
+  // torso
+  ctx.strokeStyle = bodyColor;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, 2);
+  ctx.lineTo(0, -10);
+  ctx.stroke();
+
+  // arms
+  ctx.strokeStyle = '#f2c299';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(-px * 9, -2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  const punchArmX = p.state === 'punching' ? fx * (10 + progress * 16) : px * 9;
+  const punchArmY = p.state === 'punching' ? fy * (10 + progress * 16) : -2;
+  ctx.lineTo(punchArmX, punchArmY);
+  ctx.stroke();
+
+  // head
+  ctx.beginPath();
+  ctx.arc(0, -16, 7, 0, Math.PI * 2);
+  ctx.fillStyle = '#f2c299';
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // team highlight ring under feet
+  ctx.beginPath();
+  ctx.arc(0, 2, CONFIG.PLAYER_R, 0, Math.PI * 2);
+  ctx.strokeStyle = bodyColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  if (p.isUser) {
+    ctx.beginPath();
+    ctx.arc(0, 2, CONFIG.PLAYER_R + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffe94d';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#ffe94d';
+    ctx.beginPath();
+    ctx.moveTo(0, -32);
+    ctx.lineTo(-5, -24);
+    ctx.lineTo(5, -24);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (p.hasBall) {
+    ctx.beginPath();
+    ctx.arc(0, -16, 11, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawAimIndicator(p) {
+  if (!p || p.state === 'stunned') return;
+  const len = 30;
+  const ex = p.x + Math.cos(p.facing) * len;
+  const ey = p.y + Math.sin(p.facing) * len;
+  ctx.strokeStyle = 'rgba(255,233,77,0.9)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,233,77,0.9)';
+  ctx.fill();
+}
+
+function render() {
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+  ctx.fillStyle = '#0b0b0b';
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scale, scale);
+
+  drawField();
+  drawTargetMarker();
+
+  const sorted = players.slice().sort((a, b) => a.y - b.y);
+  sorted.forEach(drawPlayer);
+  drawBall();
+  drawAimIndicator(controlledPlayer);
+
+  ctx.restore();
+
+  document.getElementById('kickCooldown').style.height =
+    (controlledPlayer.actionCooldownMax === controlledPlayer.kickCooldown && controlledPlayer.actionCooldown > 0
+      ? (controlledPlayer.actionCooldown / controlledPlayer.kickCooldown) * 100 : 0) + '%';
+  document.getElementById('punchCooldown').style.height =
+    (controlledPlayer.actionCooldownMax === controlledPlayer.punchCooldown && controlledPlayer.actionCooldown > 0
+      ? (controlledPlayer.actionCooldown / controlledPlayer.punchCooldown) * 100 : 0) + '%';
+}
+
+// ===== GAME LOOP =====
+let lastTime = null;
+function tick(now) {
+  if (lastTime === null) lastTime = now;
+  let dt = (now - lastTime) / 1000;
+  dt = Math.min(dt, 0.05);
+  lastTime = now;
+
+  update(dt);
+  render();
+
+  requestAnimationFrame(tick);
+}
+
+buildMatch();
+requestAnimationFrame(tick);
+
+</script>
+</body>
+</html>
