@@ -8,6 +8,7 @@ import { getTopJokes, readGlobalStats } from '../lib/ratingsStorageDynamo'
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
   { href: '/best-dad-jokes', label: 'Top Jokes' },
+  { href: '/community-jokes', label: 'AI vs Human' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/about', label: 'About' },
   { href: '/games', label: 'Games' },

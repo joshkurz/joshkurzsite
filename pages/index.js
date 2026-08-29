@@ -9,11 +9,7 @@ import JokeSpeaker from '../components/JokeSpeaker'
 import { parseStream } from '../lib/parseJokeStream'
 import { pickRandomJoke, getRequestIp } from '../lib/randomJoke'
 import { getRandomTopJoke, readGlobalStats } from '../lib/ratingsStorageDynamo'
-import {
-  getAiJokeNickname,
-  parseAiAuthorSignature,
-  resolveNicknameFromMetadata
-} from '../lib/aiJokeNicknames'
+import { resolveDisplayAuthor } from '../lib/aiJokeNicknames'
 
 const defaultRatingStats = {
   counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -35,19 +31,6 @@ function nextStreakMilestone(count) {
     if (count < m) return { milestone: m, remaining: m - count };
   }
   return null;
-}
-
-function resolveDisplayAuthor(author, metadata) {
-  const normalizedAuthor = typeof author === 'string' ? author.trim() : ''
-  const nickname = resolveNicknameFromMetadata(metadata)
-  if (nickname) {
-    return nickname
-  }
-  const signature = parseAiAuthorSignature(normalizedAuthor)
-  if (signature) {
-    return getAiJokeNickname(signature.model, signature.promptVersion)
-  }
-  return normalizedAuthor || 'Unknown'
 }
 
 // Derives the full "joke loaded" state slice from raw joke data. Used both to
@@ -724,6 +707,7 @@ export default function Home({ initialJoke, initialFeaturedJoke, initialGlobalVo
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
     { href: '/best-dad-jokes', label: 'Top Jokes' },
+    { href: '/community-jokes', label: 'AI vs Human' },
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/about', label: 'About' },
     { href: '/games', label: 'Games' },

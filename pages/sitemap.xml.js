@@ -5,6 +5,7 @@ const SITE_URL = 'https://joshkurz.net'
 const STATIC_PAGES = [
   { url: '/',        changefreq: 'daily',   priority: '1.0' },
   { url: '/best-dad-jokes', changefreq: 'daily', priority: '0.9' },
+  { url: '/community-jokes', changefreq: 'daily', priority: '0.85' },
   { url: '/weekly',  changefreq: 'weekly',  priority: '0.85' },
   { url: '/submit',  changefreq: 'monthly', priority: '0.75' },
   { url: '/dashboard', changefreq: 'daily', priority: '0.8' },
