@@ -104,7 +104,7 @@ export default function SoccerBrawl() {
             A free online soccer game with no fouls — punching and kicking other players
             is part of the game, not a red card. Made by a dad and his son.
           </p>
-          <a href="/games/soccer-brawl.html" className={styles.playButton}>
+          <a href="/play/soccer-brawl.html" className={styles.playButton}>
             ▶ Play Soccer Brawl Free
           </a>
         </section>
@@ -156,7 +156,7 @@ export default function SoccerBrawl() {
 
         <div className={styles.cta}>
           <p>No download, no sign-up — just kickoff.</p>
-          <a href="/games/soccer-brawl.html" className={styles.playButton}>
+          <a href="/play/soccer-brawl.html" className={styles.playButton}>
             ▶ Play Soccer Brawl Free
           </a>
           <Link href="/games" style={{ color: 'rgba(226,232,240,0.6)', fontSize: '0.9rem' }}>
