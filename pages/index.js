@@ -1,11 +1,14 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import React from 'react'
+import PropTypes from 'prop-types'
 import styles from '../styles/Home.module.css'
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import JokeSpeaker from '../components/JokeSpeaker'
 import { parseStream } from '../lib/parseJokeStream'
+import { pickRandomJoke, getRequestIp } from '../lib/randomJoke'
+import { getRandomTopJoke, readGlobalStats } from '../lib/ratingsStorageDynamo'
 import {
   getAiJokeNickname,
   parseAiAuthorSignature,
@@ -47,6 +50,45 @@ function resolveDisplayAuthor(author, metadata) {
   return normalizedAuthor || 'Unknown'
 }
 
+// Derives the full "joke loaded" state slice from raw joke data. Used both to
+// seed initial state from SSR props (so the joke is in the server-rendered
+// HTML) and after a client-side fetch, so both paths render identically.
+function buildJokeState(data) {
+  if (!data || data.exhausted) {
+    return {
+      isLoaded: true,
+      isComplete: true,
+      jokesExhausted: true,
+      exhaustedMessage: data?.message || "You've rated every joke in our collection! Thanks for your contribution!"
+    };
+  }
+  const initialParseState = { question: '', answer: '', questionTokens: [], answerTokens: [], pendingQuestion: '' };
+  const parsed = parseStream(data.text || '', initialParseState);
+  const storedAuthor = data.author || 'Unknown';
+  const metadata = data.metadata || null;
+  const displayAuthor = resolveDisplayAuthor(storedAuthor, metadata);
+  const question = parsed.questionTokens.join(' ').trim();
+  const answer = parsed.answerTokens.join(' ').trim();
+  const parts = [];
+  if (question) parts.push(question);
+  if (answer) parts.push(answer);
+  const jokeText = parts.join(' || ').trim();
+  const speechText = parts.join('. ').replace(/\s+/g, ' ').trim();
+  return {
+    ...parsed,
+    isLoaded: true,
+    isComplete: true,
+    error: null,
+    loadedJokeId: data.id || null,
+    currentJokeId: data.id || null,
+    currentJokeText: jokeText,
+    currentJokeSpeechText: speechText || jokeText,
+    currentJokeAuthor: storedAuthor,
+    currentJokeDisplayAuthor: displayAuthor,
+    currentJokeMetadata: metadata
+  };
+}
+
 
 class OpenAIData extends React.Component {
   constructor(props) {
@@ -83,13 +125,20 @@ class OpenAIData extends React.Component {
       streakCount: 0,
       jokesExhausted: false,
       exhaustedMessage: null,
-      globalVotes: null
+      globalVotes: props.initialGlobalVotes ?? null,
+      // Seed from SSR data so the joke is present in the server-rendered HTML
+      // instead of appearing only after the client fetch resolves.
+      ...(props.initialJoke ? buildJokeState(props.initialJoke) : {})
     };
   }
 
   componentDidMount() {
-    this.fetchJoke();
-    this.fetchGlobalStats();
+    if (!this.props.initialJoke) {
+      this.fetchJoke();
+    }
+    if (this.props.initialGlobalVotes == null) {
+      this.fetchGlobalStats();
+    }
     try {
       const stored = sessionStorage.getItem('jokeStreak');
       if (stored) {
@@ -349,41 +398,9 @@ class OpenAIData extends React.Component {
         throw new Error(payload.error || 'Unable to load a dad joke');
       }
       const data = await res.json();
-      if (data.exhausted) {
-        this.setState({
-          isLoaded: true,
-          isComplete: true,
-          jokesExhausted: true,
-          exhaustedMessage: data.message || "You've rated every joke in our collection! Thanks for your contribution!"
-        });
-        return;
-      }
-      const initialState = {
-        question: '',
-        answer: '',
-        questionTokens: [],
-        answerTokens: [],
-        pendingQuestion: ''
-      };
-      const parsed = parseStream(data.text || '', initialState);
-      const storedAuthor = data.author || 'Unknown';
-      const metadata = data.metadata || null;
-      const displayAuthor = resolveDisplayAuthor(storedAuthor, metadata);
-      this.setState(
-        {
-          ...parsed,
-          isLoaded: true,
-          isComplete: true,
-          error: null,
-          loadedJokeId: data.id || null,
-          currentJokeAuthor: storedAuthor,
-          currentJokeDisplayAuthor: displayAuthor,
-          currentJokeMetadata: metadata
-        },
-        () => {
-          this.prepareJokeMetadata();
-        }
-      );
+      this.setState(buildJokeState(data), () => {
+        this.prepareJokeMetadata();
+      });
     } catch (error) {
       this.setState({
         error,
@@ -689,11 +706,12 @@ class OpenAIData extends React.Component {
   }
 }
 
-export default function Home() {
-  const [featuredJoke, setFeaturedJoke] = React.useState(null);
-  const [featuredLoading, setFeaturedLoading] = React.useState(true);
+export default function Home({ initialJoke, initialFeaturedJoke, initialGlobalVotes }) {
+  const [featuredJoke, setFeaturedJoke] = React.useState(initialFeaturedJoke || null);
+  const [featuredLoading, setFeaturedLoading] = React.useState(!initialFeaturedJoke);
 
   React.useEffect(() => {
+    if (initialFeaturedJoke) return;
     fetch('/api/featured-joke')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -701,7 +719,7 @@ export default function Home() {
         setFeaturedLoading(false);
       })
       .catch(() => { setFeaturedLoading(false); });
-  }, []);
+  }, [initialFeaturedJoke]);
 
   const navLinks = [
     { href: '/', label: 'Live Jokes' },
@@ -847,7 +865,7 @@ export default function Home() {
       )}
 
       <main className={styles.main}>
-        <OpenAIData />
+        <OpenAIData initialJoke={initialJoke} initialGlobalVotes={initialGlobalVotes} />
       </main>
 
       {/* Static content below the fold — indexed by Google */}
@@ -930,4 +948,27 @@ export default function Home() {
 
     </div>
   )
+}
+
+Home.propTypes = {
+  initialJoke: PropTypes.object,
+  initialFeaturedJoke: PropTypes.object,
+  initialGlobalVotes: PropTypes.number,
+}
+
+export async function getServerSideProps({ req }) {
+  const ip = getRequestIp(req)
+  const [initialJoke, initialFeaturedJoke, globalStats] = await Promise.all([
+    pickRandomJoke(ip).catch(() => null),
+    getRandomTopJoke().catch(() => null),
+    readGlobalStats().catch(() => ({ totalRatings: 0 })),
+  ])
+
+  return {
+    props: {
+      initialJoke: initialJoke || null,
+      initialFeaturedJoke: initialFeaturedJoke || null,
+      initialGlobalVotes: globalStats?.totalRatings > 0 ? globalStats.totalRatings : null,
+    },
+  }
 }
