@@ -12,6 +12,8 @@ const STATIC_PAGES = [
   { url: '/guide',   changefreq: 'monthly', priority: '0.7' },
   { url: '/about',   changefreq: 'monthly', priority: '0.6' },
   { url: '/speak',   changefreq: 'monthly', priority: '0.5' },
+  { url: '/games',   changefreq: 'monthly', priority: '0.6' },
+  { url: '/games/soccer-brawl', changefreq: 'monthly', priority: '0.6' },
 ]
 
 const CATEGORY_PAGES = CATEGORIES.map(cat => ({

@@ -57,7 +57,7 @@ export default function Games() {
           {games.map((game) => (
             <a
               key={game.slug}
-              href={`/games/${game.slug}.html`}
+              href={`/games/${game.slug}`}
               className={styles.gameCard}
             >
               <div className={styles.gameHeader}>
