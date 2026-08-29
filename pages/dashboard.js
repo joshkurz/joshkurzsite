@@ -5,6 +5,7 @@ import Header from '../components/Header'
 import styles from '../styles/Dashboard.module.css'
 import { getDashboardStats } from '../lib/ratingsStorageDynamo'
 import { getAllJokesAsync } from '../lib/jokesData'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -172,6 +173,12 @@ export default function Dashboard({ summary, totalJokes, error, requestTimeMs, g
   const uniqueJokes = summary?.totals?.uniqueJokes || 0
   const percentRated = totalJokes > 0 ? Math.round((uniqueJokes / totalJokes) * 100) : 0
 
+  const ogImage = buildOgImageUrl({
+    title: 'Dad Jokes Analytics',
+    subtitle: totalRatings > 0 ? `${totalRatings.toLocaleString()} community ratings, updated live` : 'Community-voted rankings, updated live',
+    badge: 'Dashboard',
+  });
+
   return (
     <div className={styles.container}>
       <Head>
@@ -183,11 +190,11 @@ export default function Dashboard({ summary, totalJokes, error, requestTimeMs, g
         <meta property="og:title" content="Highest Rated Dad Jokes - Community Rankings" />
         <meta property="og:description" content="See which dad jokes made people groan the most. Community-voted rankings updated in real time." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content="Highest Rated Dad Jokes - Community Rankings" />
         <meta name="twitter:description" content="See which dad jokes made people groan the most. Community-voted rankings updated in real time." />
       </Head>

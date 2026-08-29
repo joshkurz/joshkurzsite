@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Header from '../components/Header'
 import styles from '../styles/About.module.css'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -53,6 +54,11 @@ const sources = [
 ]
 
 export default function About() {
+  const ogImage = buildOgImageUrl({
+    title: 'About JoshKurz.net',
+    subtitle: '900+ dad jokes, community voting, AI generation, and text-to-speech',
+    badge: 'About',
+  });
   return (
     <div className={styles.container}>
       <Head>
@@ -64,11 +70,11 @@ export default function About() {
         <meta property="og:title" content="About - Dad Jokes Website | JoshKurz.net" />
         <meta property="og:description" content="900+ dad jokes, community voting, AI generation, and text-to-speech. Learn how the platform works." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content="About - Dad Jokes Website | JoshKurz.net" />
         <meta name="twitter:description" content="900+ dad jokes, community voting, AI generation, and text-to-speech. Learn how the platform works." />
       </Head>

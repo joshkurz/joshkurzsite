@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import Header from '../components/Header'
 import styles from '../styles/Top.module.css'
 import { getTopJokes, readGlobalStats } from '../lib/ratingsStorageDynamo'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -59,6 +60,12 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
   const metaDescription = topJoke
     ? `The ${jokes.length} best dad jokes ranked by real community votes. #1: "${topJoke.joke?.slice(0, 80)}..." — rated ${topJoke.average?.toFixed(2)} stars from ${formatNumber(totalRatings)} total ratings.`
     : `The best dad jokes ranked by real community votes. ${formatNumber(totalRatings)} ratings cast across 900+ jokes. Updated live.`
+  const ogImage = buildOgImageUrl({
+    title: `Top ${jokes.length || 25} Dad Jokes`,
+    subtitle: topJoke?.joke ? topJoke.joke.slice(0, 90) : 'Ranked by real community votes',
+    badge: 'Hall of Fame',
+    emoji: '🏆',
+  })
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -107,11 +114,11 @@ export default function TopJokes({ jokes, totalRatings, updatedAt, error }) {
         <meta property="og:title" content={`Top ${jokes.length} Dad Jokes Ranked by Community Votes`} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content={`Top ${jokes.length} Dad Jokes Ranked by Community Votes`} />
         <meta name="twitter:description" content={metaDescription} />
         {jokes.length > 0 && (

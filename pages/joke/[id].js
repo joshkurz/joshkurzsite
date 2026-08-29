@@ -6,6 +6,7 @@ import ShareButtons from '../../components/ShareButtons'
 import JokeRater from '../../components/JokeRater'
 import styles from '../../styles/JokePage.module.css'
 import { getAllJokesAsync } from '../../lib/jokesData'
+import { buildOgImageUrl } from '../../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -21,6 +22,12 @@ export default function JokePage({ joke, shareUrl }) {
   const description = joke.response
     ? `${joke.opener} … ${joke.response}`
     : joke.text
+  const ogImage = buildOgImageUrl({
+    title: joke.opener || 'Dad Joke',
+    subtitle: joke.response || '',
+    badge: 'Dad Joke',
+    emoji: '🤦‍♂️',
+  })
 
   return (
     <div className={styles.container}>
@@ -33,7 +40,11 @@ export default function JokePage({ joke, shareUrl }) {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
       </Head>

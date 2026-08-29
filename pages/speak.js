@@ -4,6 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header'
 import Spinner from '../components/Spinner'
 import styles from '../styles/Speak.module.css'
+import { buildOgImageUrl } from '../lib/ogImage'
+
+const ogImage = buildOgImageUrl({
+  title: 'Dad Joke Text-to-Speech',
+  subtitle: 'Type or paste any joke and hear it read aloud',
+  badge: 'Speak',
+})
 
 export default function SpeechHelper() {
 
@@ -125,11 +132,11 @@ export default function SpeechHelper() {
         <meta property="og:title" content="Listen to Dad Jokes Aloud - Text-to-Speech" />
         <meta property="og:description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content="Listen to Dad Jokes Aloud - Text-to-Speech" />
         <meta name="twitter:description" content="Type any dad joke and hear it read aloud with AI text-to-speech. Perfect for sharing jokes at the dinner table." />
       </Head>

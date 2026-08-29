@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import Header from '../components/Header'
 import styles from '../styles/WeeklyPage.module.css'
 import { getWeeklyTopJokes } from '../lib/ratingsStorageDynamo'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -27,6 +28,11 @@ function formatAuthor(author) {
 export default function WeeklyPage({ jokes, updatedAt, error }) {
   const title = 'Best Dad Jokes This Week'
   const description = `The highest-rated dad jokes from the past 7 days — voted on by the community. Updated weekly. ${jokes.length > 0 ? `${jokes.length} jokes made the cut this week.` : ''}`
+  const ogImage = buildOgImageUrl({
+    title: 'Best Dad Jokes This Week',
+    subtitle: jokes[0]?.joke ? jokes[0].joke.slice(0, 90) : 'Ranked by real community votes, updated weekly',
+    badge: 'This Week',
+  });
 
   return (
     <div className={styles.container}>
@@ -39,11 +45,11 @@ export default function WeeklyPage({ jokes, updatedAt, error }) {
         <meta property="og:title" content={`${title} | JoshKurz.net`} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
       </Head>

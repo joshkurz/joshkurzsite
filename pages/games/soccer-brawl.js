@@ -13,7 +13,7 @@ const navLinks = [
 ]
 
 const TITLE = 'Soccer Brawl — Free Online Soccer Game With No Fouls'
-const DESCRIPTION = "Play Soccer Brawl free in your browser — a soccer game where punching and kicking are part of the game, not a foul. No download, no sign-up. Made by a dad and his son, best played on mobile."
+const DESCRIPTION = "Play Soccer Brawl free in your browser — a soccer game where punching and kicking are part of the game, not a foul. No download, no sign-up. My son and I made it together, best played on mobile."
 const CANONICAL_URL = 'https://joshkurz.net/games/soccer-brawl'
 
 const faqs = [
@@ -84,11 +84,11 @@ export default function SoccerBrawl() {
         <meta property="og:title" content={TITLE} />
         <meta property="og:description" content={DESCRIPTION} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content="https://joshkurz.net/games/og-soccer-brawl.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content="https://joshkurz.net/games/og-soccer-brawl.png" />
         <meta name="twitter:title" content={TITLE} />
         <meta name="twitter:description" content={DESCRIPTION} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -102,7 +102,7 @@ export default function SoccerBrawl() {
           <h1>Soccer Brawl</h1>
           <p className={styles.heroSubtitle}>
             A free online soccer game with no fouls — punching and kicking other players
-            is part of the game, not a red card. Made by a dad and his son.
+            is part of the game, not a red card. Made by my son and me.
           </p>
           <a href="/play/soccer-brawl.html" className={styles.playButton}>
             ▶ Play Soccer Brawl Free

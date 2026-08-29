@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PropTypes from 'prop-types'
 import Header from '../../components/Header'
 import styles from '../../styles/Author.module.css'
+import { buildOgImageUrl } from '../../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -165,6 +166,11 @@ export default function AuthorPage({ data, error }) {
 
   const authorName = formatAuthorName(data?.author)
   const unratedJokes = (data?.unratedJokes || []).filter(j => !ratedJokeIds.has(j.jokeId))
+  const ogImage = buildOgImageUrl({
+    title: `${authorName} Jokes`,
+    subtitle: data ? `${formatNumber(data.totalJokes)} jokes, ${formatNumber(data.totalRatings)} ratings` : 'Browse jokes by this author',
+    badge: 'Author',
+  })
 
   const handleJokeRated = (jokeId) => {
     setRatedJokeIds(prev => new Set([...prev, jokeId]))
@@ -181,11 +187,11 @@ export default function AuthorPage({ data, error }) {
         <meta property="og:title" content={`${authorName} - Dad Jokes | JoshKurz.net`} />
         <meta property="og:description" content={`Browse all dad jokes by ${authorName} — ratings, rankings, and community votes.`} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content={`${authorName} - Dad Jokes | JoshKurz.net`} />
         <meta name="twitter:description" content={`Browse all dad jokes by ${authorName} — ratings, rankings, and community votes.`} />
       </Head>

@@ -33,11 +33,11 @@ export default function Games() {
         <meta property="og:title" content="Games - JoshKurz.net" />
         <meta property="og:description" content="Games I'm publishing, starting with Soccer Brawl — a soccer game my son and I made together." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content="https://joshkurz.net/games/og-soccer-brawl.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content="https://joshkurz.net/games/og-soccer-brawl.png" />
         <meta name="twitter:title" content="Games - JoshKurz.net" />
         <meta name="twitter:description" content="Games I'm publishing, starting with Soccer Brawl — a soccer game my son and I made together." />
       </Head>

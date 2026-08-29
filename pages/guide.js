@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Header from '../components/Header'
 import styles from '../styles/GuidePage.module.css'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const navLinks = [
   { href: '/', label: 'Live Jokes' },
@@ -38,6 +39,11 @@ const EXAMPLES = [
 export default function GuidePage() {
   const title = "What Makes a Great Dad Joke? The Complete Guide"
   const description = "Learn the anatomy of a perfect dad joke — setup, punchline, groan factor, and the psychology of why bad puns are so satisfying. With examples and writing tips."
+  const ogImage = buildOgImageUrl({
+    title: 'The Dad Joke Guide',
+    subtitle: 'Setup, punchline, and the psychology of a good groan',
+    badge: 'Guide',
+  });
 
   return (
     <div className={styles.container}>
@@ -50,11 +56,11 @@ export default function GuidePage() {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({

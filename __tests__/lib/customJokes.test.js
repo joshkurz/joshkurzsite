@@ -107,4 +107,44 @@ describe('custom jokes storage', () => {
     expect(jokes[0].opener).toBe('Test opener')
     expect(jokes[0].author).toBe('Test Author')
   })
+
+  it('fails open with an empty array when DynamoDB is unavailable, instead of throwing', async () => {
+    mockSend.mockReset()
+    mockSend.mockRejectedValue(new Error('Could not load credentials from any providers'))
+    await loadModule()
+
+    await expect(customJokes.getCustomJokesAsync()).resolves.toEqual([])
+  })
+
+  it('retries on the next call after a transient failure instead of staying wedged', async () => {
+    mockSend.mockReset()
+    mockSend.mockRejectedValueOnce(new Error('transient DynamoDB error'))
+    await loadModule()
+
+    // First call hits the failure and fails open.
+    await expect(customJokes.getCustomJokesAsync()).resolves.toEqual([])
+
+    // DynamoDB recovers — a subsequent call should retry, not reuse the
+    // stale rejected initialization promise.
+    mockSend.mockResolvedValue({
+      Items: [
+        {
+          PK: 'CUSTOM_JOKE#custom-456',
+          SK: 'METADATA',
+          id: 'custom-456',
+          opener: 'Recovered opener',
+          response: 'Recovered response',
+          author: 'Recovered Author',
+          status: 'accepted',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          GSI1PK: 'CUSTOM_JOKES_ACCEPTED',
+          GSI1SK: '2024-01-01T00:00:00.000Z'
+        }
+      ]
+    })
+
+    const jokes = await customJokes.getCustomJokesAsync()
+    expect(jokes.length).toBe(1)
+    expect(jokes[0].opener).toBe('Recovered opener')
+  })
 })

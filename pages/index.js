@@ -10,6 +10,7 @@ import { parseStream } from '../lib/parseJokeStream'
 import { pickRandomJoke, getRequestIp } from '../lib/randomJoke'
 import { getRandomTopJoke, readGlobalStats } from '../lib/ratingsStorageDynamo'
 import { resolveDisplayAuthor } from '../lib/aiJokeNicknames'
+import { buildOgImageUrl } from '../lib/ogImage'
 
 const defaultRatingStats = {
   counts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -31,6 +32,20 @@ function nextStreakMilestone(count) {
     if (count < m) return { milestone: m, remaining: m - count };
   }
   return null;
+}
+
+// Shown instead of a raw error when a joke fails to load — a joke about the
+// failure itself, in keeping with the site's voice.
+const LOAD_ERROR_JOKES = [
+  { setup: "Why didn't the joke load?", punchline: "It got stage fright." },
+  { setup: "What did the server say when the request failed?", punchline: "I've got 99 problems and this joke is all of them." },
+  { setup: "Why couldn't the dad joke reach you?", punchline: "It got stuck in a dad-lock." },
+  { setup: "What do you call a joke that fails to load?", punchline: "A groan-timeout." },
+  { setup: "Why did the joke fail to fetch?", punchline: "It pulled a groan muscle trying." },
+];
+
+function pickLoadErrorJoke() {
+  return LOAD_ERROR_JOKES[Math.floor(Math.random() * LOAD_ERROR_JOKES.length)];
 }
 
 // Derives the full "joke loaded" state slice from raw joke data. Used both to
@@ -78,6 +93,7 @@ class OpenAIData extends React.Component {
     super(props);
     this.state = {
       error: null,
+      errorJoke: null,
       isLoaded: false,
       isComplete: false,
       question: "",
@@ -344,6 +360,7 @@ class OpenAIData extends React.Component {
   loadJokeFromEndpoint = async (endpoint, { method = 'GET', body } = {}) => {
     this.setState({
       error: null,
+      errorJoke: null,
       isLoaded: false,
       isComplete: false,
       question: '',
@@ -387,6 +404,7 @@ class OpenAIData extends React.Component {
     } catch (error) {
       this.setState({
         error,
+        errorJoke: pickLoadErrorJoke(),
         isLoaded: true,
         isComplete: true
       });
@@ -404,6 +422,7 @@ class OpenAIData extends React.Component {
   render() {
     const {
       error,
+      errorJoke,
       isLoaded,
       isComplete,
       question,
@@ -447,7 +466,19 @@ class OpenAIData extends React.Component {
     const isPreviewing = hoveredRating !== null;
 
     if (error) {
-      return <div>Error Loading: {error.message}</div>;
+      const joke = errorJoke || pickLoadErrorJoke();
+      return (
+        <div className={styles.jokeContainer}>
+          <h2 className={styles.jokeHeader}>Fresh Groaners</h2>
+          <p className={styles.question}>{joke.setup}</p>
+          <p className={styles.answer}>{joke.punchline}</p>
+          <div className={styles.jokeActions}>
+            <button className={styles.newJokeButton} type="button" onClick={this.fetchJoke}>
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
     }
     if (!isLoaded) {
       return (
@@ -712,6 +743,11 @@ export default function Home({ initialJoke, initialFeaturedJoke, initialGlobalVo
     { href: '/about', label: 'About' },
     { href: '/games', label: 'Games' },
   ];
+  const ogImage = buildOgImageUrl({
+    title: '900+ Dad Jokes',
+    subtitle: 'Vote, rate, and generate dad jokes with AI',
+    emoji: '🤦‍♂️',
+  });
   return (
     <div className={styles.container}>
       <Head>
@@ -726,13 +762,13 @@ export default function Home({ initialJoke, initialFeaturedJoke, initialGlobalVo
         <meta property="og:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
         <meta property="og:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech. AI-generated jokes too." />
         <meta property="og:site_name" content="JoshKurz.net Dad Jokes" />
-        <meta property="og:image" content="https://joshkurz.net/og-image.png" />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="https://joshkurz.net/og-image.png" />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:title" content="Dad Jokes - Vote, Rate & Hear Funny Dad Jokes" />
         <meta name="twitter:description" content="Vote on 900+ dad jokes, rate your favorites on a groan scale, submit your own, and listen via text-to-speech." />
 
